@@ -1,1 +1,3 @@
-import OverpassConnection from '../../src/connection'
+import overpassConnect from 'overpass-websocket-client'
+
+overpassConnect('ws://localhost:8081/')

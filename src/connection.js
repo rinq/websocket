@@ -1,213 +1,100 @@
 import {EventEmitter} from 'events'
 
-function destroy (session, error) {
-  session.destroyed = error
+import OverpassSession from './session'
 
-  for (let seq in session.calls) {
-    if (session.calls[seq].timeout) {
-      session.client.clearTimeout(session.calls[seq].timeout)
-    }
-
-    session.calls[seq].reject(error)
-  }
-
-  session.calls = {}
-}
-
-function shutdown (client, error) {
-  client.connection.removeEventListener('error', client.onError)
-  client.connection.removeEventListener('close', client.onClose)
-  client.connection.removeEventListener('message', client.onMessage)
-
-  for (let seq in client.sessions) {
-    destroy(client.sessions[seq], error)
-  }
-
-  client.sessions = {}
-}
-
-function dispatch (client, message) {
-  if (!client.sessions[message.session]) {
-    const error = new Error('Unexpected session: ' + message.session + '.')
-
-    shutdown(client, error)
-    client.connection.close()
-    client.emit('close', error)
-
-    return
-  }
-
-  client.sessions[message.session].dispatch(message)
-}
-
-function dispatchCommandResponse (session, message) {
-  if (!session.calls[message.seq]) {
-    return
-  }
-
-  if (session.calls[message.seq].timeout) {
-    session.client.clearTimeout(session.calls[message.seq].timeout)
-  }
-
-  session.calls[message.seq].resolve(message.payload)
-  delete session.calls[message.seq]
-}
-
-function dispatchSessionDestroy (session, message) {
-  destroy(session, new Error('Session destroyed remotely.'))
-}
-
-function onMessage (client) {
-  return event => {
-    try {
-      dispatch(client, JSON.parse(event.data))
-    } catch (error) {
-      shutdown(client, error)
-      client.connection.close()
-      client.emit('close', error)
-    }
-  }
-}
-
-function onFirstMessage (client) {
-  return event => {
-    client.connection.removeEventListener('message', client.onMessage)
-
-    client.onMessage = onMessage(client)
-    client.connection.addEventListener('message', client.onMessage)
-  }
-}
-
-function onSocketError (client) {
-  return error => {
-    shutdown(client, error)
-    client.connection.close()
-    client.emit('close', error)
-  }
-}
-
-function onSocketClose (client) {
-  return event => {
-    const error = new Error('Connection closed: ' + event.reason)
-
-    shutdown(client, error)
-    client.emit('close', error)
-  }
-}
-
-export class OverpassSession extends EventEmitter {
-  constructor ({client, id}) {
+export default class OverpassConnection extends EventEmitter {
+  constructor ({setTimeout, clearTimeout, socket}) {
     super()
 
-    this.client = client
-    this.id = id
-    this.destroyed = false
-    this.seq = 0
-    this.calls = {}
-  }
+    this._socket = socket
+    this._setTimeout = setTimeout
+    this._clearTimeout = clearTimeout
+    this._sessionSeq = 0
+    this._sessions = {}
 
-  destroy () {
-    this.client.send({type: 'session.destroy', session: this.id})
-    destroy(this, new Error('Session destroyed locally.'))
-  }
-
-  send (command, payload, timeout) {
-    if (this.destroyed) {
-      throw this.destroyed
-    }
-
-    this.client.send({
-      type: 'command.request',
-      session: this.id,
-      command,
-      payload,
-      timeout
-    })
-  }
-
-  call (command, payload, timeout) {
-    const session = this
-
-    return new Promise((resolve, reject) => {
-      if (session.destroyed) {
-        return reject(session.destroyed)
-      }
-
-      const seq = ++session.seq
-      const timeoutId = session.client.setTimeout(
-        () => {
-          delete session.calls[seq]
-          reject(new Error(
-            'Call to ' + command + ' timed out after ' + timeout + 'ms'
-          ))
-        },
-        timeout
-      )
-      session.calls[seq] = {resolve, reject, timeout: timeoutId}
-
-      session.client.send({
-        type: 'command.request',
-        session: this.id,
-        command,
-        payload,
-        seq,
-        timeout
-      })
-    })
-  }
-
-  dispatch (message) {
-    switch (message.type) {
-      case 'session.destroy': return dispatchSessionDestroy(this)
-      case 'command.response': return dispatchCommandResponse(this, message)
-    }
-  }
-}
-
-export class OverpassConnection extends EventEmitter {
-  constructor ({setTimeout, clearTimeout, connection}) {
-    super()
-
-    this.socket = connection
-    this.setTimeout = setTimeout
-    this.clearTimeout = clearTimeout
-    this.seq = 0
-    this.sessions = {}
-
-    this.onError = onSocketError(this)
-    this.onClose = onSocketClose(this)
-    this.onMessage = onFirstMessage(this)
-
-    this.socket.addEventListener('error', this.onError)
-    this.socket.addEventListener('close', this.onClose)
-    this.socket.addEventListener('message', this.onMessage)
-  }
-
-  open () {
-    this.socket.send('OP0200')
+    this._socket.addEventListener('open', this._onOpen)
+    this._socket.addEventListener('error', this._onError)
+    this._socket.addEventListener('close', this._onClose)
+    this._socket.addEventListener('message', this._onFirstMessage)
   }
 
   close () {
-    shutdown(this, new Error('Connection closed locally.'))
-    this.socket.close()
+    this._shutdown(new Error('Connection closed locally.'))
+    this._socket.close()
     this.emit('close')
   }
 
-  send (message) {
-    this.socket.send(JSON.stringify(message))
+  session () {
+    const id = ++this._sessionSeq
+    this._send({type: 'session.create', session: id})
+
+    const session = new OverpassSession({connection: this, id})
+    session.once('destroy', () => delete this._sessions[id])
+    this._sessions[id] = session
+
+    return session
   }
 
-  createSession () {
-    const client = this
+  _onOpen = () => {
+    this._socket.send('OP0200')
+  }
 
-    const seq = ++this.seq
-    this.send({type: 'session.create', session: seq})
+  _onError = (error) => {
+    this._shutdown(error)
+    this._socket.close()
+    this.emit('close', error)
+  }
 
-    this.sessions[seq] = new OverpassSession({client, id: seq})
-    this.sessions[seq].once('destroy', () =>
-      delete client.sessions[seq]
-    )
+  _onClose = (event) => {
+    const error = new Error('Connection closed: ' + event.reason)
 
-    return this.sessions[seq]
+    this._shutdown(error)
+    this.emit('close', error)
+  }
+
+  _onFirstMessage = (event) => {
+    this._socket.removeEventListener('message', this._onFirstMessage)
+    this._socket.addEventListener('message', this._onMessage)
+
+    this.emit('open')
+  }
+
+  _onMessage = (event) => {
+    try {
+      this._dispatch(JSON.parse(event.data))
+    } catch (error) {
+      this._shutdown(error)
+      this._socket.close()
+      this.emit('close', error)
+    }
+  }
+
+  _dispatch (message) {
+    const session = this._sessions[message.session]
+    if (session) return session._dispatch(message)
+
+    const error = new Error('Unexpected session: ' + message.session + '.')
+
+    this._shutdown(error)
+    this._socket.close()
+    this.emit('close', error)
+  }
+
+  _send (message) {
+    this._socket.send(JSON.stringify(message))
+  }
+
+  _shutdown (error) {
+    this._socket.removeEventListener('open', this._onOpen)
+    this._socket.removeEventListener('error', this._onError)
+    this._socket.removeEventListener('close', this._onClose)
+    this._socket.removeEventListener('message', this._onFirstMessage)
+    this._socket.removeEventListener('message', this._onMessage)
+
+    for (let seq in this._sessions) {
+      this._sessions[seq]._destroy(error)
+    }
+
+    this._sessions = {}
   }
 }
