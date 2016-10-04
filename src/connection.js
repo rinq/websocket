@@ -12,6 +12,40 @@ export default class OverpassConnection extends EventEmitter {
     this._sessionSeq = 0
     this._sessions = {}
 
+    this._onOpen = () => {
+      this._socket.send('OP0200')
+    }
+
+    this._onError = (error) => {
+      this._shutdown(error)
+      this._socket.close()
+      this.emit('close', error)
+    }
+
+    this._onClose = (event) => {
+      const error = new Error('Connection closed: ' + event.reason)
+
+      this._shutdown(error)
+      this.emit('close', error)
+    }
+
+    this._onFirstMessage = (event) => {
+      this._socket.removeEventListener('message', this._onFirstMessage)
+      this._socket.addEventListener('message', this._onMessage)
+
+      this.emit('open')
+    }
+
+    this._onMessage = (event) => {
+      try {
+        this._dispatch(JSON.parse(event.data))
+      } catch (error) {
+        this._shutdown(error)
+        this._socket.close()
+        this.emit('close', error)
+      }
+    }
+
     this._socket.addEventListener('open', this._onOpen)
     this._socket.addEventListener('error', this._onError)
     this._socket.addEventListener('close', this._onClose)
@@ -28,45 +62,16 @@ export default class OverpassConnection extends EventEmitter {
     const id = ++this._sessionSeq
     this._send({type: 'session.create', session: id})
 
-    const session = new OverpassSession({connection: this, id})
+    const session = new OverpassSession({
+      setTimeout: this._setTimeout,
+      clearTimeout: this._clearTimeout,
+      connection: this,
+      id
+    })
     session.once('destroy', () => delete this._sessions[id])
     this._sessions[id] = session
 
     return session
-  }
-
-  _onOpen = () => {
-    this._socket.send('OP0200')
-  }
-
-  _onError = (error) => {
-    this._shutdown(error)
-    this._socket.close()
-    this.emit('close', error)
-  }
-
-  _onClose = (event) => {
-    const error = new Error('Connection closed: ' + event.reason)
-
-    this._shutdown(error)
-    this.emit('close', error)
-  }
-
-  _onFirstMessage = (event) => {
-    this._socket.removeEventListener('message', this._onFirstMessage)
-    this._socket.addEventListener('message', this._onMessage)
-
-    this.emit('open')
-  }
-
-  _onMessage = (event) => {
-    try {
-      this._dispatch(JSON.parse(event.data))
-    } catch (error) {
-      this._shutdown(error)
-      this._socket.close()
-      this.emit('close', error)
-    }
   }
 
   _dispatch (message) {

@@ -1,5 +1,7 @@
+var path = require('path')
+
 module.exports = {
-  entry: ['babel-polyfill', './src/app'],
+  entry: ['./src/app'],
   resolve: {
     extensions: ['', '.js']
   },
@@ -11,9 +13,12 @@ module.exports = {
     loaders: [
       {
         test: /\.js$/,
-        exclude: /node_modules/,
+        include: [
+          path.resolve(__dirname, 'src'),
+          path.resolve(__dirname, 'node_modules/overpass-websocket-client')
+        ],
         loader: 'babel',
-        query: { presets: [ 'latest' ] }
+        query: {presets: ['latest']}
       }
     ]
   },
