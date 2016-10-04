@@ -1,11 +1,12 @@
 import {EventEmitter} from 'events'
 
 export default class OverpassConnectionManager extends EventEmitter {
-  constructor ({url, overpassConnect, window}) {
+  constructor ({url, overpassConnect, delayFn, window}) {
     super()
 
     this._url = url
     this._overpassConnect = overpassConnect
+    this._delayFn = delayFn
     this._window = window
 
     this._isStarted = false
@@ -13,6 +14,7 @@ export default class OverpassConnectionManager extends EventEmitter {
     this._onOpen = () => {
       console.log('Caught open event')
 
+      this._closeCount = 0
       this.emit('connection', this._connection)
     }
 
@@ -20,8 +22,16 @@ export default class OverpassConnectionManager extends EventEmitter {
       console.log('Caught close event')
 
       this._disconnect()
+
+      if (!this._window.navigator.onLine) return this._connectWhenOnline()
+
+      ++this._closeCount
+      const delay = this._delayFn(this._closeCount)
+
+      console.log('Reconnecting in ' + delay)
+
       this._reconnectTimeout =
-        this._this._window.setTimeout(this._reconnect, 3000)
+        this._window.setTimeout(this._reconnect, delay)
     }
 
     this._onOnline = () => {
@@ -45,6 +55,7 @@ export default class OverpassConnectionManager extends EventEmitter {
     console.log('Starting')
 
     this._isStarted = true
+    this._closeCount = 0
     this._connectWhenOnline()
   }
 
@@ -59,6 +70,7 @@ export default class OverpassConnectionManager extends EventEmitter {
       console.log('Clearing reconnect timeout')
 
       this._window.clearTimeout(this._reconnectTimeout)
+      delete this._reconnectTimeout
     }
 
     this._window.removeEventListener('online', this._onOnline)
