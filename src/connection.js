@@ -12,15 +12,8 @@ export default class OverpassConnection extends EventEmitter {
     this._sessionSeq = 0
     this._sessions = {}
 
-    this._onOpen = () => {
-      this._socket.send('OP0200')
-    }
-
-    this._onError = (error) => {
-      this._shutdown(error)
-      this._socket.close()
-      this.emit('close', error)
-    }
+    this._onOpen = () => this._socket.send('OP0200')
+    this._onError = (error) => this._closeError(error)
 
     this._onClose = (event) => {
       const error = new Error('Connection closed: ' + event.reason)
@@ -30,6 +23,10 @@ export default class OverpassConnection extends EventEmitter {
     }
 
     this._onFirstMessage = (event) => {
+      if (!this._validateHandshake(event.data)) {
+        return this._closeError(new Error('Handshake failed.'))
+      }
+
       this._socket.removeEventListener('message', this._onFirstMessage)
       this._socket.addEventListener('message', this._onMessage)
 
@@ -40,9 +37,7 @@ export default class OverpassConnection extends EventEmitter {
       try {
         this._dispatch(JSON.parse(event.data))
       } catch (error) {
-        this._shutdown(error)
-        this._socket.close()
-        this.emit('close', error)
+        this._closeError(error)
       }
     }
 
@@ -74,15 +69,24 @@ export default class OverpassConnection extends EventEmitter {
     return session
   }
 
+  _validateHandshake (data) {
+    return typeof data === 'string' &&
+      data.length === 6 &&
+      data.startsWith('OP02') &&
+      data.substring(3) >= '00'
+  }
+
+  _closeError (error) {
+    this._shutdown(error)
+    this._socket.close()
+    this.emit('close', error)
+  }
+
   _dispatch (message) {
     const session = this._sessions[message.session]
     if (session) return session._dispatch(message)
 
-    const error = new Error('Unexpected session: ' + message.session + '.')
-
-    this._shutdown(error)
-    this._socket.close()
-    this.emit('close', error)
+    this._closeError(new Error('Unexpected session: ' + message.session + '.'))
   }
 
   _send (message) {

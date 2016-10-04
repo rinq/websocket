@@ -1,4 +1,6 @@
-build: node_modules
+build:
+	rm -rf node_modules/overpass-websocket-client
+	npm install
 	node_modules/.bin/webpack --debug
 
 serve: build open
@@ -8,6 +10,3 @@ open:
 	open http://localhost:8080/
 
 .PHONY: build serve open
-
-node_modules:
-	npm install
