@@ -7,11 +7,11 @@ export default class OverpassConnectionFactory {
     this._WebSocket = WebSocket
   }
 
-  connection (uri) {
+  connection (url) {
     return new OverpassConnection({
       setTimeout: this._setTimeout,
       clearTimeout: this._clearTimeout,
-      socket: new this._WebSocket(uri)
+      socket: new this._WebSocket(url)
     })
   }
 }

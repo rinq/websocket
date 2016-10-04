@@ -1,3 +1,5 @@
-import overpassConnect from 'overpass-websocket-client'
+import * as overpass from './overpass-sdk'
 
-overpassConnect('ws://localhost:8081/')
+const connectionManager = overpass.connectionManager('ws://localhost:8081/')
+connectionManager.on('connection', connection => console.log(connection))
+connectionManager.start()
