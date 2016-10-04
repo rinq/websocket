@@ -26,8 +26,7 @@ export default class OverpassConnectionManager extends EventEmitter {
 
       if (!this._window.navigator.onLine) return this._connectWhenOnline()
 
-      ++this._closeCount
-      const delay = this._delayFn(this._closeCount)
+      const delay = this._delayFn(++this._closeCount)
 
       this._debug('Reconnecting in ' + delay + 'ms.')
 
@@ -76,6 +75,8 @@ export default class OverpassConnectionManager extends EventEmitter {
 
     this._window.removeEventListener('online', this._onOnline)
     this._disconnect()
+
+    if (this._connection) this._connection.close()
   }
 
   _connectWhenOnline () {

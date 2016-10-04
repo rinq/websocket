@@ -19,19 +19,19 @@ export default class OverpassSession extends EventEmitter {
     this._destroy(new Error('Session destroyed locally.'))
   }
 
-  send (command, payload, timeout) {
+  send (namespace, command, payload) {
     if (this._destroyError) throw this._destroyError
 
     this._connection._send({
       type: 'command.request',
       session: this._id,
+      namespace,
       command,
-      payload,
-      timeout
+      payload
     })
   }
 
-  call (command, payload, timeout) {
+  call (namespace, command, payload, timeout) {
     return new Promise((resolve, reject) => {
       if (this._destroyError) return reject(this._destroyError)
 
@@ -50,6 +50,7 @@ export default class OverpassSession extends EventEmitter {
       this.connection._send({
         type: 'command.request',
         session: this._id,
+        namespace,
         command,
         payload,
         seq,
