@@ -1,0 +1,22 @@
+{
+  "name": "overpass-websocket-client",
+  "version": "0.0.0",
+  "description": "Client library for Overpass websocket communication.",
+  "repository": "icecave/overpass-websocket-client",
+  "license": "MIT",
+  "main": "src/index",
+  "devDependencies": {
+    "babel-eslint": "^7.0.0",
+    "babel-preset-latest": "^6.16.0",
+    "standard": "^8.3.0"
+  },
+  "standard": {
+    "globals": [],
+    "ignore": [
+      "example/node_modules/**",
+      "example/web/**",
+      "web/**"
+    ],
+    "parser": "babel-eslint"
+  }
+}
