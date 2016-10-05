@@ -78,10 +78,6 @@ export default class OverpassManagedSession extends EventEmitter {
   }
 
   _initializeWhenAvailable () {
-    if (this._sessionManager._session) {
-      return this._initialize(this._sessionManager._session)
-    }
-
     this._debug('Waiting until available.')
 
     this._sessionManager.once('session', this._onSession)
@@ -90,19 +86,15 @@ export default class OverpassManagedSession extends EventEmitter {
   _initialize (session) {
     this._debug('Initializing session.')
 
-    const doInitialize = async () => {
-      try {
-        await this._initializeFn(session)
+    const done = (error) => {
+      if (error) return this.emit('error', error)
 
-        this.session = session
-        session.once('destroy', this._onDestroy)
-        this.emit('ready', this)
-      } catch (error) {
-        this.emit('error', error)
-      }
+      this.session = session
+      session.once('destroy', this._onDestroy)
+      this.emit('ready', this)
     }
 
-    doInitialize()
+    this._initializeFn(session, done)
   }
 
   _debug (message) {

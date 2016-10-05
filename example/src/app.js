@@ -6,13 +6,17 @@ const connectionManager = overpass.connectionManager('ws://localhost:8081/', {
   isDebug: true
 })
 const sessionManager = connectionManager.sessionManager()
+
 const unauthedSession = sessionManager.session()
-const authedSession = sessionManager.session(async session => {
+
+const authedSession = sessionManager.session((session, done) => {
   const request = 'Authenticate pls.'
   console.log('Simulating authentication:', request)
-  const response =
-    await session.call('echo.1', 'success', request, 10000)
-  console.log('Authentication response:', response)
+  session.call('echo.1', 'success', request, 10000).then(response => {
+    console.log('Authentication response:', response)
+
+    done()
+  })
 })
 
 const onSessionReady = session => {

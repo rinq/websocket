@@ -61,10 +61,6 @@ export default class OverpassSessionManager extends EventEmitter {
   }
 
   _createWhenConnected () {
-    if (this._connectionManager._openConnection) {
-      return this._create(this._connectionManager._openConnection)
-    }
-
     this._debug('Waiting until connected.')
 
     this._connectionManager.once('connection', this._onConnection)
