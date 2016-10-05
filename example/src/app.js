@@ -68,7 +68,5 @@ unauthedSession.on('error', onSessionError)
 authedSession.on('ready', onSessionReady)
 authedSession.on('error', onSessionError)
 
-connectionManager.start()
-sessionManager.start()
 unauthedSession.start()
 authedSession.start()
