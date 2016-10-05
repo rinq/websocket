@@ -13,7 +13,7 @@ connectionManager.on(
     const session = connection.session()
     console.log('New session', session)
 
-    session.call('echo.1', 'echo', 'Hello', 10000)
+    session.call('echo.1', 'success', 'Hello', 10000)
     .then(response => console.log('New success', response))
     .catch(error => console.log('New failure:', error))
 
