@@ -41,6 +41,10 @@ connectionManager.on(
       }
     )
 
+    session.call('echo.1', 'timeout', 'Hello', 10000)
+    .then(response => console.log('New success', response))
+    .catch(error => console.error('New failure:', error))
+
     session.call('echo.1', 'undefined', 'Hello', 10000)
     .then(response => console.log('New success', response))
     .catch(error => console.error('New failure:', error))
