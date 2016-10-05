@@ -23,6 +23,7 @@ export default class OverpassConnectionManager extends EventEmitter {
       this._debug('Connection closed.')
 
       this._disconnect()
+      delete this._connection
 
       if (!this._window.navigator.onLine) return this._connectWhenOnline()
 
@@ -74,9 +75,13 @@ export default class OverpassConnectionManager extends EventEmitter {
     }
 
     this._window.removeEventListener('online', this._onOnline)
-    this._disconnect()
 
-    if (this._connection) this._connection.close()
+    if (this._connection) {
+      this._disconnect()
+      this._connection.close()
+
+      delete this._connection
+    }
   }
 
   _connectWhenOnline () {
@@ -103,8 +108,6 @@ export default class OverpassConnectionManager extends EventEmitter {
 
     this._connection.removeListener('open', this._onOpen)
     this._connection.removeListener('close', this._onClose)
-
-    delete this._connection
   }
 
   _debug (message) {
