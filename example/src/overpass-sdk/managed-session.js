@@ -50,9 +50,15 @@ export default class OverpassManagedSession extends EventEmitter {
   }
 
   destroy () {
-    if (!this.session) throw new Error('Session not ready.')
+    if (!this._isStarted) return
 
-    return this.session.destroy()
+    if (this.session) {
+      this.session.removeListener('destroy', this._onDestroy)
+      this.session.destroy()
+      delete this.session
+    }
+
+    this.stop()
   }
 
   send (namespace, command, payload) {
