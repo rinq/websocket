@@ -33,32 +33,34 @@ export default class OverpassSession extends EventEmitter {
     })
   }
 
-  call (namespace, command, payload, timeout) {
-    return new Promise((resolve, reject) => {
-      if (this._destroyError) return reject(this._destroyError)
+  call (namespace, command, payload, timeout, callback) {
+    if (this._destroyError) {
+      callback(this._destroyError)
 
-      const seq = ++this._callSeq
-      const timeoutId = this._setTimeout(
-        () => {
-          delete this._calls[seq]
-          reject(new Error(
-            "Call to '" + command + "' in namespace '" + namespace +
-            "' timed out after " + timeout + 'ms.'
-          ))
-        },
-        timeout
-      )
-      this._calls[seq] = {resolve, reject, timeout: timeoutId}
+      return
+    }
 
-      this._connection._send({
-        type: 'command.request',
-        session: this._id,
-        namespace,
-        command,
-        payload,
-        seq,
-        timeout
-      })
+    const seq = ++this._callSeq
+    const timeoutId = this._setTimeout(
+      () => {
+        delete this._calls[seq]
+        callback(new Error(
+          "Call to '" + command + "' in namespace '" + namespace +
+          "' timed out after " + timeout + 'ms.'
+        ))
+      },
+      timeout
+    )
+    this._calls[seq] = {callback, timeout: timeoutId}
+
+    this._connection._send({
+      type: 'command.request',
+      session: this._id,
+      namespace,
+      command,
+      payload,
+      seq,
+      timeout
     })
   }
 
@@ -81,12 +83,12 @@ export default class OverpassSession extends EventEmitter {
 
     switch (message.responseType) {
       case 'success':
-        call.resolve(message.payload)
+        call.callback(null, message.payload)
 
         break
 
       case 'failure':
-        call.reject(new Failure(
+        call.callback(new Failure(
           message.payload.type,
           message.payload.message,
           message.payload.data
@@ -95,7 +97,7 @@ export default class OverpassSession extends EventEmitter {
         break
 
       case 'error':
-        call.reject(new Error('Server error.'))
+        call.callback(new Error('Server error.'))
 
         break
 
@@ -115,7 +117,7 @@ export default class OverpassSession extends EventEmitter {
       const call = this._calls[seq]
 
       if (call.timeout) this._clearTimeout(call.timeout)
-      call.reject(error)
+      call.callback(error)
     }
 
     this._calls = {}

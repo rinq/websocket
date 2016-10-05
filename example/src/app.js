@@ -12,7 +12,9 @@ const unauthedSession = sessionManager.session()
 const authedSession = sessionManager.session((session, done) => {
   const request = 'Authenticate pls.'
   console.log('Simulating authentication:', request)
-  session.call('echo.1', 'success', request, 10000).then(response => {
+  session.call('echo.1', 'success', request, 10000, (error, response) => {
+    if (error) return done(error)
+
     console.log('Authentication response:', response)
 
     done()
@@ -22,45 +24,59 @@ const authedSession = sessionManager.session((session, done) => {
 const onSessionReady = session => {
   console.log('Session ready', session)
 
-  session.call('echo.1', 'success', 'Hello', 10000)
-  .then(response => console.log('New success', response))
-  .catch(error => console.log('New failure:', error))
+  session.call('echo.1', 'success', 'Hello', 10000, (error, response) => {
+    if (error) return console.log("'success' failure:", error)
 
-  session.call('echo.1', 'fail', 'Hello', 10000)
-  .then(response => console.log('New success', response))
-  .catch(
-    error => {
+    console.log("'success' success:", response)
+  })
+
+  session.call('echo.1', 'fail', 'Hello', 10000, (error, response) => {
+    if (error) {
       if (isFailureType('echo-failure', error)) {
-        console.log('New expected failure:', error)
+        console.log("'fail' expected failure:", error)
       } else {
-        console.error('New failure:', error)
+        console.error("'fail' unexpected failure:", error)
       }
-    }
-  )
 
-  session.call('echo.1', 'error', 'Hello', 10000)
-  .then(response => console.log('New success', response))
-  .catch(
-    error => {
+      return
+    }
+
+    console.error("'fail' unexpected success:", response)
+  })
+
+  session.call('echo.1', 'error', 'Hello', 10000, (error, response) => {
+    if (error) {
       if (isFailureType('echo-failure', error)) {
-        console.log('New expected failure:', error)
+        console.error("'error' unexpected failure:", error)
       } else {
-        console.error('New failure:', error)
+        console.log("'error' expected failure:", error)
       }
+
+      return
     }
-  )
 
-  session.call('echo.1', 'timeout', 'Hello', 10000)
-  .then(response => console.log('New success', response))
-  .catch(error => console.error('New failure:', error))
+    console.error("'error' unexpected success:", response)
+  })
 
-  session.call('echo.1', 'undefined', 'Hello', 10000)
-  .then(response => console.log('New success', response))
-  .catch(error => console.error('New failure:', error))
+  session.call('echo.1', 'timeout', 'Hello', 10000, (error, response) => {
+    if (error) return console.log("'timeout' expected failure:", error)
 
-  session.call('undefined', 'undefined', 'Hello', 10000)
-  .then(response => console.log('New success', response))
-  .catch(error => console.error('New failure:', error))
+    console.log("'timeout' unexpected success:", response)
+  })
+
+  session.call('echo.1', 'undefined', 'Hello', 10000, (error, response) => {
+    if (error) return console.log("'undefined' expected failure:", error)
+
+    console.log("'undefined' unexpected success:", response)
+  })
+
+  session.call('undefined', 'undefined', 'Hello', 10000, (error, response) => {
+    if (error) {
+      return console.log("'undefined:undefined' expected failure:", error)
+    }
+
+    console.error("'undefined:undefined' unexpected success:", response)
+  })
 }
 
 const onSessionError = error => {

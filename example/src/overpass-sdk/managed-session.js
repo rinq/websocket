@@ -67,14 +67,14 @@ export default class OverpassManagedSession extends EventEmitter {
     return this.session.send(namespace, command, payload)
   }
 
-  call (namespace, command, payload, timeout) {
-    return new Promise((resolve, reject) => {
-      if (!this.session) {
-        return reject(new Error('Session not ready.'))
-      }
+  call (namespace, command, payload, timeout, callback) {
+    if (!this.session) {
+      callback(new Error('Session not ready.'))
 
-      resolve(this.session.call(namespace, command, payload, timeout))
-    })
+      return
+    }
+
+    this.session.call(namespace, command, payload, timeout, callback)
   }
 
   _initializeWhenAvailable () {
