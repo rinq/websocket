@@ -47,7 +47,7 @@ export default class OverpassSession extends EventEmitter {
       )
       this._calls[seq] = {resolve, reject, timeout: timeoutId}
 
-      this.connection._send({
+      this._connection._send({
         type: 'command.request',
         session: this._id,
         namespace,
@@ -76,7 +76,28 @@ export default class OverpassSession extends EventEmitter {
 
     if (call.timeout) this._clearTimeout(call.timeout)
 
-    call.resolve(message.payload)
+    switch (message.responseType) {
+      case 'success':
+        call.resolve(message.payload)
+
+        break
+
+      case 'failure':
+        call.reject(message.payload)
+
+        break
+
+      case 'error':
+        call.reject(new Error('Server error.'))
+
+        break
+
+      default:
+        this._connection._closeError(new Error(
+          'Unexpected command response type: ' + message.responseType + '.'
+        ))
+    }
+
     delete this._calls[message.seq]
   }
 
