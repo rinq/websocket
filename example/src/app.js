@@ -24,7 +24,7 @@ connectionManager.on(
         if (isFailureType('echo-failure', error)) {
           console.log('New expected failure:', error)
         } else {
-          console.error('New unexpected failure:', error)
+          console.error('New failure:', error)
         }
       }
     )
@@ -36,10 +36,18 @@ connectionManager.on(
         if (isFailureType('echo-failure', error)) {
           console.log('New expected failure:', error)
         } else {
-          console.error('New unexpected failure:', error)
+          console.error('New failure:', error)
         }
       }
     )
+
+    session.call('echo.1', 'undefined', 'Hello', 10000)
+    .then(response => console.log('New success', response))
+    .catch(error => console.error('New failure:', error))
+
+    session.call('undefined', 'undefined', 'Hello', 10000)
+    .then(response => console.log('New success', response))
+    .catch(error => console.error('New failure:', error))
   }
 )
 connectionManager.start()

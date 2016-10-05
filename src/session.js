@@ -42,7 +42,8 @@ export default class OverpassSession extends EventEmitter {
         () => {
           delete this._calls[seq]
           reject(new Error(
-            'Call to ' + command + ' timed out after ' + timeout + 'ms'
+            "Call to '" + command + "' in namespace '" + namespace +
+            "' timed out after " + timeout + 'ms.'
           ))
         },
         timeout
