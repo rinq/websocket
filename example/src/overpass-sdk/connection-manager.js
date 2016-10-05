@@ -25,7 +25,7 @@ export default class OverpassConnectionManager extends EventEmitter {
     this._onOpen = () => {
       this._debug('Connection open.')
 
-      this.connection = this._connection
+      this._openConnection = this._connection
       this._closeCount = 0
       this.emit('connection', this._connection)
     }
@@ -114,7 +114,7 @@ export default class OverpassConnectionManager extends EventEmitter {
   }
 
   _disconnect () {
-    delete this.connection
+    delete this._openConnection
 
     if (!this._connection) return
 
