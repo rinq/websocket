@@ -119,5 +119,7 @@ export default class OverpassSession extends EventEmitter {
     }
 
     this._calls = {}
+
+    this.emit('destroy', error)
   }
 }
