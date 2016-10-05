@@ -3,10 +3,11 @@ export default class Failure extends Error {
     return error.isFailure && error.type === type
   }
 
-  constructor (type, message) {
+  constructor (type, message, data) {
     super(message)
 
     this.isFailure = true
     this.type = type
+    this.data = data
   }
 }

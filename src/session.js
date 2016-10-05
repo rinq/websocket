@@ -86,7 +86,11 @@ export default class OverpassSession extends EventEmitter {
         break
 
       case 'failure':
-        call.reject(new Failure(message.failureType, message.payload))
+        call.reject(new Failure(
+          message.payload.type,
+          message.payload.message,
+          message.payload.data
+        ))
 
         break
 
