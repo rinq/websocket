@@ -1,4 +1,4 @@
-import overpassConnect from 'overpass-websocket-client'
+import {connect as overpassConnect} from 'overpass-websocket-client'
 
 import OverpassManagerConnectionFactory from './connection-manager-factory'
 

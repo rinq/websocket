@@ -1,3 +1,5 @@
+import {isFailureType} from 'overpass-websocket-client'
+
 import * as overpass from './overpass-sdk'
 
 const connectionManager = overpass.connectionManager('ws://localhost:8081/', {
@@ -13,7 +15,31 @@ connectionManager.on(
 
     session.call('echo.1', 'echo', 'Hello', 10000)
     .then(response => console.log('New success', response))
-    .catch(error => console.log('New failure', error))
+    .catch(error => console.log('New failure:', error))
+
+    session.call('echo.1', 'fail', 'Hello', 10000)
+    .then(response => console.log('New success', response))
+    .catch(
+      error => {
+        if (isFailureType('echo-failure', error)) {
+          console.log('New expected failure:', error)
+        } else {
+          console.error('New unexpected failure:', error)
+        }
+      }
+    )
+
+    session.call('echo.1', 'error', 'Hello', 10000)
+    .then(response => console.log('New success', response))
+    .catch(
+      error => {
+        if (isFailureType('echo-failure', error)) {
+          console.log('New expected failure:', error)
+        } else {
+          console.error('New unexpected failure:', error)
+        }
+      }
+    )
   }
 )
 connectionManager.start()

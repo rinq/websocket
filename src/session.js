@@ -1,5 +1,7 @@
 import {EventEmitter} from 'events'
 
+import Failure from './failure'
+
 export default class OverpassSession extends EventEmitter {
   constructor ({setTimeout, clearTimeout, connection, id}) {
     super()
@@ -83,7 +85,7 @@ export default class OverpassSession extends EventEmitter {
         break
 
       case 'failure':
-        call.reject(message.payload)
+        call.reject(new Failure(message.failureType, message.payload))
 
         break
 
