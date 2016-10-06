@@ -12,16 +12,16 @@ export default class OverpassManagedSession extends EventEmitter {
     this._isStarted = false
 
     this._onSession = session => {
-      this._debug('Received session.')
+      this._log('Received session.')
 
       this._initialize(session)
     }
 
     this._onDestroy = error => {
-      this._debug('Session destroyed.')
+      this._log('Session destroyed.')
 
       this.emit('destroy', error)
-      delete this.session
+      delete this._session
       this._initializeWhenAvailable()
     }
   }
@@ -29,7 +29,7 @@ export default class OverpassManagedSession extends EventEmitter {
   start () {
     if (this._isStarted) return
 
-    this._debug('Starting.')
+    this._log('Starting.')
 
     this._sessionManager.start()
     this._isStarted = true
@@ -39,67 +39,61 @@ export default class OverpassManagedSession extends EventEmitter {
   stop () {
     if (!this._isStarted) return
 
-    this._debug('Stopping.')
+    this._log('Stopping.')
 
     this._isStarted = false
 
-    if (this.session) {
-      this.session.removeListener('destroy', this._onDestroy)
-      delete this.session
+    if (this._session) {
+      this._session.removeListener('destroy', this._onDestroy)
+      delete this._session
     }
   }
 
   destroy () {
     if (!this._isStarted) return
 
-    if (this.session) {
-      this.session.removeListener('destroy', this._onDestroy)
-      this.session.destroy()
-      delete this.session
+    if (this._session) {
+      this._session.removeListener('destroy', this._onDestroy)
+      this._session.destroy()
+      delete this._session
     }
 
     this.stop()
   }
 
   send (namespace, command, payload) {
-    if (!this.session) throw new Error('Session not ready.')
+    if (!this._session) throw new Error('Session not ready.')
 
-    return this.session.send(namespace, command, payload)
+    return this._session.send(namespace, command, payload)
   }
 
   call (namespace, command, payload, timeout, callback) {
-    if (!this.session) {
+    if (!this._session) {
       callback(new Error('Session not ready.'))
 
       return
     }
 
-    this.session.call(namespace, command, payload, timeout, callback)
+    this._session.call(namespace, command, payload, timeout, callback)
   }
 
   _initializeWhenAvailable () {
-    this._debug('Waiting until available.')
+    this._log('Waiting until available.')
 
     this._sessionManager.once('session', this._onSession)
   }
 
   _initialize (session) {
-    this._debug('Initializing session.')
+    this._log('Initializing session.')
 
     const done = (error) => {
       if (error) return this.emit('error', error)
 
-      this.session = session
+      this._session = session
       session.once('destroy', this._onDestroy)
       this.emit('ready', this)
     }
 
-    this._initializeFn(session, done)
-  }
-
-  _debug (message) {
-    if (this._log) {
-      this._log('[op-managed-session] [' + this._seq + ']', message)
-    }
+    this._initializeFn(session, done, this._log)
   }
 }

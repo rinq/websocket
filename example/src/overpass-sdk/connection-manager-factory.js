@@ -7,14 +7,12 @@ export default class OverpassConnectionManagerFactory {
   }
 
   manager (url, options = {}) {
-    const log = options.isDebug ? console.debug.bind(console) : null
-
     return new OverpassConnectionManager({
       url,
       overpassConnect: this._overpassConnect,
       delayFn: options.delayFn || this._delayFn,
       window: this._window,
-      log
+      log: options.log || function () {}
     })
   }
 
