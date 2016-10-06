@@ -3,16 +3,16 @@ import {isFailureType} from 'overpass-websocket-client'
 import * as overpass from './overpass-sdk'
 
 const connectionManager = overpass.connectionManager('ws://localhost:8081/', {
-  log: message => console.debug('[connection-manager]', message)
+  log: (...args) => console.debug('[connection-manager]', ...args)
 })
 const sessionManager = connectionManager.sessionManager({
-  log: message => console.debug('[session-manager]', message)
+  log: (...args) => console.debug('[session-manager]', ...args)
 })
 const unauthedSession = sessionManager.session({
-  log: message => console.debug('[unauthed-session]', message)
+  log: (...args) => console.debug('[unauthed-session]', ...args)
 })
 const authedSession = sessionManager.session({
-  log: message => console.debug('[authed-session]', message),
+  log: (...args) => console.debug('[authed-session]', ...args),
   initialize: (session, done, log) => {
     const request = 'Authenticate pls.'
     log('Simulating authentication:', request)
