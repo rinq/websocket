@@ -12,7 +12,7 @@ export default class OverpassConnectionManagerFactory {
       overpassConnect: this._overpassConnect,
       delayFn: options.delayFn || this._delayFn,
       window: this._window,
-      log: options.log || function () {}
+      log: options.log
     })
   }
 

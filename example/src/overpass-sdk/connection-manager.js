@@ -16,21 +16,21 @@ export default class OverpassConnectionManager extends EventEmitter {
     this._sessionSeq = 0
 
     this._onOnline = () => {
-      this._log('Network online.')
+      if (this._log) this._log('Network online.')
 
       this._window.removeEventListener('online', this._onOnline)
       this._connect()
     }
 
     this._onOpen = () => {
-      this._log('Connection open.')
+      if (this._log) this._log('Connection open.')
 
       this._closeCount = 0
       this.emit('connection', this._connection)
     }
 
     this._onClose = () => {
-      this._log('Connection closed.')
+      if (this._log) this._log('Connection closed.')
 
       this._disconnect()
       delete this._connection
@@ -39,14 +39,14 @@ export default class OverpassConnectionManager extends EventEmitter {
 
       const delay = this._delayFn(++this._closeCount)
 
-      this._log('Reconnecting in ' + delay + 'ms.')
+      if (this._log) this._log('Reconnecting in ' + delay + 'ms.')
 
       this._reconnectTimeout =
         this._window.setTimeout(this._reconnect, delay)
     }
 
     this._reconnect = () => {
-      this._log('Reconnecting.')
+      if (this._log) this._log('Reconnecting.')
 
       delete this._reconnectTimeout
       this._connectWhenOnline()
@@ -61,7 +61,7 @@ export default class OverpassConnectionManager extends EventEmitter {
     if (this._isStarted) return
     if (!this._url) throw new Error('Undefined URL.')
 
-    this._log('Starting.')
+    if (this._log) this._log('Starting.')
 
     this._isStarted = true
     this._closeCount = 0
@@ -71,12 +71,12 @@ export default class OverpassConnectionManager extends EventEmitter {
   stop () {
     if (!this._isStarted) return
 
-    this._log('Stopping.')
+    if (this._log) this._log('Stopping.')
 
     this._isStarted = false
 
     if (this._reconnectTimeout) {
-      this._log('Clearing reconnect timeout.')
+      if (this._log) this._log('Clearing reconnect timeout.')
 
       this._window.clearTimeout(this._reconnectTimeout)
       delete this._reconnectTimeout
@@ -96,22 +96,32 @@ export default class OverpassConnectionManager extends EventEmitter {
     return new SessionManager({
       connectionManager: this,
       seq: ++this._sessionSeq,
-      log: options.log || function () {}
+      log: options.log
     })
   }
 
   _connectWhenOnline () {
     if (this._window.navigator.onLine) return this._connect()
 
-    this._log('Waiting until online.')
+    if (this._log) this._log('Waiting until online.')
 
     this._window.addEventListener('online', this._onOnline)
   }
 
   _connect () {
-    this._log('Connecting.')
+    let options
 
-    this._connection = this._overpassConnect(this._url)
+    if (this._log) {
+      this._log('Connecting.')
+
+      options = {
+        log: (...args) => this._log('[connection]', ...args)
+      }
+    } else {
+      options = {}
+    }
+
+    this._connection = this._overpassConnect(this._url, options)
 
     this._connection.once('open', this._onOpen)
     this._connection.once('close', this._onClose)
@@ -120,7 +130,7 @@ export default class OverpassConnectionManager extends EventEmitter {
   _disconnect () {
     if (!this._connection) return
 
-    this._log('Disconnecting.')
+    if (this._log) this._log('Disconnecting.')
 
     this._connection.removeListener('open', this._onOpen)
     this._connection.removeListener('close', this._onClose)

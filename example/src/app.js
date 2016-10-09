@@ -15,9 +15,9 @@ const authedSession = sessionManager.session({
   log: (...args) => console.debug('[authed-session]', ...args),
   initialize: (session, done, log) => {
     const request = 'Authenticate pls.'
-    log('Simulating authentication:', request)
+    if (log) log('Simulating authentication:', request)
     session.call('echo.1', 'success', request, 3000, (error, response) => {
-      log('Authentication response:', error, response)
+      if (log) log('Authentication response:', error, response)
       done(error)
     })
   }

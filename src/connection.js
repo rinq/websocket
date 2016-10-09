@@ -3,12 +3,14 @@ import {EventEmitter} from 'events'
 import OverpassSession from './session'
 
 export default class OverpassConnection extends EventEmitter {
-  constructor ({setTimeout, clearTimeout, socket}) {
+  constructor ({socket, setTimeout, clearTimeout, log}) {
     super()
 
     this._socket = socket
     this._setTimeout = setTimeout
     this._clearTimeout = clearTimeout
+    this._log = log
+
     this._sessionSeq = 0
     this._sessions = {}
 
@@ -16,6 +18,8 @@ export default class OverpassConnection extends EventEmitter {
     this._onError = (error) => this._closeError(error)
 
     this._onClose = (event) => {
+      if (this._log) this._log('Connection closed:', event)
+
       const error = new Error('Connection closed: ' + event.reason)
 
       this._shutdown(error)
@@ -24,8 +28,12 @@ export default class OverpassConnection extends EventEmitter {
 
     this._onFirstMessage = (event) => {
       if (!this._validateHandshake(event.data)) {
+        if (this._log) this._log('Handshake failed.')
+
         return this._closeError(new Error('Handshake failed.'))
       }
+
+      if (this._log) this._log('Handshake succeeded.')
 
       this._socket.removeEventListener('message', this._onFirstMessage)
       this._socket.addEventListener('message', this._onMessage)
@@ -48,20 +56,23 @@ export default class OverpassConnection extends EventEmitter {
   }
 
   close () {
+    if (this._log) this._log('Closing connection.')
+
     this._shutdown(new Error('Connection closed locally.'))
     this._socket.close()
     this.emit('close')
   }
 
-  session () {
+  session (options = {}) {
     const id = ++this._sessionSeq
     this._send({type: 'session.create', session: id})
 
     const session = new OverpassSession({
+      id,
+      connection: this,
       setTimeout: this._setTimeout,
       clearTimeout: this._clearTimeout,
-      connection: this,
-      id
+      log: options.log
     })
     session.once('destroy', () => delete this._sessions[id])
     this._sessions[id] = session

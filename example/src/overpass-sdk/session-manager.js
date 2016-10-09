@@ -14,13 +14,13 @@ export default class OverpassSessionManager extends EventEmitter {
     this._sessionSeq = 0
 
     this._onConnection = connection => {
-      this._log('Connected.')
+      if (this._log) this._log('Connected.')
 
       this._create(connection)
     }
 
     this._onDestroy = () => {
-      this._log('Session destroyed.')
+      if (this._log) this._log('Session destroyed.')
 
       delete this._session
       this._createWhenConnected()
@@ -30,7 +30,7 @@ export default class OverpassSessionManager extends EventEmitter {
   start () {
     if (this._isStarted) return
 
-    this._log('Starting.')
+    if (this._log) this._log('Starting.')
 
     this._isStarted = true
     this._connectionManager.start()
@@ -40,7 +40,7 @@ export default class OverpassSessionManager extends EventEmitter {
   stop () {
     if (!this._isStarted) return
 
-    this._log('Stopping.')
+    if (this._log) this._log('Stopping.')
 
     this._isStarted = false
     this._connectionManager.removeListener('connection', this._onConnection)
@@ -56,20 +56,30 @@ export default class OverpassSessionManager extends EventEmitter {
       sessionManager: this,
       initialize: options.initialize || function () {},
       seq: ++this._sessionSeq,
-      log: options.log || function () {}
+      log: options.log
     })
   }
 
   _createWhenConnected () {
-    this._log('Waiting until connected.')
+    if (this._log) this._log('Waiting until connected.')
 
     this._connectionManager.once('connection', this._onConnection)
   }
 
   _create (connection) {
-    this._log('Creating session.')
+    let options
 
-    this._session = connection.session()
+    if (this._log) {
+      this._log('Creating session.')
+
+      options = {
+        log: (...args) => this._log('[session]', ...args)
+      }
+    } else {
+      options = {}
+    }
+
+    this._session = connection.session(options)
     this._session.once('destroy', this._onDestroy)
     this.emit('session', this._session)
   }

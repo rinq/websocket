@@ -3,13 +3,14 @@ import {EventEmitter} from 'events'
 import Failure from './failure'
 
 export default class OverpassSession extends EventEmitter {
-  constructor ({setTimeout, clearTimeout, connection, id}) {
+  constructor ({id, connection, setTimeout, clearTimeout, log}) {
     super()
 
+    this._id = id
+    this._connection = connection
     this._setTimeout = setTimeout
     this._clearTimeout = clearTimeout
-    this._connection = connection
-    this._id = id
+    this._log = log
 
     this._destroyError = null
     this._callSeq = 0
@@ -17,6 +18,8 @@ export default class OverpassSession extends EventEmitter {
   }
 
   destroy () {
+    if (this._log) this._log('Destroying session.')
+
     this._connection._send({type: 'session.destroy', session: this._id})
     this._destroy(new Error('Session destroyed locally.'))
   }
