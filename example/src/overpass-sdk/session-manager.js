@@ -32,8 +32,8 @@ export default class OverpassSessionManager extends EventEmitter {
 
     this._log('Starting.')
 
-    this._connectionManager.start()
     this._isStarted = true
+    this._connectionManager.start()
     this._createWhenConnected()
   }
 

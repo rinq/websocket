@@ -2,7 +2,7 @@ import {isFailureType} from 'overpass-websocket-client'
 
 import * as overpass from './overpass-sdk'
 
-const connectionManager = overpass.connectionManager('ws://localhost:8081/', {
+const connectionManager = overpass.connectionManager({
   log: (...args) => console.debug('[connection-manager]', ...args)
 })
 const sessionManager = connectionManager.sessionManager({
@@ -89,5 +89,6 @@ unauthedSession.on('ready', onSessionReady)
 authedSession.on('ready', onSessionReady)
 authedSession.on('error', onSessionError)
 
+connectionManager.setUrl('ws://localhost:8081/')
 unauthedSession.start()
 authedSession.start()

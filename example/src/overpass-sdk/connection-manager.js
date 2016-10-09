@@ -53,8 +53,13 @@ export default class OverpassConnectionManager extends EventEmitter {
     }
   }
 
+  setUrl (url) {
+    this._url = url
+  }
+
   start () {
     if (this._isStarted) return
+    if (!this._url) throw new Error('Undefined URL.')
 
     this._log('Starting.')
 

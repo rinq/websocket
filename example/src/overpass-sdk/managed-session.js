@@ -31,8 +31,8 @@ export default class OverpassManagedSession extends EventEmitter {
 
     this._log('Starting.')
 
-    this._sessionManager.start()
     this._isStarted = true
+    this._sessionManager.start()
     this._initializeWhenAvailable()
   }
 

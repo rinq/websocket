@@ -6,9 +6,9 @@ export default class OverpassConnectionManagerFactory {
     this._window = window
   }
 
-  manager (url, options = {}) {
+  manager (options = {}) {
     return new OverpassConnectionManager({
-      url,
+      url: options.url,
       overpassConnect: this._overpassConnect,
       delayFn: options.delayFn || this._delayFn,
       window: this._window,
