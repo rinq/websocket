@@ -1,6 +1,6 @@
 import {isFailureType} from 'overpass-websocket-client'
 
-import * as overpass from './overpass-sdk'
+import * as overpass from 'overpass-sdk'
 
 const connectionManager = overpass.connectionManager({
   log: (...args) => console.debug('[connection-manager]', ...args)

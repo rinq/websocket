@@ -15,6 +15,7 @@ module.exports = {
         test: /\.js$/,
         include: [
           path.resolve(__dirname, 'src'),
+          path.resolve(__dirname, 'node_modules/overpass-sdk'),
           path.resolve(__dirname, 'node_modules/overpass-websocket-client')
         ],
         loader: 'babel',
