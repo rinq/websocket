@@ -35,6 +35,13 @@ module.exports = {
     includePaths: ['./node_modules']
   },
   devServer: {
-    contentBase: 'web'
+    contentBase: 'web',
+    setup: function (app) {
+      app.get('/config.json', function (request, response) {
+        response.json({
+          gateway: 'ws://' + encodeURIComponent(request.hostname) + ':8081/'
+        })
+      })
+    }
   }
 }
