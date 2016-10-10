@@ -1,12 +1,28 @@
 {
   "private": true,
-  "devDependencies": {
-    "babel-core": "^6.17.0",
+  "dependencies": {
     "babel-loader": "^6.2.5",
+    "babel-polyfill": "^6.16.0",
     "babel-preset-latest": "^6.16.0",
-    "overpass-sdk": "file:../ext/overpass-sdk",
+    "babel-preset-react": "^6.16.0",
+    "babel-register": "^6.16.3",
+    "file-loader": "^0.9.0",
+    "grommet": "^0.6.12",
+    "isomorphic-fetch": "^2.2.1",
+    "node-sass": "^3.10.1",
     "overpass-websocket-client": "file:..",
-    "webpack": "^1.13.2",
+    "overpass-websocket-client-sdk": "file:../ext/overpass-websocket-client-sdk",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2",
+    "react-redux": "^4.4.5",
+    "react-router": "^2.8.1",
+    "redux": "^3.6.0",
+    "redux-logger": "^2.7.0",
+    "redux-saga": "^0.12.0",
+    "sass-loader": "^4.0.2",
+    "webpack": "^1.13.2"
+  },
+  "devDependencies": {
     "webpack-dev-server": "^1.16.1"
   }
 }

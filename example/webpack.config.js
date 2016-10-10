@@ -1,27 +1,38 @@
 var path = require('path')
 
 module.exports = {
-  entry: ['./src/app'],
+  entry: [
+    'grommet/scss/vanilla/index',
+    'babel-polyfill',
+    './src/app'
+  ],
   resolve: {
-    extensions: ['', '.js']
+    extensions: ['', '.js', '.jsx', '.scss']
   },
   output: {
-    path: 'web/js',
-    filename: 'app.js'
+    path: 'web',
+    filename: 'js/app.js'
   },
   module: {
     loaders: [
       {
-        test: /\.js$/,
+        test: /\.jsx?$/,
         include: [
           path.resolve(__dirname, 'src'),
-          path.resolve(__dirname, 'node_modules/overpass-sdk'),
-          path.resolve(__dirname, 'node_modules/overpass-websocket-client')
+          path.resolve(__dirname, 'node_modules/overpass-websocket-client'),
+          path.resolve(__dirname, 'node_modules/overpass-websocket-client-sdk')
         ],
         loader: 'babel',
-        query: {presets: ['latest']}
+        query: { presets: [ 'latest', 'react' ] }
+      },
+      {
+        test: /\.scss$/,
+        loader: 'file?name=css/app.css!sass'
       }
     ]
+  },
+  sassLoader: {
+    includePaths: ['./node_modules']
   },
   devServer: {
     contentBase: 'web'
