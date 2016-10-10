@@ -18,7 +18,7 @@ export default class OverpassManagedSession extends EventEmitter {
     }
 
     this._onDestroy = error => {
-      if (this._log) this._log('Session destroyed.')
+      if (this._log) this._log('Session destroyed:', error)
 
       this.emit('destroy', error)
       delete this._session
@@ -31,8 +31,8 @@ export default class OverpassManagedSession extends EventEmitter {
 
     if (this._log) this._log('Starting.')
 
-    this._isStarted = true
     this._sessionManager.start()
+    this._isStarted = true
     this._initializeWhenAvailable()
   }
 
@@ -84,16 +84,25 @@ export default class OverpassManagedSession extends EventEmitter {
   }
 
   _initialize (session) {
-    if (this._log) this._log('Initializing session.')
-
     const done = (error) => {
-      if (error) return this.emit('error', error)
+      if (error) {
+        if (this._log) this._log('Failed to initialize session:', error)
+
+        return this.emit('error', error)
+      }
+
+      if (this._log) this._log('Session ready.')
 
       this._session = session
       session.once('destroy', this._onDestroy)
       this.emit('ready', this)
     }
 
-    this._initializeFn(session, done, this._log)
+    if (this._initializeFn) {
+      if (this._log) this._log('Initializing session.')
+      this._initializeFn(session, done, this._log)
+    } else {
+      done()
+    }
   }
 }

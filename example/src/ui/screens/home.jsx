@@ -1,15 +1,15 @@
 import React from 'react'
 import {connect} from 'react-redux'
 
-import App from 'grommet/components/App'
-import Section from 'grommet/components/Section'
+import ExampleLog from '../../example/ui/log'
+import Layout from '../components/layout'
 
-import header from '../components/header'
+const home = () => {
+  const title = 'Log'
+  const content = <ExampleLog />
 
-const home = () => <App>
-  {header}
-  <Section pad='medium'><p>Home</p></Section>
-</App>
+  return <Layout title={title} content={content} />
+}
 
 const Home = connect()(home)
 export default Home

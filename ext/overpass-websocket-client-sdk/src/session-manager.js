@@ -54,7 +54,7 @@ export default class OverpassSessionManager extends EventEmitter {
   session (options = {}) {
     return new OverpassManagedSession({
       sessionManager: this,
-      initialize: options.initialize || function () {},
+      initialize: options.initialize,
       seq: ++this._sessionSeq,
       log: options.log
     })

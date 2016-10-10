@@ -1,5 +1,5 @@
 build:
-	rm -rf node_modules/overpass-sdk
+	rm -rf node_modules/overpass-websocket-client-sdk
 	rm -rf node_modules/overpass-websocket-client
 	npm install
 	node_modules/.bin/webpack --debug
