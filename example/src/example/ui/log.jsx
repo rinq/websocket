@@ -1,7 +1,6 @@
 import React from 'react'
 import {connect} from 'react-redux'
 
-import Box from 'grommet/components/Box'
 import Checkmark from 'grommet/components/icons/base/Checkmark'
 import Close from 'grommet/components/icons/base/Close'
 import More from 'grommet/components/icons/base/More'
@@ -25,14 +24,9 @@ const log = props => {
     }
 
     const row = <TableRow key={seq}>
-      <td><Box direction="row" pad={{between: 'small'}}>
-        <Box>{call.command}</Box>
-      </Box></td>
-
-      <td><Box direction="row" pad={{between: 'small'}}>
-        <Box>{status}</Box>
-        <Box>{call.error}</Box>
-      </Box></td>
+      <td>{call.command}</td>
+      <td>{status}</td>
+      <td>{call.error}</td>
     </TableRow>
 
     rows.push(row)
@@ -43,6 +37,7 @@ const log = props => {
       <tr>
         <th>Command</th>
         <th>Result</th>
+        <th>Message</th>
       </tr>
     </thead>
 

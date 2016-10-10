@@ -5,7 +5,7 @@ build:
 	node_modules/.bin/webpack --debug
 
 serve: build open
-	node_modules/.bin/webpack-dev-server
+	node_modules/.bin/webpack-dev-server --host 0.0.0.0
 
 open:
 	open http://localhost:8080/
