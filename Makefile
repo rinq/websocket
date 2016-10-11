@@ -10,4 +10,4 @@ serve-example:
 .PHONY: lint example serve-example
 
 node_modules:
-	npm install
+	yarn install
