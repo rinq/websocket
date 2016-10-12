@@ -6,8 +6,8 @@ const connectionFactory = new OverpassConnectionFactory({
   clearTimeout: window.clearTimeout.bind(window),
   WebSocket
 })
-const connect = connectionFactory.connection.bind(connectionFactory)
+const connection = connectionFactory.connection.bind(connectionFactory)
 
 const isFailureType = Failure.isType
 
-export {connect, isFailureType}
+export {connection, isFailureType}

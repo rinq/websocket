@@ -1,9 +1,9 @@
-import {connect as overpassConnect} from 'overpass-websocket-client'
+import {connection as overpassConnection} from 'overpass-websocket-client'
 
 import OverpassManagerConnectionFactory from './connection-manager-factory'
 
 const connectionManagerFactory =
-  new OverpassManagerConnectionFactory({overpassConnect, window})
+  new OverpassManagerConnectionFactory({overpassConnection, window})
 const connectionManager =
   connectionManagerFactory.manager.bind(connectionManagerFactory)
 
