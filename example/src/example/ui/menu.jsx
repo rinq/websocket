@@ -81,17 +81,17 @@ const menu = props => {
   }
 
   return <Menu primary={true}>
-    <Anchor disabled={!isAConnected} onClick={callASuccess}>Session A: Success</Anchor>
-    <Anchor disabled={!isAConnected} onClick={callAFailure}>Session A: Failure</Anchor>
-    <Anchor disabled={!isAConnected} onClick={callAError}>Session A: Error</Anchor>
-    <Anchor disabled={!isAConnected} onClick={callAUndefined}>Session A: Undefined</Anchor>
-    <Anchor disabled={!isAConnected} onClick={callATimeout}>Session A: Timeout</Anchor>
+    <Anchor disabled={!isAConnected} onClick={callASuccess}>A: Success</Anchor>
+    <Anchor disabled={!isAConnected} onClick={callAFailure}>A: Failure</Anchor>
+    <Anchor disabled={!isAConnected} onClick={callAError}>A: Error</Anchor>
+    <Anchor disabled={!isAConnected} onClick={callAUndefined}>A: Undefined</Anchor>
+    <Anchor disabled={!isAConnected} onClick={callATimeout}>A: Timeout</Anchor>
 
-    <Anchor disabled={!isBConnected} onClick={callBSuccess}>Session B: Success</Anchor>
-    <Anchor disabled={!isBConnected} onClick={callBFailure}>Session B: Failure</Anchor>
-    <Anchor disabled={!isBConnected} onClick={callBError}>Session B: Error</Anchor>
-    <Anchor disabled={!isBConnected} onClick={callBUndefined}>Session B: Undefined</Anchor>
-    <Anchor disabled={!isBConnected} onClick={callBTimeout}>Session B: Timeout</Anchor>
+    <Anchor disabled={!isBConnected} onClick={callBSuccess}>B: Success</Anchor>
+    <Anchor disabled={!isBConnected} onClick={callBFailure}>B: Failure</Anchor>
+    <Anchor disabled={!isBConnected} onClick={callBError}>B: Error</Anchor>
+    <Anchor disabled={!isBConnected} onClick={callBUndefined}>B: Undefined</Anchor>
+    <Anchor disabled={!isBConnected} onClick={callBTimeout}>B: Timeout</Anchor>
   </Menu>
 }
 
