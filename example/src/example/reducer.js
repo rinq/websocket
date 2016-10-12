@@ -9,6 +9,7 @@ export default function reducer (state = init, action) {
     case actions.EXAMPLE_SENT:
       calls = Object.assign({}, state.calls)
       calls[action.payload.seq] = {
+        session: action.payload.session,
         command: action.payload.command,
         status: 'pending'
       }
@@ -17,7 +18,7 @@ export default function reducer (state = init, action) {
 
     case actions.EXAMPLE_SUCCESS:
       calls = Object.assign({}, state.calls)
-      call = calls[action.payload]
+      call = calls[action.payload.seq]
 
       if (call) call.status = 'success'
 

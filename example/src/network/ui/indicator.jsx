@@ -25,7 +25,7 @@ const indicator = (props) => {
 const NetworkIndicator = connect(
     function mapStateToProps (state) {
       return {
-        isConnected: state.overpass.isConnected,
+        isConnected: state.overpass.a.isConnected,
         isError: state.overpass.isError,
         isOnline: state.network.isOnline
       }

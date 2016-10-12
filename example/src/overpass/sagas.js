@@ -3,16 +3,19 @@ import {call, fork, put} from 'redux-saga/effects'
 import * as actions from './actions'
 import watchEvents from '../sagas/watch-events'
 
-export function* watchSessionStatus (session) {
-  yield fork(watchEvents, session, 'ready', actions.overpassConnect)
-  yield fork(watchEvents, session, 'destroy', actions.overpassDisconnect)
-  yield fork(watchEvents, session, 'error', actions.overpassDisconnect)
+export function* watchSessionStatus (name, session) {
+  const connect = () => actions.overpassConnect(name)
+  const disconnect = error => actions.overpassDisconnect(name, error)
+
+  yield fork(watchEvents, session, 'ready', connect)
+  yield fork(watchEvents, session, 'destroy', disconnect)
+  yield fork(watchEvents, session, 'error', disconnect)
 }
 
 export function* startOverpass (
   configurationReader,
   connectionManager,
-  session
+  sessions
 ) {
   let configuration
 
@@ -28,15 +31,19 @@ export function* startOverpass (
     [connectionManager, connectionManager.setUrl],
     configuration.gateway
   )
-  yield call([session, session.start])
+
+  for (let session of sessions) {
+    yield call([session, session.start])
+  }
 }
 
 export default function* overpassSaga (services) {
-  yield fork(watchSessionStatus, services.session)
+  yield fork(watchSessionStatus, 'a', services.sessionA)
+  yield fork(watchSessionStatus, 'b', services.sessionB)
   yield fork(
     startOverpass,
     services.configurationReader,
     services.connectionManager,
-    services.session
+    [services.sessionA, services.sessionB]
   )
 }

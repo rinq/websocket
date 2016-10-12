@@ -15,13 +15,40 @@ const connectionManager = overpass.connectionManager({
 const sessionManager = connectionManager.sessionManager({
   log: createLog('[session-manager]')
 })
-const session = sessionManager.session({
-  log: createLog('[session]')
+const sessionA = sessionManager.session({
+  log: createLog('[session-a]')
+})
+const sessionB = sessionManager.session({
+  log: createLog('[session-b]'),
+  initialize: (session, done, log) => {
+    if (log) log('Initializing session.')
+
+    session.call(
+      'echo.1',
+      'success',
+      'Pls authorize. Kthx.',
+      10000,
+      (error, response) => {
+        if (error) {
+          if (log) log('Session failed to initialize:', error)
+
+          return done(error)
+        }
+
+        if (log) {
+          log('Session initialized successfully. Pausing for dramatic effect.')
+        }
+
+        window.setTimeout(done, 3000)
+      }
+    )
+  }
 })
 
 export {
   configurationReader,
   connectionManager,
-  session,
+  sessionA,
+  sessionB,
   sessionManager
 }

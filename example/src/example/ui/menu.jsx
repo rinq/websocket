@@ -8,42 +8,90 @@ import * as actions from '../actions'
 import {closeNavigation} from '../../ui/actions'
 
 const menu = props => {
-  const {layout, isConnected, closeNavigation, exampleCall} = props
-  let callSuccess, callFailure, callError, callUndefined, callTimeout
+  const {
+    layout,
+    isAConnected,
+    isBConnected,
+    closeNavigation,
+    exampleCall
+  } = props
+  let callASuccess,
+      callAFailure,
+      callAError,
+      callAUndefined,
+      callATimeout,
+      callBSuccess,
+      callBFailure,
+      callBError,
+      callBUndefined,
+      callBTimeout
 
-  if (isConnected) {
-    callSuccess = () => {
+  if (isAConnected) {
+    callASuccess = () => {
       if (layout === 'single') closeNavigation()
-      exampleCall('success')
+      exampleCall('a', 'success')
     }
 
-    callFailure = () => {
+    callAFailure = () => {
       if (layout === 'single') closeNavigation()
-      exampleCall('fail')
+      exampleCall('a', 'fail')
     }
 
-    callError = () => {
+    callAError = () => {
       if (layout === 'single') closeNavigation()
-      exampleCall('error')
+      exampleCall('a', 'error')
     }
 
-    callUndefined = () => {
+    callAUndefined = () => {
       if (layout === 'single') closeNavigation()
-      exampleCall('undefined')
+      exampleCall('a', 'undefined')
     }
 
-    callTimeout = () => {
+    callATimeout = () => {
       if (layout === 'single') closeNavigation()
-      exampleCall('timeout')
+      exampleCall('a', 'timeout')
+    }
+  }
+
+  if (isBConnected) {
+    callBSuccess = () => {
+      if (layout === 'single') closeNavigation()
+      exampleCall('b', 'success')
+    }
+
+    callBFailure = () => {
+      if (layout === 'single') closeNavigation()
+      exampleCall('b', 'fail')
+    }
+
+    callBError = () => {
+      if (layout === 'single') closeNavigation()
+      exampleCall('b', 'error')
+    }
+
+    callBUndefined = () => {
+      if (layout === 'single') closeNavigation()
+      exampleCall('b', 'undefined')
+    }
+
+    callBTimeout = () => {
+      if (layout === 'single') closeNavigation()
+      exampleCall('b', 'timeout')
     }
   }
 
   return <Menu primary={true}>
-    <Anchor disabled={!isConnected} onClick={callSuccess}>Success</Anchor>
-    <Anchor disabled={!isConnected} onClick={callFailure}>Failure</Anchor>
-    <Anchor disabled={!isConnected} onClick={callError}>Error</Anchor>
-    <Anchor disabled={!isConnected} onClick={callUndefined}>Undefined</Anchor>
-    <Anchor disabled={!isConnected} onClick={callTimeout}>Timeout</Anchor>
+    <Anchor disabled={!isAConnected} onClick={callASuccess}>Session A: Success</Anchor>
+    <Anchor disabled={!isAConnected} onClick={callAFailure}>Session A: Failure</Anchor>
+    <Anchor disabled={!isAConnected} onClick={callAError}>Session A: Error</Anchor>
+    <Anchor disabled={!isAConnected} onClick={callAUndefined}>Session A: Undefined</Anchor>
+    <Anchor disabled={!isAConnected} onClick={callATimeout}>Session A: Timeout</Anchor>
+
+    <Anchor disabled={!isBConnected} onClick={callBSuccess}>Session B: Success</Anchor>
+    <Anchor disabled={!isBConnected} onClick={callBFailure}>Session B: Failure</Anchor>
+    <Anchor disabled={!isBConnected} onClick={callBError}>Session B: Error</Anchor>
+    <Anchor disabled={!isBConnected} onClick={callBUndefined}>Session B: Undefined</Anchor>
+    <Anchor disabled={!isBConnected} onClick={callBTimeout}>Session B: Timeout</Anchor>
   </Menu>
 }
 
@@ -51,13 +99,16 @@ const ExampleMenu = connect(
     function mapStateToProps (state) {
       return {
         layout: state.ui.layout,
-        isConnected: state.network.isOnline && state.overpass.isConnected
+        isAConnected: state.network.isOnline && state.overpass.a.isConnected,
+        isBConnected: state.network.isOnline && state.overpass.b.isConnected
       }
     },
     function mapDispatchToProps (dispatch) {
       return {
         closeNavigation: () => dispatch(closeNavigation()),
-        exampleCall: command => dispatch(actions.exampleCall(command))
+        exampleCall: (session, command) => {
+          dispatch(actions.exampleCall(session, command))
+        }
       }
     }
 )(menu)
