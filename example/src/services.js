@@ -9,15 +9,18 @@ const configurationReader = new ConfigurationReader({
   fetch,
   log: createLog('[configuration-reader]')
 })
+
 const connectionManager = overpass.connectionManager({
   log: createLog('[connection-manager]')
 })
 const sessionManager = connectionManager.sessionManager({
   log: createLog('[session-manager]')
 })
+
 const sessionA = sessionManager.session({
   log: createLog('[session-a]')
 })
+
 const sessionB = sessionManager.session({
   log: createLog('[session-b]'),
   initialize: (session, done, log) => {

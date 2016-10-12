@@ -99,8 +99,8 @@ const ExampleMenu = connect(
     function mapStateToProps (state) {
       return {
         layout: state.ui.layout,
-        isAConnected: state.network.isOnline && state.overpass.a.isConnected,
-        isBConnected: state.network.isOnline && state.overpass.b.isConnected
+        isAConnected: state.overpass.a.isConnected,
+        isBConnected: state.overpass.b.isConnected
       }
     },
     function mapDispatchToProps (dispatch) {
