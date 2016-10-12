@@ -7,12 +7,22 @@
   "main": "src/index",
   "devDependencies": {
     "babel-eslint": "^7.0.0",
+    "babel-plugin-istanbul": "^2.0.1",
     "babel-preset-latest": "^6.16.0",
+    "babel-register": "^6.16.3",
+    "chai": "^3.5.0",
+    "mocha": "^3.1.2",
+    "nyc": "^8.3.1",
+    "sinon": "^1.17.6",
+    "sinon-chai": "^2.8.0",
     "standard": "^8.3.0"
   },
   "standard": {
     "globals": [
-      "WebSocket"
+      "WebSocket",
+      "describe",
+      "expect",
+      "it"
     ],
     "ignore": [
       "example/node_modules/**",
@@ -20,5 +30,15 @@
       "web/**"
     ],
     "parser": "babel-eslint"
+  },
+  "nyc": {
+    "extension": [
+      ".js"
+    ],
+    "require": [
+      "babel-register"
+    ],
+    "sourceMap": false,
+    "instrument": false
   }
 }

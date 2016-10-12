@@ -1,0 +1,6 @@
+--recursive
+--bail
+--reporter dot
+--compilers js:babel-register
+--require test/bootstrap
+test/suite
