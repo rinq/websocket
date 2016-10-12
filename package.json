@@ -20,6 +20,7 @@
   "standard": {
     "globals": [
       "WebSocket",
+      "beforeEach",
       "describe",
       "expect",
       "it"
