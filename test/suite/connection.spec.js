@@ -152,6 +152,33 @@ describe('Connection', function () {
       it('should reject earlier version handshake data', handshakeFailureSpec('OP0199'))
       it('should reject later version handshake data', handshakeFailureSpec('OP0300'))
     })
+
+    describe('for subsequent messages', function () {
+      beforeEach(function () {
+        this.subject._onFirstMessage({data: 'OP0200'})
+      })
+
+      it('should close the connection upon receiving invalid messages', function (done) {
+        this.subject.once('close', function (error) {
+          expect(error).to.be.an('error')
+
+          done()
+        })
+
+        this.subject._onMessage({data: ''})
+      })
+
+      it('should close the connection when an unexpected session is referenced', function (done) {
+        this.subject.once('close', function (error) {
+          expect(error).to.be.an('error')
+          expect(error.message).to.match(/unexpected session/i)
+
+          done()
+        })
+
+        this.subject._onMessage({data: JSON.stringify({session: 111})})
+      })
+    })
   }
 
   const sessionSpecs = function () {
@@ -234,6 +261,29 @@ describe('Connection', function () {
 
       describe('event handlers', eventHandlerSpecs)
       describe('close', closeSpecs)
+
+      it('should dispatch messages to the appropriate session', function (done) {
+        this.sessions[0].call('ns', 'cmd', null, 999999, function (error, response) {
+          expect(response).to.equal('a')
+          expect(error).to.be.null
+
+          done()
+        })
+        this.sessions[0].call('ns', 'cmd', null, 999999, function () {
+          done(new Error('Unexpected command routing.'))
+        })
+        this.sessions[1].call('ns', 'cmd', null, 999999, function () {
+          done(new Error('Unexpected command routing.'))
+        })
+
+        this.subject._onMessage({data: JSON.stringify({
+          session: 1,
+          seq: 1,
+          type: 'command.response',
+          responseType: 'success',
+          payload: 'a'
+        })})
+      })
     })
   })
 
