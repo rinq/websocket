@@ -39,6 +39,7 @@ describe('Connection', function () {
 
   const eventHandlerSpecs = function () {
     it('should handle close events', function (done) {
+      const subject = this.subject
       const socket = this.socket
       const log = this.log
       const sessions = this.sessions || []
@@ -47,11 +48,11 @@ describe('Connection', function () {
         expect(error).to.be.an('error')
         expect(error.message).to.equal('Connection closed: Close reason.')
 
-        expect(socket.removeEventListener).to.have.been.calledWith('open', this._onOpen)
-        expect(socket.removeEventListener).to.have.been.calledWith('error', this._onError)
-        expect(socket.removeEventListener).to.have.been.calledWith('close', this._onClose)
-        expect(socket.removeEventListener).to.have.been.calledWith('message', this._onFirstMessage)
-        expect(socket.removeEventListener).to.have.been.calledWith('message', this._onMessage)
+        expect(socket.removeEventListener).to.have.been.calledWith('open', subject._onOpen)
+        expect(socket.removeEventListener).to.have.been.calledWith('error', subject._onError)
+        expect(socket.removeEventListener).to.have.been.calledWith('close', subject._onClose)
+        expect(socket.removeEventListener).to.have.been.calledWith('message', subject._onFirstMessage)
+        expect(socket.removeEventListener).to.have.been.calledWith('message', subject._onMessage)
 
         if (log) expect(log).to.have.been.calledWith(sinon.match(/closed/i))
 
@@ -71,6 +72,7 @@ describe('Connection', function () {
     it('should handle error events', function (done) {
       const err = new Error('Error message.')
 
+      const subject = this.subject
       const socket = this.socket
       const log = this.log
       const sessions = this.sessions || []
@@ -79,11 +81,11 @@ describe('Connection', function () {
         expect(error).to.be.an('error')
         expect(error).to.equal(err)
 
-        expect(socket.removeEventListener).to.have.been.calledWith('open', this._onOpen)
-        expect(socket.removeEventListener).to.have.been.calledWith('error', this._onError)
-        expect(socket.removeEventListener).to.have.been.calledWith('close', this._onClose)
-        expect(socket.removeEventListener).to.have.been.calledWith('message', this._onFirstMessage)
-        expect(socket.removeEventListener).to.have.been.calledWith('message', this._onMessage)
+        expect(socket.removeEventListener).to.have.been.calledWith('open', subject._onOpen)
+        expect(socket.removeEventListener).to.have.been.calledWith('error', subject._onError)
+        expect(socket.removeEventListener).to.have.been.calledWith('close', subject._onClose)
+        expect(socket.removeEventListener).to.have.been.calledWith('message', subject._onFirstMessage)
+        expect(socket.removeEventListener).to.have.been.calledWith('message', subject._onMessage)
 
         for (const session of sessions) {
           expect(function () {
@@ -97,6 +99,58 @@ describe('Connection', function () {
       })
 
       this.subject._onError(err)
+    })
+
+    it('should initiate a handshake on open events', function () {
+      this.subject._onOpen()
+
+      expect(this.socket.send).to.have.been.calledWith('OP0200')
+    })
+
+    describe('for the first message', function () {
+      const handshakeSuccessSpec = function (data) {
+        return function (done) {
+          const subject = this.subject
+          const socket = this.socket
+          const log = this.log
+
+          this.subject.once('open', function () {
+            expect(socket.removeEventListener).to.have.been.calledWith('message', subject._onFirstMessage)
+            expect(socket.addEventListener).to.have.been.calledWith('message', subject._onMessage)
+
+            if (log) expect(log).to.have.been.calledWith(sinon.match(/handshake succeeded/i))
+
+            done()
+          })
+
+          this.subject._onFirstMessage({data})
+        }
+      }
+
+      const handshakeFailureSpec = function (data) {
+        return function (done) {
+          const log = this.log
+
+          this.subject.once('close', function (error) {
+            expect(error).to.be.an('error')
+            expect(error.message).to.equal('Handshake failed.')
+
+            if (log) {
+              expect(log).to.have.been.calledWith(sinon.match(/handshake failed/i))
+              expect(log).to.have.been.calledWith(sinon.match(/closing with error/i))
+            }
+
+            done()
+          })
+
+          this.subject._onFirstMessage({data})
+        }
+      }
+
+      it('should handle exact match handshake data', handshakeSuccessSpec('OP0200'))
+      it('should handle compatible handshake data', handshakeSuccessSpec('OP0299'))
+      it('should reject earlier version handshake data', handshakeFailureSpec('OP0199'))
+      it('should reject later version handshake data', handshakeFailureSpec('OP0300'))
     })
   }
 
