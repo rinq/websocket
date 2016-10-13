@@ -88,6 +88,8 @@ export default class OverpassConnection extends EventEmitter {
   }
 
   _closeError (error) {
+    if (this._log) this._log('Connection closing with error:', error)
+
     this._shutdown(error)
     this._socket.close()
     this.emit('close', error)

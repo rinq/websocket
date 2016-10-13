@@ -13,6 +13,9 @@ global.window = {
 global.WebSocket = class WebSocket {
   constructor (url) {
     this.url = url
-    this.addEventListener = sinon.stub()
+    this.addEventListener = sinon.spy()
+    this.removeEventListener = sinon.spy()
+    this.send = sinon.spy()
+    this.close = sinon.spy()
   }
 }

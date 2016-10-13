@@ -23,7 +23,8 @@
       "beforeEach",
       "describe",
       "expect",
-      "it"
+      "it",
+      "sinon"
     ],
     "ignore": [
       "example/node_modules/**",
