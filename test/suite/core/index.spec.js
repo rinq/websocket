@@ -1,6 +1,6 @@
-import Failure from '../../src/failure'
-import OverpassConnection from '../../src/connection'
-import {connection, isFailureType} from '../../src/index'
+import Failure from '../../../core/failure'
+import OverpassConnection from '../../../core/connection'
+import {connection, isFailureType} from '../../../core/index'
 
 describe('Main module', () => {
   describe('connection', () => {

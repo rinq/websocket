@@ -1,4 +1,4 @@
-import Failure from '../../src/failure'
+import Failure from '../../../core/failure'
 
 describe('Failure', () => {
   it('represents a call failure', () => {

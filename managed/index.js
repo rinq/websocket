@@ -1,5 +1,5 @@
 import OverpassManagerConnectionFactory from './connection-manager-factory'
-import {connection as overpassConnection} from '../index'
+import {connection as overpassConnection} from '../core'
 
 const connectionManagerFactory =
   new OverpassManagerConnectionFactory({overpassConnection, window})

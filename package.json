@@ -4,7 +4,7 @@
   "description": "Client library for Overpass websocket communication.",
   "repository": "icecave/overpass-websocket",
   "license": "MIT",
-  "main": "src/index.js",
+  "main": "core",
   "devDependencies": {
     "babel-eslint": "^7.0.0",
     "babel-plugin-istanbul": "^2.0.1",

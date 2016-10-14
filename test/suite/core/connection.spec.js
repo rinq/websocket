@@ -1,5 +1,5 @@
-import OverpassConnection from '../../src/connection'
-import OverpassSession from '../../src/session'
+import OverpassConnection from '../../../core/connection'
+import OverpassSession from '../../../core/session'
 
 describe('Connection', function () {
   describe('constructor', function () {

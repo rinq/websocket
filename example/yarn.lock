@@ -2430,9 +2430,8 @@ osenv@0:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
 
-overpass-websocket@ezzatron/overpass-websocket#master:
+"overpass-websocket@file:..":
   version "0.0.0"
-  resolved "https://codeload.github.com/ezzatron/overpass-websocket/tar.gz/ee82b4161169a7d3f378f086ba91740ef802095a"
 
 pako@~0.2.0:
   version "0.2.9"
