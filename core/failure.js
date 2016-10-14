@@ -1,4 +1,4 @@
-export default class Failure extends Error {
+export default class OverpassFailure extends Error {
   static isType (type, error) {
     return error.isFailure && error.type === type
   }

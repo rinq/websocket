@@ -1,9 +1,9 @@
-import Failure from '../../../core/failure'
+import OverpassFailure from '../../../core/failure'
 
-describe('Failure', () => {
+describe('OverpassFailure', () => {
   it('represents a call failure', () => {
     const data = {a: 'b', c: 'd'}
-    const failure = new Failure('type-a', 'Failure message.', data)
+    const failure = new OverpassFailure('type-a', 'Failure message.', data)
 
     expect(failure).to.be.an('error')
     expect(failure.isFailure).to.be.true

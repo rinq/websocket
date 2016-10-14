@@ -1,7 +1,7 @@
 import OverpassConnection from '../../../core/connection'
 import OverpassSession from '../../../core/session'
 
-describe('Connection', function () {
+describe('OverpassConnection', function () {
   describe('constructor', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
@@ -18,18 +18,6 @@ describe('Connection', function () {
     })
 
     it('should listen to socket events', function () {
-      this.socket = new WebSocket('ws://example.org/')
-      this.setTimeout = sinon.spy()
-      this.clearTimeout = sinon.spy()
-      this.log = sinon.spy()
-
-      this.subject = new OverpassConnection({
-        socket: this.socket,
-        setTimeout: this.setTimeout,
-        clearTimeout: this.clearTimeout,
-        log: this.log
-      })
-
       expect(this.socket.addEventListener).to.have.been.calledWith('open', this.subject._onOpen)
       expect(this.socket.addEventListener).to.have.been.calledWith('error', this.subject._onError)
       expect(this.socket.addEventListener).to.have.been.calledWith('close', this.subject._onClose)

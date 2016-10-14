@@ -1,6 +1,6 @@
 import {EventEmitter} from 'events'
 
-import Failure from './failure'
+import OverpassFailure from './failure'
 
 export default class OverpassSession extends EventEmitter {
   constructor ({id, connection, setTimeout, clearTimeout, log}) {
@@ -82,7 +82,7 @@ export default class OverpassSession extends EventEmitter {
     const call = this._calls[message.seq]
     if (!call) return
 
-    if (call.timeout) this._clearTimeout(call.timeout)
+    this._clearTimeout(call.timeout)
 
     switch (message.responseType) {
       case 'success':
@@ -91,7 +91,7 @@ export default class OverpassSession extends EventEmitter {
         break
 
       case 'failure':
-        call.callback(new Failure(
+        call.callback(new OverpassFailure(
           message.payload.type,
           message.payload.message,
           message.payload.data
@@ -119,7 +119,7 @@ export default class OverpassSession extends EventEmitter {
     for (let seq in this._calls) {
       const call = this._calls[seq]
 
-      if (call.timeout) this._clearTimeout(call.timeout)
+      this._clearTimeout(call.timeout)
       call.callback(error)
     }
 

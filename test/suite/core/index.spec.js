@@ -2,7 +2,7 @@ import Failure from '../../../core/failure'
 import OverpassConnection from '../../../core/connection'
 import {connection, isFailureType} from '../../../core/index'
 
-describe('Main module', () => {
+describe('Core module', () => {
   describe('connection', () => {
     beforeEach(function () {
       this.options = {
