@@ -1,7 +1,7 @@
 import OverpassFailure from '../../../core/failure'
 
-describe('OverpassFailure', () => {
-  it('represents a call failure', () => {
+describe('OverpassFailure', function () {
+  it('represents a call failure', function () {
     const data = {a: 'b', c: 'd'}
     const failure = new OverpassFailure('type-a', 'Failure message.', data)
 

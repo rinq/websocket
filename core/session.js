@@ -75,7 +75,9 @@ export default class OverpassSession extends EventEmitter {
   }
 
   _dispatchSessionDestroy () {
-    this._destroy(new Error('Session destroyed remotely.'))
+    const message = 'Session destroyed remotely.'
+    if (this._log) this._log(message)
+    this._destroy(new Error(message))
   }
 
   _dispatchCommandResponse (message) {

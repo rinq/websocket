@@ -2,11 +2,11 @@ import Failure from '../../../core/failure'
 import OverpassConnection from '../../../core/connection'
 import {connection, isFailureType} from '../../../core/index'
 
-describe('Core module', () => {
-  describe('connection', () => {
+describe('Core module', function () {
+  describe('connection', function () {
     beforeEach(function () {
       this.options = {
-        log: () => {}
+        log: function () {}
       }
       this.connection = connection('ws://example.org/', this.options)
     })
@@ -34,7 +34,7 @@ describe('Core module', () => {
       expect(this.connection._log).to.equal(this.options.log)
     })
 
-    describe('with defaulted options', () => {
+    describe('with defaulted options', function () {
       it('should have no log function', function () {
         const conn = connection('ws://example.org/')
 
@@ -43,26 +43,26 @@ describe('Core module', () => {
     })
   })
 
-  describe('isFailureType', () => {
-    it('should return true for matching failure types', () => {
+  describe('isFailureType', function () {
+    it('should return true for matching failure types', function () {
       const failure = new Failure('type-a', 'Failure message.')
 
       expect(isFailureType('type-a', failure)).to.be.ok
     })
 
-    it('should return false for non-matching failure types', () => {
+    it('should return false for non-matching failure types', function () {
       const failure = new Failure('type-b', 'Failure message.')
 
       expect(isFailureType('type-a', failure)).to.not.be.ok
     })
 
-    it('should return false for other errors', () => {
+    it('should return false for other errors', function () {
       const error = new Error('Error message.')
 
       expect(isFailureType('type-a', error)).to.not.be.ok
     })
 
-    it('should return false for other types', () => {
+    it('should return false for other types', function () {
       expect(isFailureType('type-a', true)).to.not.be.ok
     })
   })

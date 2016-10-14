@@ -29,6 +29,30 @@ describe('OverpassSession', () => {
     })
   }
 
+  const dispatchSpecs = function () {
+    it('should handle session.destroy messages', function (done) {
+      const clearTimeout = this.clearTimeout
+      const log = this.log
+      const calls = this.calls || []
+
+      this.subject.once('destroy', function () {
+        for (const id in calls) {
+          const call = calls[id]
+
+          expect(clearTimeout).to.have.been.calledWith(call.timeoutId)
+          expect(call.error).to.be.an('error')
+          expect(call.error.message).to.match(/session destroyed remotely/i)
+        }
+
+        if (log) expect(log).to.have.been.calledWith(sinon.match(/session destroyed remotely/i))
+
+        done()
+      })
+
+      this.subject._dispatch({type: 'session.destroy'})
+    })
+  }
+
   describe('with a log function', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
@@ -53,6 +77,7 @@ describe('OverpassSession', () => {
 
     describe('before call creation', function () {
       describe('destroy', destroySpecs)
+      describe('dispatch', dispatchSpecs)
     })
 
     describe('after call creation', function () {
@@ -76,6 +101,7 @@ describe('OverpassSession', () => {
       })
 
       describe('destroy', destroySpecs)
+      describe('dispatch', dispatchSpecs)
     })
   })
 
@@ -98,5 +124,6 @@ describe('OverpassSession', () => {
     })
 
     describe('destroy', destroySpecs)
+    describe('dispatch', dispatchSpecs)
   })
 })
