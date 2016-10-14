@@ -19,8 +19,7 @@ module.exports = {
         test: /\.jsx?$/,
         include: [
           path.resolve(__dirname, 'src'),
-          path.resolve(__dirname, 'node_modules/overpass-websocket-client'),
-          path.resolve(__dirname, 'node_modules/overpass-websocket-client-sdk')
+          path.resolve(__dirname, 'node_modules/overpass-websocket')
         ],
         loader: 'babel',
         query: { presets: [ 'latest', 'react' ] }

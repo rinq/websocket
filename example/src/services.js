@@ -1,4 +1,4 @@
-import * as overpass from 'overpass-websocket-client-sdk'
+import * as overpass from 'overpass-websocket/managed'
 import fetch from 'isomorphic-fetch'
 
 import ConfigurationReader from './configuration/reader'

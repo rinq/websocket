@@ -1,8 +1,8 @@
 {
-  "name": "overpass-websocket-client",
+  "name": "overpass-websocket",
   "version": "0.0.0",
   "description": "Client library for Overpass websocket communication.",
-  "repository": "icecave/overpass-websocket-client",
+  "repository": "icecave/overpass-websocket",
   "license": "MIT",
   "main": "src/index",
   "devDependencies": {
