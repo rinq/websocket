@@ -1,4 +1,5 @@
 import OverpassConnection from '../../../core/connection'
+import {isFailureType} from '../../../core/index'
 
 describe('OverpassSession', () => {
   const destroySpecs = function () {
@@ -51,6 +52,143 @@ describe('OverpassSession', () => {
 
       this.subject._dispatch({type: 'session.destroy'})
     })
+
+    it('should ignore command.response messages for unknown calls', function () {
+      expect(this.subject._dispatch({type: 'command.response', seq: 111})).to.be.undefined
+    })
+  }
+
+  const sendSpecs = function () {
+    it('should send command.request messages', function () {
+      this.subject.send('ns', 'cmd-a', 'payload')
+
+      expect(this.connection._send).to.have.been.calledWith({
+        type: 'command.request',
+        session: this.subject._id,
+        namespace: 'ns',
+        command: 'cmd-a',
+        payload: 'payload'
+      })
+    })
+
+    it('should throw an error if destroyed', function () {
+      this.subject.destroy()
+      const subject = this.subject
+
+      expect(function () {
+        subject.send('ns', 'cmd-a', 'payload')
+      }).to.throw(/session destroyed locally/i)
+    })
+  }
+
+  const callSpecs = function () {
+    it('should handle successful responses', function (done) {
+      this.subject.call('ns', 'cmd-a', 'payload', 99999, function (error, response) {
+        expect(error).to.be.null
+        expect(response).to.equal('response')
+
+        done()
+      })
+
+      this.subject._dispatch({
+        type: 'command.response',
+        session: this.subject._id,
+        seq: 1,
+        responseType: 'success',
+        payload: 'response'
+      })
+    })
+
+    it('should handle failure responses', function (done) {
+      this.subject.call('ns', 'cmd-a', 'payload', 99999, function (error, response) {
+        expect(error).to.be.an('error')
+        expect(isFailureType('type-a', error)).to.be.ok
+        expect(error.message).to.equal('Failure message.')
+        expect(error.data).to.deep.equal({a: 'b', c: 'd'})
+
+        done()
+      })
+
+      this.subject._dispatch({
+        type: 'command.response',
+        session: this.subject._id,
+        seq: 1,
+        responseType: 'failure',
+        payload: {
+          type: 'type-a',
+          message: 'Failure message.',
+          data: {a: 'b', c: 'd'}
+        }
+      })
+    })
+
+    it('should handle error responses', function (done) {
+      this.subject.call('ns', 'cmd-a', 'payload', 99999, function (error, response) {
+        expect(error).to.be.an('error')
+        expect(isFailureType('type-a', error)).to.not.be.ok
+        expect(error.message).to.equal('Server error.')
+
+        done()
+      })
+
+      this.subject._dispatch({
+        type: 'command.response',
+        session: this.subject._id,
+        seq: 1,
+        responseType: 'error'
+      })
+    })
+
+    it('should handle timeouts', function (done) {
+      const setTimeout = this.setTimeout
+      setTimeout.callsArg(0)
+
+      this.subject.call('ns', 'cmd-a', 'payload', 99999, function (error, response) {
+        expect(setTimeout).to.have.been.calledWith(sinon.match.func, 99999)
+        expect(error).to.be.an('error')
+        expect(error.message).to.equal("Call to 'cmd-a' in namespace 'ns' timed out after 99999ms.")
+        expect(response).to.be.undefined
+
+        done()
+      })
+    })
+
+    it('should call the callback with an error if destroyed', function (done) {
+      this.subject.destroy()
+
+      this.subject.call('ns', 'cmd-a', 'payload', 99999, function (error, response) {
+        expect(error).to.be.an('error')
+        expect(error.message).to.match(/destroyed/i)
+        expect(response).to.be.undefined
+
+        done()
+      })
+    })
+
+    it('should handle unexpected response types', function (done) {
+      const subject = this.subject
+
+      this.subject.call('ns', 'cmd-a', 'payload', 99999, function (error, response) {
+        const expected = 'Unexpected command response type: response-type-a.'
+
+        expect(error).to.be.an('error')
+        expect(isFailureType('type-a', error)).to.not.be.ok
+        expect(error.message).to.equal(expected)
+
+        expect(function () {
+          subject.send('ns', 'cmd-a', 'payload')
+        }).to.throw(expected)
+
+        done()
+      })
+
+      this.subject._dispatch({
+        type: 'command.response',
+        session: this.subject._id,
+        seq: 1,
+        responseType: 'response-type-a'
+      })
+    })
   }
 
   describe('with a log function', function () {
@@ -78,6 +216,8 @@ describe('OverpassSession', () => {
     describe('before call creation', function () {
       describe('destroy', destroySpecs)
       describe('dispatch', dispatchSpecs)
+      describe('send', sendSpecs)
+      describe('call', callSpecs)
     })
 
     describe('after call creation', function () {
