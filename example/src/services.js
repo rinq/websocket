@@ -4,8 +4,8 @@ import fetch from 'isomorphic-fetch'
 import ConfigurationReader from './configuration/reader'
 
 const configurationReader = new ConfigurationReader({
-  fetch,
-  log: (...args) => console.log('\u{1F4C4} [configuration-reader]', ...args)
+  fetch
+  // log: (...args) => console.log('\u{1F4C4} [configuration-reader]', ...args)
 })
 
 const debug = window.location.hash.substring(1).match(/\bdebug\b/)
