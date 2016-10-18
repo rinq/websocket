@@ -13,13 +13,13 @@ const debug = window.location.hash.substring(1).match(/\bdebug\b/)
 const connectionManager = overpass.connectionManager({
   log: {
     debug,
-    prefix: '[connection-manager] '
+    prefix: '[connection] '
   }
 })
 const sessionManager = connectionManager.sessionManager({
   log: {
     debug,
-    prefix: '[session-manager] '
+    prefix: '[session] '
   }
 })
 
