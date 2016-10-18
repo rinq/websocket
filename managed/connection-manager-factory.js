@@ -1,8 +1,9 @@
 import OverpassConnectionManager from './connection-manager'
 
 export default class OverpassConnectionManagerFactory {
-  constructor ({overpassConnection, window}) {
+  constructor ({overpassConnection, window, logger}) {
     this._overpassConnection = overpassConnection
+    this._logger = logger
     this._window = window
   }
 
@@ -12,6 +13,7 @@ export default class OverpassConnectionManagerFactory {
       overpassConnection: this._overpassConnection,
       delayFn: options.delayFn || this._delayFn,
       window: this._window,
+      logger: this._logger,
       log: options.log
     })
   }

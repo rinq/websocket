@@ -1,7 +1,7 @@
 build: node_modules
 	node_modules/.bin/webpack --debug
 
-serve: build open
+serve: build
 	node_modules/.bin/webpack-dev-server --host 0.0.0.0
 
 open:

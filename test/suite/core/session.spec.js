@@ -7,7 +7,6 @@ describe('OverpassSession', () => {
       const subject = this.subject
       const connection = this.connection
       const clearTimeout = this.clearTimeout
-      const log = this.log
       const calls = this.calls || []
 
       this.subject.once('destroy', function () {
@@ -21,8 +20,6 @@ describe('OverpassSession', () => {
           expect(call.error.message).to.match(/session destroyed locally/i)
         }
 
-        if (log) expect(log).to.have.been.calledWith(sinon.match(/destroying session/i))
-
         done()
       })
 
@@ -33,7 +30,6 @@ describe('OverpassSession', () => {
   const dispatchSpecs = function () {
     it('should handle session.destroy messages', function (done) {
       const clearTimeout = this.clearTimeout
-      const log = this.log
       const calls = this.calls || []
 
       this.subject.once('destroy', function () {
@@ -44,8 +40,6 @@ describe('OverpassSession', () => {
           expect(call.error).to.be.an('error')
           expect(call.error.message).to.match(/session destroyed remotely/i)
         }
-
-        if (log) expect(log).to.have.been.calledWith(sinon.match(/session destroyed remotely/i))
 
         done()
       })
@@ -191,22 +185,22 @@ describe('OverpassSession', () => {
     })
   }
 
-  describe('with a log function', function () {
+  describe('with log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
       this.setTimeout = sinon.stub()
       this.clearTimeout = sinon.spy()
-      this.connectionLog = sinon.spy()
+      this.logger = {log: sinon.spy()}
 
       this.connection = new OverpassConnection({
         socket: this.socket,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
-        log: this.connectionLog
+        logger: this.logger
       })
       sinon.spy(this.connection, '_send')
 
-      this.log = sinon.spy()
+      this.log = {prefix: '[prefix] '}
 
       this.subject = this.connection.session({
         log: this.log
@@ -245,22 +239,23 @@ describe('OverpassSession', () => {
     })
   })
 
-  describe('without a log function', function () {
+  describe('without log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
-      this.connectionLog = sinon.spy()
+      this.logger = {log: sinon.spy()}
 
       this.connection = new OverpassConnection({
         socket: this.socket,
         setTimeout: this.setTimeout,
-        clearTimeout: this.clearTimeout,
-        log: this.connectionLog
+        clearTimeout: this.clearTimeout
       })
       sinon.spy(this.connection, '_send')
 
-      this.subject = this.connection.session()
+      this.subject = this.connection.session({
+        logger: this.logger
+      })
     })
 
     describe('destroy', destroySpecs)

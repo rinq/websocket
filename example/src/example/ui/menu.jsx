@@ -106,8 +106,8 @@ const ExampleMenu = connect(
     function mapDispatchToProps (dispatch) {
       return {
         closeNavigation: () => dispatch(closeNavigation()),
-        exampleCall: (session, command) => {
-          dispatch(actions.exampleCall(session, command))
+        exampleCall: (context, command) => {
+          dispatch(actions.exampleCall(context, command))
         }
       }
     }

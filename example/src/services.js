@@ -3,44 +3,32 @@ import fetch from 'isomorphic-fetch'
 
 import ConfigurationReader from './configuration/reader'
 
-const createLog = prefix => (...args) => console.debug(prefix, ...args)
-
 const configurationReader = new ConfigurationReader({
   fetch,
-  log: createLog('[configuration-reader]')
+  log: (...args) => console.log('\u{1F4C4} [configuration-reader]', ...args)
 })
 
 const connectionManager = overpass.connectionManager({
-  log: createLog('[connection-manager]')
+  log: {prefix: '[connection-manager] '}
 })
 const sessionManager = connectionManager.sessionManager({
-  log: createLog('[session-manager]')
+  log: {prefix: '[session-manager] '}
 })
 
-const sessionA = sessionManager.session({
-  log: createLog('[session-a]')
+const contextA = sessionManager.context({
+  log: {prefix: '[context-a] '}
 })
 
-const sessionB = sessionManager.session({
-  log: createLog('[session-b]'),
-  initialize: (session, done, log) => {
-    if (log) log('Initializing session.')
-
+const contextB = sessionManager.context({
+  log: {prefix: '[context-b] '},
+  initialize: (session, done) => {
     session.call(
       'echo.1',
       'success',
       'Pls authorize. Kthx.',
       10000,
       (error, response) => {
-        if (error) {
-          if (log) log('Session failed to initialize:', error)
-
-          return done(error)
-        }
-
-        if (log) {
-          log('Session initialized successfully. Pausing for dramatic effect.')
-        }
+        if (error) return done(error)
 
         window.setTimeout(done, 3000)
       }
@@ -51,7 +39,7 @@ const sessionB = sessionManager.session({
 export {
   configurationReader,
   connectionManager,
-  sessionA,
-  sessionB,
+  contextA,
+  contextB,
   sessionManager
 }

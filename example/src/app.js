@@ -1,4 +1,4 @@
-import createLogger from 'redux-logger'
+// import createLogger from 'redux-logger'
 import createSaga from 'redux-saga'
 import {createStore, applyMiddleware} from 'redux'
 import {render} from 'react-dom'
@@ -9,8 +9,9 @@ import createUi from './ui/create'
 import reducer from './reducer'
 
 const saga = createSaga()
-const logger = createLogger()
-const store = createStore(reducer, applyMiddleware(saga, logger))
+// const logger = createLogger({collapsed: true})
+// const store = createStore(reducer, applyMiddleware(saga, logger))
+const store = createStore(reducer, applyMiddleware(saga))
 
 const rootSaga = createRootSaga(services)
 saga.run(rootSaga)

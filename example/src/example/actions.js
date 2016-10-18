@@ -1,11 +1,11 @@
 export const EXAMPLE_CALL = 'EXAMPLE_CALL'
-export function exampleCall (session, command) {
-  return {type: EXAMPLE_CALL, payload: {session, command}}
+export function exampleCall (context, command) {
+  return {type: EXAMPLE_CALL, payload: {context, command}}
 }
 
 export const EXAMPLE_SENT = 'EXAMPLE_SENT'
-export function exampleSent (session, seq, command) {
-  return {type: EXAMPLE_SENT, payload: {session, seq, command}}
+export function exampleSent (context, seq, command) {
+  return {type: EXAMPLE_SENT, payload: {context, seq, command}}
 }
 
 export const EXAMPLE_SUCCESS = 'EXAMPLE_SUCCESS'

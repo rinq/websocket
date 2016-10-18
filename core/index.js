@@ -1,13 +1,17 @@
-import Failure from './failure'
 import OverpassConnectionFactory from './connection-factory'
+import OverpassFailure from './failure'
+import OverpassLogger from './logger'
+
+const logger = new OverpassLogger({console})
 
 const connectionFactory = new OverpassConnectionFactory({
   setTimeout: window.setTimeout.bind(window),
   clearTimeout: window.clearTimeout.bind(window),
-  WebSocket
+  WebSocket,
+  logger
 })
 const connection = connectionFactory.connection.bind(connectionFactory)
 
-const isFailureType = Failure.isType
+const isFailureType = OverpassFailure.isType
 
 export {connection, isFailureType}

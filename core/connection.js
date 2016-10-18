@@ -3,22 +3,36 @@ import {EventEmitter} from 'events'
 import OverpassSession from './session'
 
 export default class OverpassConnection extends EventEmitter {
-  constructor ({socket, setTimeout, clearTimeout, log}) {
+  constructor ({socket, setTimeout, clearTimeout, logger, log}) {
     super()
 
     this._socket = socket
     this._setTimeout = setTimeout
     this._clearTimeout = clearTimeout
+    this._logger = logger
     this._log = log
 
     this._sessionSeq = 0
     this._sessions = {}
 
+    this._debugSymbol = '\u{1F41E}'
+
     this._onOpen = () => this._socket.send('OP0200')
     this._onError = (error) => this._closeError(error)
 
     this._onClose = (event) => {
-      if (this._log) this._log('Connection closed:', event)
+      if (this._log && this._log.debug) {
+        this._logger.log(
+          [
+            '%c%s %sConnection closed: %s',
+            'color: orange',
+            this._debugSymbol,
+            this._log.prefix,
+            event.reason
+          ],
+          [[{event}]]
+        )
+      }
 
       const error = new Error('Connection closed: ' + event.reason)
 
@@ -28,12 +42,31 @@ export default class OverpassConnection extends EventEmitter {
 
     this._onFirstMessage = (event) => {
       if (!this._validateHandshake(event.data)) {
-        if (this._log) this._log('Handshake failed.')
+        if (this._log && this._log.debug) {
+          this._logger.log(
+            [
+              '%c%s %sHandshake failed.',
+              'color: red',
+              this._debugSymbol,
+              this._log.prefix
+            ],
+            [[{data: event.data}]]
+          )
+        }
 
         return this._closeError(new Error('Handshake failed.'))
       }
 
-      if (this._log) this._log('Handshake succeeded.')
+      if (this._log && this._log.debug) {
+        this._logger.log(
+          [
+            '%c%s %sHandshake succeeded.',
+            'color: green',
+            this._debugSymbol,
+            this._log.prefix
+          ]
+        )
+      }
 
       this._socket.removeEventListener('message', this._onFirstMessage)
       this._socket.addEventListener('message', this._onMessage)
@@ -56,7 +89,16 @@ export default class OverpassConnection extends EventEmitter {
   }
 
   close () {
-    if (this._log) this._log('Closing connection.')
+    if (this._log && this._log.debug) {
+      this._logger.log(
+        [
+          '%c%s %sClosing connection.',
+          'color: orange',
+          this._debugSymbol,
+          this._log.prefix
+        ]
+      )
+    }
 
     this._shutdown(new Error('Connection closed locally.'))
     this._socket.close()
@@ -72,6 +114,7 @@ export default class OverpassConnection extends EventEmitter {
       connection: this,
       setTimeout: this._setTimeout,
       clearTimeout: this._clearTimeout,
+      logger: this._logger,
       log: options.log
     })
     session.once('destroy', () => delete this._sessions[id])
@@ -88,7 +131,18 @@ export default class OverpassConnection extends EventEmitter {
   }
 
   _closeError (error) {
-    if (this._log) this._log('Connection closing with error:', error)
+    if (this._log && this._log.debug) {
+      this._logger.log(
+        [
+          '%c%s %sConnection closing with error: %s',
+          'color: red',
+          this._debugSymbol,
+          this._log.prefix,
+          error.message
+        ],
+        [[{error}]]
+      )
+    }
 
     this._shutdown(error)
     this._socket.close()

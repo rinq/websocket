@@ -5,15 +5,15 @@ import * as actions from './actions'
 
 let callSeq = 0
 
-export function* exampleCall (sessions, action) {
-  const session = sessions[action.payload.session]
+export function* exampleCall (contexts, action) {
+  const context = contexts[action.payload.context]
   const seq = ++callSeq
 
-  yield put(actions.exampleSent(session, seq, action.payload.command))
+  yield put(actions.exampleSent(context, seq, action.payload.command))
 
   try {
     yield cps(
-      [session, session.call],
+      [context, context.call],
       'echo.1',
       action.payload.command,
       null,
@@ -25,13 +25,13 @@ export function* exampleCall (sessions, action) {
   }
 }
 
-export function* watchExampleCall (sessions) {
-  yield takeEvery(actions.EXAMPLE_CALL, exampleCall, sessions)
+export function* watchExampleCall (contexts) {
+  yield takeEvery(actions.EXAMPLE_CALL, exampleCall, contexts)
 }
 
 export default function* networkSaga (services) {
   yield fork(watchExampleCall, {
-    a: services.sessionA,
-    b: services.sessionB
+    a: services.contextA,
+    b: services.contextB
   })
 }

@@ -5,17 +5,17 @@ export default class ConfigurationReader extends EventEmitter {
     super()
 
     this._fetch = fetch
-    this._log = log
+    this.log = log
   }
 
   read () {
-    if (this._log) this._log('Reading configuration.')
+    if (this.log) this.log('Reading configuration.')
 
     return this._fetch('config.json')
     .then(response => response.json())
     .then(configuration => {
       this._validate(configuration)
-      if (this._log) this._log('Read configuration:', configuration)
+      if (this.log) this.log('Read configuration:', configuration)
       this.emit('configuration', configuration)
 
       return configuration
@@ -27,7 +27,7 @@ export default class ConfigurationReader extends EventEmitter {
     if (typeof configuration.gateway === 'string') return
 
     const message = 'Invalid configuration: ' + JSON.stringify(configuration)
-    if (this._log) this._log(message)
+    if (this.log) this.log(message)
     throw new Error(message)
   }
 }

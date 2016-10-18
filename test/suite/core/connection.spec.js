@@ -7,13 +7,13 @@ describe('OverpassConnection', function () {
       this.socket = new WebSocket('ws://example.org/')
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
-      this.log = sinon.spy()
+      this.logger = {log: sinon.spy()}
 
       this.subject = new OverpassConnection({
         socket: this.socket,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
-        log: this.log
+        logger: this.logger
       })
     })
 
@@ -29,7 +29,6 @@ describe('OverpassConnection', function () {
     it('should handle close events', function (done) {
       const subject = this.subject
       const socket = this.socket
-      const log = this.log
       const sessions = this.sessions || []
 
       this.subject.once('close', function (error) {
@@ -41,8 +40,6 @@ describe('OverpassConnection', function () {
         expect(socket.removeEventListener).to.have.been.calledWith('close', subject._onClose)
         expect(socket.removeEventListener).to.have.been.calledWith('message', subject._onFirstMessage)
         expect(socket.removeEventListener).to.have.been.calledWith('message', subject._onMessage)
-
-        if (log) expect(log).to.have.been.calledWith(sinon.match(/closed/i))
 
         for (const session of sessions) {
           expect(function () {
@@ -62,7 +59,6 @@ describe('OverpassConnection', function () {
 
       const subject = this.subject
       const socket = this.socket
-      const log = this.log
       const sessions = this.sessions || []
 
       this.subject.once('close', function (error) {
@@ -81,8 +77,6 @@ describe('OverpassConnection', function () {
           }).to.throw(err)
         }
 
-        if (log) expect(log).to.have.been.calledWith(sinon.match(/closing with error/i))
-
         done()
       })
 
@@ -100,13 +94,10 @@ describe('OverpassConnection', function () {
         return function (done) {
           const subject = this.subject
           const socket = this.socket
-          const log = this.log
 
           this.subject.once('open', function () {
             expect(socket.removeEventListener).to.have.been.calledWith('message', subject._onFirstMessage)
             expect(socket.addEventListener).to.have.been.calledWith('message', subject._onMessage)
-
-            if (log) expect(log).to.have.been.calledWith(sinon.match(/handshake succeeded/i))
 
             done()
           })
@@ -117,16 +108,9 @@ describe('OverpassConnection', function () {
 
       const handshakeFailureSpec = function (data) {
         return function (done) {
-          const log = this.log
-
           this.subject.once('close', function (error) {
             expect(error).to.be.an('error')
             expect(error.message).to.equal('Handshake failed.')
-
-            if (log) {
-              expect(log).to.have.been.calledWith(sinon.match(/handshake failed/i))
-              expect(log).to.have.been.calledWith(sinon.match(/closing with error/i))
-            }
 
             done()
           })
@@ -177,6 +161,7 @@ describe('OverpassConnection', function () {
       expect(session._connection).to.equal(this.subject)
       expect(session._setTimeout).to.equal(this.setTimeout)
       expect(session._clearTimeout).to.equal(this.clearTimeout)
+      expect(session._logger).to.equal(this.logger)
       expect(session._log).to.be.undefined
     })
 
@@ -200,7 +185,6 @@ describe('OverpassConnection', function () {
   const closeSpecs = function () {
     it('should close the socket', function (done) {
       const socket = this.socket
-      const log = this.log
       const sessions = this.sessions || []
 
       this.subject.once('close', function () {
@@ -212,8 +196,6 @@ describe('OverpassConnection', function () {
           }).to.throw(/connection closed locally/i)
         }
 
-        if (log) expect(log).to.have.been.calledWith(sinon.match(/closing/i))
-
         done()
       })
 
@@ -221,17 +203,19 @@ describe('OverpassConnection', function () {
     })
   }
 
-  describe('with a log function', function () {
+  describe('with log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
-      this.log = sinon.spy()
+      this.logger = {log: sinon.spy()}
+      this.log = {prefix: '[prefix] '}
 
       this.subject = new OverpassConnection({
         socket: this.socket,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
+        logger: this.logger,
         log: this.log
       })
     })
@@ -275,7 +259,7 @@ describe('OverpassConnection', function () {
     })
   })
 
-  describe('without a log function', function () {
+  describe('without log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
       this.setTimeout = sinon.spy()

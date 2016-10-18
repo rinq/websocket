@@ -3,34 +3,64 @@ import {EventEmitter} from 'events'
 import SessionManager from './session-manager'
 
 export default class OverpassConnectionManager extends EventEmitter {
-  constructor ({url, overpassConnection, delayFn, window, log}) {
+  constructor ({url, overpassConnection, delayFn, window, logger, log}) {
     super()
 
-    this._url = url
+    this.url = url
     this._overpassConnection = overpassConnection
     this._delayFn = delayFn
     this._window = window
+    this._logger = logger
     this._log = log
 
     this._isStarted = false
     this._sessionSeq = 0
 
+    this._debugSymbol = '\u{1F41E}'
+
     this._onOnline = () => {
-      if (this._log) this._log('Network online.')
+      if (this._log && this._log.debug) {
+        this._logger.log(
+          [
+            '%c%s %sNetwork online.',
+            'color: green',
+            this._debugSymbol,
+            this._log.prefix
+          ]
+        )
+      }
 
       this._window.removeEventListener('online', this._onOnline)
       this._connect()
     }
 
     this._onOpen = () => {
-      if (this._log) this._log('Connection open.')
+      if (this._log && this._log.debug) {
+        this._logger.log(
+          [
+            '%c%s %sConnection open.',
+            'color: green',
+            this._debugSymbol,
+            this._log.prefix
+          ]
+        )
+      }
 
       this._closeCount = 0
       this.emit('connection', this._connection)
     }
 
     this._onClose = () => {
-      if (this._log) this._log('Connection closed.')
+      if (this._log && this._log.debug) {
+        this._logger.log(
+          [
+            '%c%s %sConnection closed.',
+            'color: orange',
+            this._debugSymbol,
+            this._log.prefix
+          ]
+        )
+      }
 
       this._disconnect()
       delete this._connection
@@ -39,29 +69,53 @@ export default class OverpassConnectionManager extends EventEmitter {
 
       const delay = this._delayFn(++this._closeCount)
 
-      if (this._log) this._log('Reconnecting in ' + delay + 'ms.')
+      if (this._log && this._log.debug) {
+        this._logger.log(
+          [
+            '%c%s %sReconnecting in %dms.',
+            'color: black',
+            this._debugSymbol,
+            this._log.prefix,
+            delay
+          ]
+        )
+      }
 
       this._reconnectTimeout =
         this._window.setTimeout(this._reconnect, delay)
     }
 
     this._reconnect = () => {
-      if (this._log) this._log('Reconnecting.')
+      if (this._log && this._log.debug) {
+        this._logger.log(
+          [
+            '%c%s %sReconnecting.',
+            'color: black',
+            this._debugSymbol,
+            this._log.prefix
+          ]
+        )
+      }
 
       delete this._reconnectTimeout
       this._connectWhenOnline()
     }
   }
 
-  setUrl (url) {
-    this._url = url
-  }
-
   start () {
     if (this._isStarted) return
-    if (!this._url) throw new Error('Undefined URL.')
+    if (!this.url) throw new Error('Undefined URL.')
 
-    if (this._log) this._log('Starting.')
+    if (this._log && this._log.debug) {
+      this._logger.log(
+        [
+          '%c%s %sStarting.',
+          'color: green',
+          this._debugSymbol,
+          this._log.prefix
+        ]
+      )
+    }
 
     this._isStarted = true
     this._closeCount = 0
@@ -71,12 +125,30 @@ export default class OverpassConnectionManager extends EventEmitter {
   stop () {
     if (!this._isStarted) return
 
-    if (this._log) this._log('Stopping.')
+    if (this._log && this._log.debug) {
+      this._logger.log(
+        [
+          '%c%s %sStopping.',
+          'color: orange',
+          this._debugSymbol,
+          this._log.prefix
+        ]
+      )
+    }
 
     this._isStarted = false
 
     if (this._reconnectTimeout) {
-      if (this._log) this._log('Clearing reconnect timeout.')
+      if (this._log && this._log.debug) {
+        this._logger.log(
+          [
+            '%c%s %sClearing reconnect timeout.',
+            'color: black',
+            this._debugSymbol,
+            this._log.prefix
+          ]
+        )
+      }
 
       this._window.clearTimeout(this._reconnectTimeout)
       delete this._reconnectTimeout
@@ -96,6 +168,7 @@ export default class OverpassConnectionManager extends EventEmitter {
     return new SessionManager({
       connectionManager: this,
       seq: ++this._sessionSeq,
+      logger: this._logger,
       log: options.log
     })
   }
@@ -103,7 +176,16 @@ export default class OverpassConnectionManager extends EventEmitter {
   _connectWhenOnline () {
     if (this._window.navigator.onLine) return this._connect()
 
-    if (this._log) this._log('Waiting until online.')
+    if (this._log && this._log.debug) {
+      this._logger.log(
+        [
+          '%c%s %sWaiting until online.',
+          'color: black',
+          this._debugSymbol,
+          this._log.prefix
+        ]
+      )
+    }
 
     this._window.addEventListener('online', this._onOnline)
   }
@@ -112,16 +194,31 @@ export default class OverpassConnectionManager extends EventEmitter {
     let options
 
     if (this._log) {
-      this._log('Connecting.')
-
-      options = {
-        log: (...args) => this._log('[connection]', ...args)
+      if (this._log.debug) {
+        this._logger.log(
+          [
+            '%c%s %sConnecting.',
+            'color: green',
+            this._debugSymbol,
+            this._log.prefix
+          ]
+        )
       }
+
+      let prefix
+
+      if (this._log.prefix) {
+        prefix = this._log.prefix + '[connection] '
+      } else {
+        prefix = ''
+      }
+
+      options = {log: Object.assign({}, this._log, {prefix})}
     } else {
       options = {}
     }
 
-    this._connection = this._overpassConnection(this._url, options)
+    this._connection = this._overpassConnection(this.url, options)
 
     this._connection.once('open', this._onOpen)
     this._connection.once('close', this._onClose)
@@ -130,7 +227,16 @@ export default class OverpassConnectionManager extends EventEmitter {
   _disconnect () {
     if (!this._connection) return
 
-    if (this._log) this._log('Disconnecting.')
+    if (this._log && this._log.debug) {
+      this._logger.log(
+        [
+          '%c%s %sDisconnecting.',
+          'color: orange',
+          this._debugSymbol,
+          this._log.prefix
+        ]
+      )
+    }
 
     this._connection.removeListener('open', this._onOpen)
     this._connection.removeListener('close', this._onClose)

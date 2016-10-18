@@ -3,22 +3,36 @@ import {EventEmitter} from 'events'
 import OverpassFailure from './failure'
 
 export default class OverpassSession extends EventEmitter {
-  constructor ({id, connection, setTimeout, clearTimeout, log}) {
+  constructor ({id, connection, setTimeout, clearTimeout, logger, log}) {
     super()
 
     this._id = id
     this._connection = connection
     this._setTimeout = setTimeout
     this._clearTimeout = clearTimeout
+    this._logger = logger
     this._log = log
 
     this._destroyError = null
     this._callSeq = 0
     this._calls = {}
+
+    this._debugSymbol = '\u{1F41E}'
+    this._inSymbol = '\u{1F4EC}'
+    this._outSymbol = '\u{1F4EE}'
   }
 
   destroy () {
-    if (this._log) this._log('Destroying session.')
+    if (this._log && this._log.debug) {
+      this._logger.log(
+        [
+          '%c%s %sDestroying session.',
+          'color: orange',
+          this._debugSymbol,
+          this._log.prefix
+        ]
+      )
+    }
 
     this._connection._send({type: 'session.destroy', session: this._id})
     this._destroy(new Error('Session destroyed locally.'))
@@ -27,13 +41,29 @@ export default class OverpassSession extends EventEmitter {
   send (namespace, command, payload) {
     if (this._destroyError) throw this._destroyError
 
-    this._connection._send({
+    const message = {
       type: 'command.request',
       session: this._id,
       namespace,
       command,
       payload
-    })
+    }
+
+    if (this._log) {
+      this._logger.log(
+        [
+          '%c%s %s[send] command.request %s %s',
+          'color: blue',
+          this._outSymbol,
+          this._log.prefix,
+          namespace,
+          command
+        ],
+        [[{payload}]]
+      )
+    }
+
+    this._connection._send(message)
   }
 
   call (namespace, command, payload, timeout, callback) {
@@ -56,7 +86,7 @@ export default class OverpassSession extends EventEmitter {
     )
     this._calls[seq] = {callback, timeout: timeoutId}
 
-    this._connection._send({
+    const message = {
       type: 'command.request',
       session: this._id,
       namespace,
@@ -64,7 +94,24 @@ export default class OverpassSession extends EventEmitter {
       payload,
       seq,
       timeout
-    })
+    }
+
+    if (this._log) {
+      this._logger.log(
+        [
+          '%c%s %s[call] [%d] command.request %s %s',
+          'color: blue',
+          this._outSymbol,
+          this._log.prefix,
+          seq,
+          namespace,
+          command
+        ],
+        [[{payload, timeout}]]
+      )
+    }
+
+    this._connection._send(message)
   }
 
   _dispatch (message) {
@@ -75,14 +122,56 @@ export default class OverpassSession extends EventEmitter {
   }
 
   _dispatchSessionDestroy () {
-    const message = 'Session destroyed remotely.'
-    if (this._log) this._log(message)
-    this._destroy(new Error(message))
+    if (this._log) {
+      this._logger.log(
+        [
+          '%c%s %s[recv] session.destroy',
+          'color: orange',
+          this._inSymbol,
+          this._log.prefix
+        ]
+      )
+    }
+
+    this._destroy(new Error('Session destroyed remotely.'))
   }
 
   _dispatchCommandResponse (message) {
     const call = this._calls[message.seq]
     if (!call) return
+
+    if (this._log) {
+      let color
+
+      switch (message.responseType) {
+        case 'success':
+          color = 'green'
+
+          break
+
+        case 'failure':
+          color = 'orange'
+
+          break
+
+        default:
+          color = 'red'
+      }
+
+      this._logger.log(
+        [
+          '%c%s %s[recv] [%d] command.response',
+          'color: ' + color,
+          this._inSymbol,
+          this._log.prefix,
+          message.seq
+        ],
+        [[{
+          type: message.responseType,
+          payload: message.payload
+        }]]
+      )
+    }
 
     this._clearTimeout(call.timeout)
 
