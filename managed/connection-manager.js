@@ -205,15 +205,7 @@ export default class OverpassConnectionManager extends EventEmitter {
         )
       }
 
-      let prefix
-
-      if (this._log.prefix) {
-        prefix = this._log.prefix + '[connection] '
-      } else {
-        prefix = ''
-      }
-
-      options = {log: Object.assign({}, this._log, {prefix})}
+      options = {log: this._log}
     } else {
       options = {}
     }

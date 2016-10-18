@@ -131,15 +131,7 @@ export default class OverpassSessionManager extends EventEmitter {
         )
       }
 
-      let prefix
-
-      if (this._log.prefix) {
-        prefix = this._log.prefix + '[session] '
-      } else {
-        prefix = ''
-      }
-
-      options = {log: Object.assign({}, this._log, {prefix})}
+      options = {log: this._log}
     } else {
       options = {}
     }
