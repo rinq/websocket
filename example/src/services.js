@@ -8,19 +8,33 @@ const configurationReader = new ConfigurationReader({
   log: (...args) => console.log('\u{1F4C4} [configuration-reader]', ...args)
 })
 
+const debug = window.location.hash.substring(1).match(/\bdebug\b/)
+
 const connectionManager = overpass.connectionManager({
-  log: {prefix: '[connection-manager] '}
+  log: {
+    debug,
+    prefix: '[connection-manager] '
+  }
 })
 const sessionManager = connectionManager.sessionManager({
-  log: {prefix: '[session-manager] '}
+  log: {
+    debug,
+    prefix: '[session-manager] '
+  }
 })
 
 const contextA = sessionManager.context({
-  log: {prefix: '[context-a] '}
+  log: {
+    debug,
+    prefix: '[context-a] '
+  }
 })
 
 const contextB = sessionManager.context({
-  log: {prefix: '[context-b] '},
+  log: {
+    debug,
+    prefix: '[context-b] '
+  },
   initialize: (session, done) => {
     session.call(
       'echo.1',
