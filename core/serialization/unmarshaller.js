@@ -14,7 +14,7 @@ export default class OverpassMessageUnmarshaller {
     const message = this._header(header)
 
     if (payload.length > 0) {
-      const serialization = this.serialization
+      const serialization = this._serialization
 
       message.payload = function () {
         return serialization.unserialize(payload)

@@ -27,6 +27,7 @@ const messageSpec = function (subject, message) {
 
     expect(serialized).to.be.an.instanceof(ArrayBuffer)
     expect(unserializedWithoutPayload).to.deep.equal(messageWithoutPayload)
+    expect(unserialized.payload()).to.deep.equal(message.payload)
   }
 }
 
