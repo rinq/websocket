@@ -25,22 +25,25 @@ export default class OverpassMessageSerialization {
 
   unserialize (message) {
     const view = new DataView(message)
-    const payloadOffset = view.getUint16(0) + 2
-    const header = []
-    const payload = []
+    const headerLength = view.getUint16(0)
+    const payloadOffset = headerLength + 2
+    const header = new ArrayBuffer(headerLength)
+    const headerView = new DataView(header)
+    const payload = new ArrayBuffer(view.byteLength - payloadOffset)
+    const payloadView = new DataView(payload)
     let offset = 2
 
     while (offset < payloadOffset) {
-      header.push(view.getUint8(offset++))
+      headerView.setUint8(offset - 2, view.getUint8(offset++))
     }
 
     while (offset < view.byteLength) {
-      payload.push(view.getUint8(offset++))
+      payloadView.setUint8(offset - payloadOffset, view.getUint8(offset++))
     }
 
     return this._unmarshaller.unmarshal(
-      Uint8Array.from(header),
-      Uint8Array.from(payload)
+      new Uint8Array(header),
+      new Uint8Array(payload)
     )
   }
 }
