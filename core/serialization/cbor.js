@@ -4,7 +4,7 @@ export default class OverpassCborSerialization {
   }
 
   serialize (data) {
-    return new Uint8Array(this._cbor.encode(data))
+    return this._cbor.encode(data)
   }
 
   unserialize (data) {

@@ -5,7 +5,7 @@ export default class OverpassJsonSerialization {
   }
 
   serialize (data) {
-    return this._encoder.encode(JSON.stringify(data))
+    return this._encoder.encode(JSON.stringify(data)).buffer
   }
 
   unserialize (data) {
