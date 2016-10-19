@@ -16,16 +16,19 @@
     "nyc": "^8.3.1",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
-    "standard": "^8.3.0"
+    "standard": "^8.3.0",
+    "text-encoding": "^0.6.1"
   },
   "standard": {
     "globals": [
-      "WebSocket",
       "beforeEach",
       "describe",
       "expect",
       "it",
-      "sinon"
+      "sinon",
+      "TextDecoder",
+      "TextEncoder",
+      "WebSocket"
     ],
     "ignore": [
       "example/node_modules/**",
