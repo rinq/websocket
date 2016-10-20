@@ -7,20 +7,29 @@ export default class OverpassMessageSerialization {
   serialize (message) {
     let [header, payload] = this._marshaller.marshal(message)
     header = new DataView(header)
-    payload = new DataView(payload)
+    let buffer
 
-    const buffer =
-      new DataView(new ArrayBuffer(header.byteLength + payload.byteLength + 2))
+    if (payload == null) {
+      buffer = new DataView(new ArrayBuffer(header.byteLength + 2))
+    } else {
+      payload = new DataView(payload)
+      buffer = new DataView(
+        new ArrayBuffer(header.byteLength + payload.byteLength + 2)
+      )
+    }
 
     buffer.setUint16(0, header.byteLength)
     this._bufferCopy(header, 0, buffer, 2, header.byteLength)
-    this._bufferCopy(
-      payload,
-      0,
-      buffer,
-      header.byteLength + 2,
-      payload.byteLength
-    )
+
+    if (payload != null) {
+      this._bufferCopy(
+        payload,
+        0,
+        buffer,
+        header.byteLength + 2,
+        payload.byteLength
+      )
+    }
 
     return buffer.buffer
   }

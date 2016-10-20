@@ -19,6 +19,8 @@ export default class OverpassMessageUnmarshaller {
       message.payload = function () {
         return serialization.unserialize(payload)
       }
+    } else {
+      message.payload = function () {}
     }
 
     return message

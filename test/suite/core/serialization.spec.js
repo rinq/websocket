@@ -8,10 +8,10 @@ import OverpassMessageSerialization from '../../../core/serialization/message'
 import OverpassMessageUnmarshaller from '../../../core/serialization/unmarshaller'
 
 import {
-  // SESSION_CREATE,
-  // SESSION_DESTROY,
-  COMMAND_REQUEST
-  // COMMAND_RESPONSE
+  SESSION_CREATE,
+  SESSION_DESTROY,
+  COMMAND_REQUEST,
+  COMMAND_RESPONSE
 } from '../../../core/constants'
 
 const messageSpec = function (subject, message) {
@@ -33,11 +33,37 @@ const messageSpec = function (subject, message) {
 
 const messageSpecs = function (subject) {
   return function () {
+    it('should support session create messages', messageSpec(subject, {
+      type: SESSION_CREATE,
+      session: 111
+    }))
+
+    it('should support session destroy messages', messageSpec(subject, {
+      type: SESSION_DESTROY,
+      session: 111
+    }))
+
+    it('should support command requests with sequence numbers', messageSpec(subject, {
+      type: COMMAND_REQUEST,
+      session: 111,
+      seq: 222,
+      namespace: 'ns',
+      command: 'cmd',
+      payload: 'payload'
+    }))
+
     it('should support command requests without sequence numbers', messageSpec(subject, {
       type: COMMAND_REQUEST,
       session: 111,
       namespace: 'ns',
       command: 'cmd',
+      payload: 'payload'
+    }))
+
+    it('should support command responses', messageSpec(subject, {
+      type: COMMAND_RESPONSE,
+      session: 111,
+      seq: 222,
       payload: 'payload'
     }))
   }
