@@ -1,16 +1,22 @@
+import {TextDecoder, TextEncoder} from 'text-encoding'
+
 import OverpassConnection from '../../../core/connection'
+import OverpassJsonSerialization from '../../../core/serialization/json'
 import OverpassSession from '../../../core/session'
 
 describe('OverpassConnection', function () {
   describe('constructor', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
+      this.serialization =
+        new OverpassJsonSerialization({decoder: new TextDecoder('utf-8'), encoder: new TextEncoder('utf-8')})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}
 
       this.subject = new OverpassConnection({
         socket: this.socket,
+        serialization: this.serialization,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
         logger: this.logger
@@ -148,7 +154,7 @@ describe('OverpassConnection', function () {
           done()
         })
 
-        this.subject._onMessage({data: JSON.stringify({session: 111})})
+        this.subject._onMessage({data: this.serialization.serialize({session: 111})})
       })
     })
   }
@@ -177,8 +183,12 @@ describe('OverpassConnection', function () {
       this.subject.session()
       this.subject.session()
 
-      expect(this.socket.send).to.have.been.calledWith(JSON.stringify({type: 'session.create', session: 1}))
-      expect(this.socket.send).to.have.been.calledWith(JSON.stringify({type: 'session.create', session: 2}))
+      expect(this.socket.send).to.have.been.calledWith(
+        this.serialization.serialize({type: 'session.create', session: 1})
+      )
+      expect(this.socket.send).to.have.been.calledWith(
+        this.serialization.serialize({type: 'session.create', session: 2})
+      )
     })
   }
 
@@ -206,6 +216,8 @@ describe('OverpassConnection', function () {
   describe('with log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
+      this.serialization =
+        new OverpassJsonSerialization({decoder: new TextDecoder('utf-8'), encoder: new TextEncoder('utf-8')})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}
@@ -213,6 +225,7 @@ describe('OverpassConnection', function () {
 
       this.subject = new OverpassConnection({
         socket: this.socket,
+        serialization: this.serialization,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
         logger: this.logger,
@@ -248,7 +261,7 @@ describe('OverpassConnection', function () {
           done(new Error('Unexpected command routing.'))
         })
 
-        this.subject._onMessage({data: JSON.stringify({
+        this.subject._onMessage({data: this.serialization.serialize({
           session: 1,
           seq: 1,
           type: 'command.response',
@@ -262,11 +275,14 @@ describe('OverpassConnection', function () {
   describe('without log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
+      this.serialization =
+        new OverpassJsonSerialization({decoder: new TextDecoder('utf-8'), encoder: new TextEncoder('utf-8')})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
 
       this.subject = new OverpassConnection({
         socket: this.socket,
+        serialization: this.serialization,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout
       })

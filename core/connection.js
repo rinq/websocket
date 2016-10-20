@@ -3,10 +3,11 @@ import {EventEmitter} from 'events'
 import OverpassSession from './session'
 
 export default class OverpassConnection extends EventEmitter {
-  constructor ({socket, setTimeout, clearTimeout, logger, log}) {
+  constructor ({socket, serialization, setTimeout, clearTimeout, logger, log}) {
     super()
 
     this._socket = socket
+    this._serialization = serialization
     this._setTimeout = setTimeout
     this._clearTimeout = clearTimeout
     this._logger = logger
@@ -76,7 +77,7 @@ export default class OverpassConnection extends EventEmitter {
 
     this._onMessage = (event) => {
       try {
-        this._dispatch(JSON.parse(event.data))
+        this._dispatch(this._serialization.unserialize(event.data))
       } catch (error) {
         this._closeError(error)
       }
@@ -157,7 +158,7 @@ export default class OverpassConnection extends EventEmitter {
   }
 
   _send (message) {
-    this._socket.send(JSON.stringify(message))
+    this._socket.send(this._serialization.serialize(message))
   }
 
   _shutdown (error) {

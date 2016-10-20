@@ -1,4 +1,7 @@
+import {TextDecoder, TextEncoder} from 'text-encoding'
+
 import OverpassConnection from '../../../core/connection'
+import OverpassJsonSerialization from '../../../core/serialization/json'
 import {isFailureType} from '../../../core/index'
 
 describe('OverpassSession', () => {
@@ -188,12 +191,15 @@ describe('OverpassSession', () => {
   describe('with log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
+      this.serialization =
+        new OverpassJsonSerialization({decoder: new TextDecoder('utf-8'), encoder: new TextEncoder('utf-8')})
       this.setTimeout = sinon.stub()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}
 
       this.connection = new OverpassConnection({
         socket: this.socket,
+        serialization: this.serialization,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
         logger: this.logger
@@ -242,12 +248,15 @@ describe('OverpassSession', () => {
   describe('without log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
+      this.serialization =
+        new OverpassJsonSerialization({decoder: new TextDecoder('utf-8'), encoder: new TextEncoder('utf-8')})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}
 
       this.connection = new OverpassConnection({
         socket: this.socket,
+        serialization: this.serialization,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout
       })
