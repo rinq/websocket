@@ -5,41 +5,43 @@ export default class OverpassMessageSerialization {
   }
 
   serialize (message) {
-    const [header, payload] = this._marshaller.marshal(message)
-    const headerView = new DataView(header)
-    const payloadView = new DataView(payload)
+    let [header, payload] = this._marshaller.marshal(message)
+    header = new DataView(header)
+    payload = new DataView(payload)
+
     const buffer =
-      new ArrayBuffer(headerView.byteLength + payloadView.byteLength + 2)
-    const view = new DataView(buffer)
+      new DataView(new ArrayBuffer(header.byteLength + payload.byteLength + 2))
 
-    view.setUint16(0, headerView.byteLength)
-    this._bufferCopy(headerView, view, 0, 2)
-    this._bufferCopy(payloadView, view, 0, headerView.byteLength + 2)
-
-    return buffer
-  }
-
-  unserialize (message) {
-    const view = new DataView(message)
-    const headerLength = view.getUint16(0)
-    const payloadOffset = headerLength + 2
-    const header = new ArrayBuffer(headerLength)
-    const headerView = new DataView(header)
-    const payload = new ArrayBuffer(view.byteLength - payloadOffset)
-    const payloadView = new DataView(payload)
-
-    this._bufferCopy(view, headerView, 2, 0, headerLength)
-    this._bufferCopy(view, payloadView, payloadOffset, 0)
-
-    return this._unmarshaller.unmarshal(
-      new Uint8Array(header),
-      new Uint8Array(payload)
+    buffer.setUint16(0, header.byteLength)
+    this._bufferCopy(header, 0, buffer, 2, header.byteLength)
+    this._bufferCopy(
+      payload,
+      0,
+      buffer,
+      header.byteLength + 2,
+      payload.byteLength
     )
+
+    return buffer.buffer
   }
 
-  _bufferCopy (source, target, sourceStart, targetStart, length) {
-    if (length == null) length = source.byteLength - sourceStart
+  unserialize (buffer) {
+    buffer = new DataView(buffer)
 
+    const headerLength = buffer.getUint16(0)
+    const header = new DataView(new ArrayBuffer(headerLength))
+
+    const payloadOffset = headerLength + 2
+    const payloadLength = buffer.byteLength - payloadOffset
+    const payload = new DataView(new ArrayBuffer(payloadLength))
+
+    this._bufferCopy(buffer, 2, header, 0, headerLength)
+    this._bufferCopy(buffer, payloadOffset, payload, 0, payloadLength)
+
+    return this._unmarshaller.unmarshal(header.buffer, payload.buffer)
+  }
+
+  _bufferCopy (source, sourceStart, target, targetStart, length) {
     for (let i = 0; i < length; ++i) {
       target.setUint8(i + targetStart, source.getUint8(i + sourceStart))
     }

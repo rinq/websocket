@@ -8,6 +8,6 @@ export default class OverpassCborSerialization {
   }
 
   unserialize (data) {
-    return this._cbor.decode(data.buffer)
+    return this._cbor.decode(data)
   }
 }

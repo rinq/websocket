@@ -13,7 +13,7 @@ export default class OverpassMessageUnmarshaller {
   unmarshal (header, payload) {
     const message = this._header(header)
 
-    if (payload.length > 0) {
+    if (payload.byteLength > 0) {
       const serialization = this._serialization
 
       message.payload = function () {
