@@ -65,7 +65,9 @@ export default class OverpassConnection extends EventEmitter {
     }
 
     this._onFirstMessage = (event) => {
-      if (!this._validateHandshake(event.data)) {
+      try {
+        this._validateHandshake(event.data)
+      } catch (error) {
         if (this._log && this._log.debug) {
           this._logger.log(
             [
@@ -74,11 +76,11 @@ export default class OverpassConnection extends EventEmitter {
               this._debugSymbol,
               this._log.prefix
             ],
-            [[{data: event.data}]]
+            [[{error}]]
           )
         }
 
-        return this._closeError(new Error('Handshake failed.'))
+        return this._closeError(error)
       }
 
       if (this._log && this._log.debug) {
@@ -148,13 +150,24 @@ export default class OverpassConnection extends EventEmitter {
   }
 
   _validateHandshake (data) {
-    if (!(data instanceof ArrayBuffer)) return false
+    if (!(data instanceof ArrayBuffer)) {
+      throw new Error('Invalid handshake: ' + data)
+    }
+
+    if (data.byteLength !== 4) {
+      throw new Error('Invalid handshake length: ' + data.byteLength)
+    }
 
     const view = new DataView(data)
+    const prefix = String.fromCharCode(view.getUint8(0), view.getUint8(1))
 
-    return view.byteLength === 4 &&
-      String.fromCharCode(view.getUint8(0), view.getUint8(1)) === 'OP' &&
-      view.getUint8(2) === 2
+    if (prefix !== 'OP') {
+      throw new Error('Unexpected handshake prefix: ' + JSON.stringify(prefix))
+    }
+
+    if (view.getUint8(2) !== 2) {
+      throw new Error('Unsupported handshake version.')
+    }
   }
 
   _closeError (error) {

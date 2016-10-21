@@ -18,6 +18,7 @@ describe('Core module', function () {
     it('should connect to the URL via websocket', function () {
       expect(this.connection._socket).to.be.an.instanceof(WebSocket)
       expect(this.connection._socket.url).to.equal('ws://example.org/')
+      expect(this.connection._socket.binaryType).to.equal('arraybuffer')
     })
 
     it('should have access to setTimeout', function () {

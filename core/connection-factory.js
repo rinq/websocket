@@ -30,8 +30,11 @@ export default class OverpassConnectionFactory {
       serialization = this._jsonSerialization
     }
 
+    const socket = new this._WebSocket(url)
+    socket.binaryType = 'arraybuffer'
+
     return new OverpassConnection({
-      socket: new this._WebSocket(url),
+      socket,
       serialization,
       TextEncoder: this._TextEncoder,
       setTimeout: this._setTimeout,

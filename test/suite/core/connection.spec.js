@@ -101,7 +101,7 @@ describe('OverpassConnection', function () {
         return function (done) {
           this.subject.once('close', function (error) {
             expect(error).to.be.an('error')
-            expect(error.message).to.equal('Handshake failed.')
+            expect(error.message).to.equal('Unsupported handshake version.')
 
             done()
           })
