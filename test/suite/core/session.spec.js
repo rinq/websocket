@@ -191,8 +191,7 @@ describe('OverpassSession', () => {
   describe('with log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
-      this.serialization =
-        new OverpassJsonSerialization({decoder: new TextDecoder('utf-8'), encoder: new TextEncoder('utf-8')})
+      this.serialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
       this.setTimeout = sinon.stub()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}
@@ -248,8 +247,7 @@ describe('OverpassSession', () => {
   describe('without log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
-      this.serialization =
-        new OverpassJsonSerialization({decoder: new TextDecoder('utf-8'), encoder: new TextEncoder('utf-8')})
+      this.serialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}

@@ -1,7 +1,7 @@
 export default class OverpassJsonSerialization {
-  constructor ({decoder, encoder}) {
-    this._decoder = decoder
-    this._encoder = encoder
+  constructor ({TextDecoder, TextEncoder}) {
+    this._decoder = new TextDecoder()
+    this._encoder = new TextEncoder()
   }
 
   serialize (data) {

@@ -1,4 +1,4 @@
-import * as cbor from 'cbor-js'
+import * as CBOR from 'cbor-js'
 import {TextDecoder, TextEncoder} from 'text-encoding'
 
 import OverpassCborSerialization from '../../../core/serialization/cbor'
@@ -71,9 +71,7 @@ const messageSpecs = function (subject) {
 
 describe('Serialization', function () {
   describe('JSON', function () {
-    const decoder = new TextDecoder('utf-8')
-    const encoder = new TextEncoder('utf-8')
-    const serialization = new OverpassJsonSerialization({decoder, encoder})
+    const serialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
     const marshaller = new OverpassMessageMarshaller({serialization})
     const unmarshaller = new OverpassMessageUnmarshaller({serialization})
     const subject = new OverpassMessageSerialization({marshaller, unmarshaller})
@@ -82,7 +80,7 @@ describe('Serialization', function () {
   })
 
   describe('CBOR', function () {
-    const serialization = new OverpassCborSerialization({cbor})
+    const serialization = new OverpassCborSerialization({CBOR})
     const marshaller = new OverpassMessageMarshaller({serialization})
     const unmarshaller = new OverpassMessageUnmarshaller({serialization})
     const subject = new OverpassMessageSerialization({marshaller, unmarshaller})
