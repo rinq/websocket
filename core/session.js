@@ -2,6 +2,14 @@ import {EventEmitter} from 'events'
 
 import OverpassFailure from './failure'
 
+import {
+  SESSION_DESTROY,
+  COMMAND_REQUEST,
+  COMMAND_RESPONSE_SUCCESS,
+  COMMAND_RESPONSE_FAILURE,
+  COMMAND_RESPONSE_ERROR
+} from './constants'
+
 export default class OverpassSession extends EventEmitter {
   constructor ({id, connection, setTimeout, clearTimeout, logger, log}) {
     super()
@@ -34,7 +42,7 @@ export default class OverpassSession extends EventEmitter {
       )
     }
 
-    this._connection._send({type: 'session.destroy', session: this._id})
+    this._connection._send({type: SESSION_DESTROY, session: this._id})
     this._destroy(new Error('Session destroyed locally.'))
   }
 
@@ -42,7 +50,7 @@ export default class OverpassSession extends EventEmitter {
     if (this._destroyError) throw this._destroyError
 
     const message = {
-      type: 'command.request',
+      type: COMMAND_REQUEST,
       session: this._id,
       namespace,
       command,
@@ -52,7 +60,7 @@ export default class OverpassSession extends EventEmitter {
     if (this._log) {
       this._logger.log(
         [
-          '%c%s %s[send] command.request %s %s',
+          '%c%s %s[send] command request %s %s',
           'color: blue',
           this._outSymbol,
           this._log.prefix,
@@ -87,7 +95,7 @@ export default class OverpassSession extends EventEmitter {
     this._calls[seq] = {callback, timeout: timeoutId}
 
     const message = {
-      type: 'command.request',
+      type: COMMAND_REQUEST,
       session: this._id,
       namespace,
       command,
@@ -99,7 +107,7 @@ export default class OverpassSession extends EventEmitter {
     if (this._log) {
       this._logger.log(
         [
-          '%c%s %s[call] [%d] command.request %s %s',
+          '%c%s %s[call] [%d] command request %s %s',
           'color: blue',
           this._outSymbol,
           this._log.prefix,
@@ -116,8 +124,13 @@ export default class OverpassSession extends EventEmitter {
 
   _dispatch (message) {
     switch (message.type) {
-      case 'session.destroy': return this._dispatchSessionDestroy(message)
-      case 'command.response': return this._dispatchCommandResponse(message)
+      case SESSION_DESTROY:
+        return this._dispatchSessionDestroy(message)
+
+      case COMMAND_RESPONSE_SUCCESS:
+      case COMMAND_RESPONSE_FAILURE:
+      case COMMAND_RESPONSE_ERROR:
+        return this._dispatchCommandResponse(message)
     }
   }
 
@@ -125,7 +138,7 @@ export default class OverpassSession extends EventEmitter {
     if (this._log) {
       this._logger.log(
         [
-          '%c%s %s[recv] session.destroy',
+          '%c%s %s[recv] session destroy',
           'color: orange',
           this._inSymbol,
           this._log.prefix
@@ -140,65 +153,73 @@ export default class OverpassSession extends EventEmitter {
     const call = this._calls[message.seq]
     if (!call) return
 
-    if (this._log) {
-      let color
+    let payload
 
-      switch (message.responseType) {
-        case 'success':
+    switch (message.type) {
+      case COMMAND_RESPONSE_SUCCESS:
+      case COMMAND_RESPONSE_FAILURE:
+        payload = message.payload()
+
+        break
+    }
+
+    if (this._log) {
+      let type, color
+
+      switch (message.type) {
+        case COMMAND_RESPONSE_SUCCESS:
+          type = 'success'
           color = 'green'
 
           break
 
-        case 'failure':
+        case COMMAND_RESPONSE_FAILURE:
+          type = 'failure'
           color = 'orange'
 
           break
 
+        case COMMAND_RESPONSE_ERROR:
+          type = 'error'
+          color = 'red'
+
+          break
+
         default:
+          type = 'unknown'
           color = 'red'
       }
 
       this._logger.log(
         [
-          '%c%s %s[recv] [%d] command.response',
+          '%c%s %s[recv] [%d] command response (%s)',
           'color: ' + color,
           this._inSymbol,
           this._log.prefix,
-          message.seq
+          message.seq,
+          type
         ],
-        [[{
-          type: message.responseType,
-          payload: message.payload
-        }]]
+        [[{payload}]]
       )
     }
 
     this._clearTimeout(call.timeout)
 
-    switch (message.responseType) {
-      case 'success':
-        call.callback(null, message.payload)
+    switch (message.type) {
+      case COMMAND_RESPONSE_SUCCESS:
+        call.callback(null, payload)
 
         break
 
-      case 'failure':
-        call.callback(new OverpassFailure(
-          message.payload.type,
-          message.payload.message,
-          message.payload.data
-        ))
+      case COMMAND_RESPONSE_FAILURE:
+        call.callback(
+          new OverpassFailure(payload.type, payload.message, payload.data)
+        )
 
         break
 
-      case 'error':
+      case COMMAND_RESPONSE_ERROR:
         call.callback(new Error('Server error.'))
-
-        break
-
-      default:
-        this._connection._closeError(new Error(
-          'Unexpected command response type: ' + message.responseType + '.'
-        ))
     }
 
     delete this._calls[message.seq]

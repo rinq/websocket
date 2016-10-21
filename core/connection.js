@@ -1,9 +1,19 @@
 import {EventEmitter} from 'events'
 
 import OverpassSession from './session'
+import {bufferCopy} from './buffer'
+import {SESSION_CREATE} from './constants'
 
 export default class OverpassConnection extends EventEmitter {
-  constructor ({socket, serialization, setTimeout, clearTimeout, logger, log}) {
+  constructor ({
+    socket,
+    serialization,
+    TextEncoder,
+    setTimeout,
+    clearTimeout,
+    logger,
+    log
+  }) {
     super()
 
     this._socket = socket
@@ -15,10 +25,23 @@ export default class OverpassConnection extends EventEmitter {
 
     this._sessionSeq = 0
     this._sessions = {}
-
     this._debugSymbol = '\u{1F41E}'
 
-    this._onOpen = () => this._socket.send('OP0200')
+    const encoder = new TextEncoder()
+    const mimeType =
+      new DataView(encoder.encode(this._serialization.mimeType).buffer)
+    const handshake = new DataView(new ArrayBuffer(mimeType.byteLength + 5))
+
+    handshake.setUint8(0, 'O'.charCodeAt(0))
+    handshake.setUint8(1, 'P'.charCodeAt(0))
+    handshake.setUint8(2, 2)
+    handshake.setUint8(3, 0)
+    handshake.setUint8(4, mimeType.byteLength)
+    bufferCopy(mimeType, 0, handshake, 5, mimeType.byteLength)
+
+    this._handshake = handshake.buffer
+
+    this._onOpen = () => this._socket.send(this._handshake)
     this._onError = (error) => this._closeError(error)
 
     this._onClose = (event) => {
@@ -108,7 +131,7 @@ export default class OverpassConnection extends EventEmitter {
 
   session (options = {}) {
     const id = ++this._sessionSeq
-    this._send({type: 'session.create', session: id})
+    this._send({type: SESSION_CREATE, session: id})
 
     const session = new OverpassSession({
       id,
@@ -125,10 +148,13 @@ export default class OverpassConnection extends EventEmitter {
   }
 
   _validateHandshake (data) {
-    return typeof data === 'string' &&
-      data.length === 6 &&
-      data.startsWith('OP02') &&
-      data.substring(3) >= '00'
+    if (!(data instanceof ArrayBuffer)) return false
+
+    const view = new DataView(data)
+
+    return view.byteLength === 4 &&
+      String.fromCharCode(view.getUint8(0), view.getUint8(1)) === 'OP' &&
+      view.getUint8(2) === 2
   }
 
   _closeError (error) {

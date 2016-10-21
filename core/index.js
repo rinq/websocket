@@ -16,12 +16,14 @@ const jsonSerialization = new OverpassJsonSerialization({
 })
 
 const cborMessageSerialization = new OverpassMessageSerialization({
+  mimeType: 'application/cbor',
   marshaller: new OverpassMessageMarshaller({serialization: cborSerialization}),
   unmarshaller: new OverpassMessageUnmarshaller({
     serialization: cborSerialization
   })
 })
 const jsonMessageSerialization = new OverpassMessageSerialization({
+  mimeType: 'application/json',
   marshaller: new OverpassMessageMarshaller({serialization: jsonSerialization}),
   unmarshaller: new OverpassMessageUnmarshaller({
     serialization: jsonSerialization
@@ -32,6 +34,7 @@ const connectionFactory = new OverpassConnectionFactory({
   cborAvailable: window.CBOR,
   cborSerialization: cborMessageSerialization,
   jsonSerialization: jsonMessageSerialization,
+  TextEncoder: window.TextEncoder,
   setTimeout: window.setTimeout.bind(window),
   clearTimeout: window.clearTimeout.bind(window),
   WebSocket,

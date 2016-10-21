@@ -5,6 +5,7 @@ export default class OverpassConnectionFactory {
     cborAvailable,
     cborSerialization,
     jsonSerialization,
+    TextEncoder,
     setTimeout,
     clearTimeout,
     WebSocket,
@@ -13,6 +14,7 @@ export default class OverpassConnectionFactory {
     this._cborAvailable = cborAvailable
     this._cborSerialization = cborSerialization
     this._jsonSerialization = jsonSerialization
+    this._TextEncoder = TextEncoder
     this._setTimeout = setTimeout
     this._clearTimeout = clearTimeout
     this._WebSocket = WebSocket
@@ -29,10 +31,11 @@ export default class OverpassConnectionFactory {
     }
 
     return new OverpassConnection({
+      socket: new this._WebSocket(url),
       serialization,
+      TextEncoder: this._TextEncoder,
       setTimeout: this._setTimeout,
       clearTimeout: this._clearTimeout,
-      socket: new this._WebSocket(url),
       logger: this._logger,
       log: options.log
     })

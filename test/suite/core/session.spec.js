@@ -4,6 +4,14 @@ import OverpassConnection from '../../../core/connection'
 import OverpassJsonSerialization from '../../../core/serialization/json'
 import {isFailureType} from '../../../core/index'
 
+import {
+  SESSION_DESTROY,
+  COMMAND_REQUEST,
+  COMMAND_RESPONSE_SUCCESS,
+  COMMAND_RESPONSE_FAILURE,
+  COMMAND_RESPONSE_ERROR
+} from '../../../core/constants'
+
 describe('OverpassSession', () => {
   const destroySpecs = function () {
     it('should destroy the session', function (done) {
@@ -13,7 +21,7 @@ describe('OverpassSession', () => {
       const calls = this.calls || []
 
       this.subject.once('destroy', function () {
-        expect(connection._send).to.have.been.calledWith({type: 'session.destroy', session: subject._id})
+        expect(connection._send).to.have.been.calledWith({type: SESSION_DESTROY, session: subject._id})
 
         for (const id in calls) {
           const call = calls[id]
@@ -47,20 +55,20 @@ describe('OverpassSession', () => {
         done()
       })
 
-      this.subject._dispatch({type: 'session.destroy'})
+      this.subject._dispatch({type: SESSION_DESTROY})
     })
 
-    it('should ignore command.response messages for unknown calls', function () {
-      expect(this.subject._dispatch({type: 'command.response', seq: 111})).to.be.undefined
+    it('should ignore command response messages for unknown calls', function () {
+      expect(this.subject._dispatch({type: COMMAND_RESPONSE_SUCCESS, seq: 111})).to.be.undefined
     })
   }
 
   const sendSpecs = function () {
-    it('should send command.request messages', function () {
+    it('should send command request messages', function () {
       this.subject.send('ns', 'cmd-a', 'payload')
 
       expect(this.connection._send).to.have.been.calledWith({
-        type: 'command.request',
+        type: COMMAND_REQUEST,
         session: this.subject._id,
         namespace: 'ns',
         command: 'cmd-a',
@@ -88,11 +96,10 @@ describe('OverpassSession', () => {
       })
 
       this.subject._dispatch({
-        type: 'command.response',
+        type: COMMAND_RESPONSE_SUCCESS,
         session: this.subject._id,
         seq: 1,
-        responseType: 'success',
-        payload: 'response'
+        payload: () => 'response'
       })
     })
 
@@ -107,14 +114,11 @@ describe('OverpassSession', () => {
       })
 
       this.subject._dispatch({
-        type: 'command.response',
+        type: COMMAND_RESPONSE_FAILURE,
         session: this.subject._id,
         seq: 1,
-        responseType: 'failure',
-        payload: {
-          type: 'type-a',
-          message: 'Failure message.',
-          data: {a: 'b', c: 'd'}
+        payload: () => {
+          return {type: 'type-a', message: 'Failure message.', data: {a: 'b', c: 'd'}}
         }
       })
     })
@@ -129,10 +133,9 @@ describe('OverpassSession', () => {
       })
 
       this.subject._dispatch({
-        type: 'command.response',
+        type: COMMAND_RESPONSE_ERROR,
         session: this.subject._id,
-        seq: 1,
-        responseType: 'error'
+        seq: 1
       })
     })
 
@@ -161,31 +164,6 @@ describe('OverpassSession', () => {
         done()
       })
     })
-
-    it('should handle unexpected response types', function (done) {
-      const subject = this.subject
-
-      this.subject.call('ns', 'cmd-a', 'payload', 99999, function (error, response) {
-        const expected = 'Unexpected command response type: response-type-a.'
-
-        expect(error).to.be.an('error')
-        expect(isFailureType('type-a', error)).to.not.be.ok
-        expect(error.message).to.equal(expected)
-
-        expect(function () {
-          subject.send('ns', 'cmd-a', 'payload')
-        }).to.throw(expected)
-
-        done()
-      })
-
-      this.subject._dispatch({
-        type: 'command.response',
-        session: this.subject._id,
-        seq: 1,
-        responseType: 'response-type-a'
-      })
-    })
   }
 
   describe('with log options', function () {
@@ -199,6 +177,7 @@ describe('OverpassSession', () => {
       this.connection = new OverpassConnection({
         socket: this.socket,
         serialization: this.serialization,
+        TextEncoder,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
         logger: this.logger
@@ -255,6 +234,7 @@ describe('OverpassSession', () => {
       this.connection = new OverpassConnection({
         socket: this.socket,
         serialization: this.serialization,
+        TextEncoder,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout
       })

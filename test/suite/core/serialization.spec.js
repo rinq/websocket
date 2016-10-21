@@ -11,7 +11,9 @@ import {
   SESSION_CREATE,
   SESSION_DESTROY,
   COMMAND_REQUEST,
-  COMMAND_RESPONSE
+  COMMAND_RESPONSE_SUCCESS,
+  COMMAND_RESPONSE_FAILURE,
+  COMMAND_RESPONSE_ERROR
 } from '../../../core/constants'
 
 const messageSpec = function (subject, message) {
@@ -60,11 +62,28 @@ const messageSpecs = function (subject) {
       payload: 'payload'
     }))
 
-    it('should support command responses', messageSpec(subject, {
-      type: COMMAND_RESPONSE,
+    it('should support command response success messages', messageSpec(subject, {
+      type: COMMAND_RESPONSE_SUCCESS,
       session: 111,
       seq: 222,
       payload: 'payload'
+    }))
+
+    it('should support command response failure messages', messageSpec(subject, {
+      type: COMMAND_RESPONSE_FAILURE,
+      session: 111,
+      seq: 222,
+      payload: {
+        type: 'type-a',
+        message: 'Failure message',
+        data: {a: 'b', c: 'd'}
+      }
+    }))
+
+    it('should support command response error messages', messageSpec(subject, {
+      type: COMMAND_RESPONSE_ERROR,
+      session: 111,
+      seq: 222
     }))
   }
 }
@@ -74,7 +93,7 @@ describe('Serialization', function () {
     const serialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
     const marshaller = new OverpassMessageMarshaller({serialization})
     const unmarshaller = new OverpassMessageUnmarshaller({serialization})
-    const subject = new OverpassMessageSerialization({marshaller, unmarshaller})
+    const subject = new OverpassMessageSerialization({mimeType: 'application/json', marshaller, unmarshaller})
 
     describe('of Overpass messages', messageSpecs(subject))
   })
@@ -83,7 +102,7 @@ describe('Serialization', function () {
     const serialization = new OverpassCborSerialization({CBOR})
     const marshaller = new OverpassMessageMarshaller({serialization})
     const unmarshaller = new OverpassMessageUnmarshaller({serialization})
-    const subject = new OverpassMessageSerialization({marshaller, unmarshaller})
+    const subject = new OverpassMessageSerialization({mimeType: 'application/cbon', marshaller, unmarshaller})
 
     describe('of Overpass messages', messageSpecs(subject))
   })

@@ -1,5 +1,8 @@
+import {bufferCopy} from '../buffer'
+
 export default class OverpassMessageSerialization {
-  constructor ({marshaller, unmarshaller}) {
+  constructor ({mimeType, marshaller, unmarshaller}) {
+    this.mimeType = mimeType
     this._marshaller = marshaller
     this._unmarshaller = unmarshaller
   }
@@ -19,16 +22,10 @@ export default class OverpassMessageSerialization {
     }
 
     buffer.setUint16(0, header.byteLength)
-    this._bufferCopy(header, 0, buffer, 2, header.byteLength)
+    bufferCopy(header, 0, buffer, 2, header.byteLength)
 
     if (payload != null) {
-      this._bufferCopy(
-        payload,
-        0,
-        buffer,
-        header.byteLength + 2,
-        payload.byteLength
-      )
+      bufferCopy(payload, 0, buffer, header.byteLength + 2, payload.byteLength)
     }
 
     return buffer.buffer
@@ -44,15 +41,9 @@ export default class OverpassMessageSerialization {
     const payloadLength = buffer.byteLength - payloadOffset
     const payload = new DataView(new ArrayBuffer(payloadLength))
 
-    this._bufferCopy(buffer, 2, header, 0, headerLength)
-    this._bufferCopy(buffer, payloadOffset, payload, 0, payloadLength)
+    bufferCopy(buffer, 2, header, 0, headerLength)
+    bufferCopy(buffer, payloadOffset, payload, 0, payloadLength)
 
     return this._unmarshaller.unmarshal(header.buffer, payload.buffer)
-  }
-
-  _bufferCopy (source, sourceStart, target, targetStart, length) {
-    for (let i = 0; i < length; ++i) {
-      target.setUint8(i + targetStart, source.getUint8(i + sourceStart))
-    }
   }
 }

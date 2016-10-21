@@ -2,13 +2,22 @@ import {TextDecoder, TextEncoder} from 'text-encoding'
 
 import OverpassConnection from '../../../core/connection'
 import OverpassJsonSerialization from '../../../core/serialization/json'
+import OverpassMarshaller from '../../../core/serialization/marshaller'
+import OverpassMessageSerialization from '../../../core/serialization/message'
 import OverpassSession from '../../../core/session'
+import OverpassUnmarshaller from '../../../core/serialization/unmarshaller'
+import {bufferCopy} from '../../../core/buffer'
+
+import {SESSION_CREATE, COMMAND_RESPONSE_SUCCESS} from '../../../core/constants'
 
 describe('OverpassConnection', function () {
   describe('constructor', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
-      this.serialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
+      const jsonSerialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
+      const marshaller = new OverpassMarshaller({serialization: jsonSerialization})
+      const unmarshaller = new OverpassUnmarshaller({serialization: jsonSerialization})
+      this.serialization = new OverpassMessageSerialization({mimeType: 'application/json', marshaller, unmarshaller})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}
@@ -16,6 +25,7 @@ describe('OverpassConnection', function () {
       this.subject = new OverpassConnection({
         socket: this.socket,
         serialization: this.serialization,
+        TextEncoder,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
         logger: this.logger
@@ -29,6 +39,122 @@ describe('OverpassConnection', function () {
       expect(this.socket.addEventListener).to.have.been.calledWith('message', this.subject._onFirstMessage)
     })
   })
+
+  const handshakeSpecs = function () {
+    it('should initiate a handshake on open events', function () {
+      this.subject._onOpen()
+
+      expect(this.socket.send).to.have.been.called
+
+      const call = this.socket.send.getCall(0)
+      const buffer = call.args[0]
+
+      expect(buffer).to.be.an.instanceof(ArrayBuffer)
+
+      const view = new DataView(buffer)
+
+      expect(view.byteLength).to.equal(5 + this.serialization.mimeType.length)
+      expect(String.fromCharCode(view.getUint8(0), view.getUint8(1))).to.equal('OP')
+      expect(view.getUint8(2)).to.equal(2)
+      expect(view.getUint8(3)).to.equal(0)
+      expect(view.getUint8(4)).to.equal(this.serialization.mimeType.length)
+
+      const mimeType = new DataView(new ArrayBuffer(this.serialization.mimeType.length))
+      bufferCopy(view, 5, mimeType, 0, this.serialization.mimeType.length)
+      const decoder = new TextDecoder()
+
+      expect(decoder.decode(mimeType)).to.equal(this.serialization.mimeType)
+    })
+
+    describe('for the first message', function () {
+      const handshakeSuccessSpec = function (major, minor) {
+        const data = new ArrayBuffer(4)
+        const view = new DataView(data)
+        view.setUint8(0, 'O'.charCodeAt(0))
+        view.setUint8(1, 'P'.charCodeAt(0))
+        view.setUint8(2, major)
+        view.setUint8(3, minor)
+
+        return function (done) {
+          const subject = this.subject
+          const socket = this.socket
+
+          this.subject.once('open', function () {
+            expect(socket.removeEventListener).to.have.been.calledWith('message', subject._onFirstMessage)
+            expect(socket.addEventListener).to.have.been.calledWith('message', subject._onMessage)
+
+            done()
+          })
+
+          this.subject._onFirstMessage({data})
+        }
+      }
+
+      const handshakeFailureSpec = function (major, minor) {
+        const data = new ArrayBuffer(4)
+        const view = new DataView(data)
+        view.setUint8(0, 'O'.charCodeAt(0))
+        view.setUint8(1, 'P'.charCodeAt(0))
+        view.setUint8(2, major)
+        view.setUint8(3, minor)
+
+        return function (done) {
+          this.subject.once('close', function (error) {
+            expect(error).to.be.an('error')
+            expect(error.message).to.equal('Handshake failed.')
+
+            done()
+          })
+
+          this.subject._onFirstMessage({data})
+        }
+      }
+
+      it('should handle exact match handshake data', handshakeSuccessSpec(2, 0))
+      it('should handle compatible handshake data', handshakeSuccessSpec(2, 99))
+      it('should reject earlier version handshake data', handshakeFailureSpec(1, 99))
+      it('should reject later version handshake data', handshakeFailureSpec(3, 0))
+    })
+
+    describe('for subsequent messages', function () {
+      beforeEach(function () {
+        const data = new ArrayBuffer(4)
+        const view = new DataView(data)
+        view.setUint8(0, 'O'.charCodeAt(0))
+        view.setUint8(1, 'P'.charCodeAt(0))
+        view.setUint8(2, 2)
+        view.setUint8(3, 0)
+
+        this.subject._onFirstMessage({data})
+      })
+
+      it('should close the connection upon receiving invalid messages', function (done) {
+        this.subject.once('close', function (error) {
+          expect(error).to.be.an('error')
+
+          done()
+        })
+
+        this.subject._onMessage({data: ''})
+      })
+
+      it('should close the connection when an unexpected session is referenced', function (done) {
+        this.subject.once('close', function (error) {
+          expect(error).to.be.an('error')
+          expect(error.message).to.match(/unexpected session/i)
+
+          done()
+        })
+
+        this.subject._onMessage({data: this.serialization.serialize({
+          type: COMMAND_RESPONSE_SUCCESS,
+          session: 111,
+          seq: 222,
+          payload: 'payload'
+        })})
+      })
+    })
+  }
 
   const eventHandlerSpecs = function () {
     it('should handle close events', function (done) {
@@ -87,75 +213,6 @@ describe('OverpassConnection', function () {
 
       this.subject._onError(err)
     })
-
-    it('should initiate a handshake on open events', function () {
-      this.subject._onOpen()
-
-      expect(this.socket.send).to.have.been.calledWith('OP0200')
-    })
-
-    describe('for the first message', function () {
-      const handshakeSuccessSpec = function (data) {
-        return function (done) {
-          const subject = this.subject
-          const socket = this.socket
-
-          this.subject.once('open', function () {
-            expect(socket.removeEventListener).to.have.been.calledWith('message', subject._onFirstMessage)
-            expect(socket.addEventListener).to.have.been.calledWith('message', subject._onMessage)
-
-            done()
-          })
-
-          this.subject._onFirstMessage({data})
-        }
-      }
-
-      const handshakeFailureSpec = function (data) {
-        return function (done) {
-          this.subject.once('close', function (error) {
-            expect(error).to.be.an('error')
-            expect(error.message).to.equal('Handshake failed.')
-
-            done()
-          })
-
-          this.subject._onFirstMessage({data})
-        }
-      }
-
-      it('should handle exact match handshake data', handshakeSuccessSpec('OP0200'))
-      it('should handle compatible handshake data', handshakeSuccessSpec('OP0299'))
-      it('should reject earlier version handshake data', handshakeFailureSpec('OP0199'))
-      it('should reject later version handshake data', handshakeFailureSpec('OP0300'))
-    })
-
-    describe('for subsequent messages', function () {
-      beforeEach(function () {
-        this.subject._onFirstMessage({data: 'OP0200'})
-      })
-
-      it('should close the connection upon receiving invalid messages', function (done) {
-        this.subject.once('close', function (error) {
-          expect(error).to.be.an('error')
-
-          done()
-        })
-
-        this.subject._onMessage({data: ''})
-      })
-
-      it('should close the connection when an unexpected session is referenced', function (done) {
-        this.subject.once('close', function (error) {
-          expect(error).to.be.an('error')
-          expect(error.message).to.match(/unexpected session/i)
-
-          done()
-        })
-
-        this.subject._onMessage({data: this.serialization.serialize({session: 111})})
-      })
-    })
   }
 
   const sessionSpecs = function () {
@@ -183,10 +240,10 @@ describe('OverpassConnection', function () {
       this.subject.session()
 
       expect(this.socket.send).to.have.been.calledWith(
-        this.serialization.serialize({type: 'session.create', session: 1})
+        this.serialization.serialize({type: SESSION_CREATE, session: 1})
       )
       expect(this.socket.send).to.have.been.calledWith(
-        this.serialization.serialize({type: 'session.create', session: 2})
+        this.serialization.serialize({type: SESSION_CREATE, session: 2})
       )
     })
   }
@@ -215,7 +272,10 @@ describe('OverpassConnection', function () {
   describe('with log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
-      this.serialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
+      const jsonSerialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
+      const marshaller = new OverpassMarshaller({serialization: jsonSerialization})
+      const unmarshaller = new OverpassUnmarshaller({serialization: jsonSerialization})
+      this.serialization = new OverpassMessageSerialization({mimeType: 'application/json', marshaller, unmarshaller})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}
@@ -224,6 +284,7 @@ describe('OverpassConnection', function () {
       this.subject = new OverpassConnection({
         socket: this.socket,
         serialization: this.serialization,
+        TextEncoder,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
         logger: this.logger,
@@ -232,6 +293,7 @@ describe('OverpassConnection', function () {
     })
 
     describe('before session creation', function () {
+      describe('handshake', handshakeSpecs)
       describe('event handlers', eventHandlerSpecs)
       describe('session', sessionSpecs)
       describe('close', closeSpecs)
@@ -260,10 +322,9 @@ describe('OverpassConnection', function () {
         })
 
         this.subject._onMessage({data: this.serialization.serialize({
+          type: COMMAND_RESPONSE_SUCCESS,
           session: 1,
           seq: 1,
-          type: 'command.response',
-          responseType: 'success',
           payload: 'a'
         })})
       })
@@ -273,18 +334,23 @@ describe('OverpassConnection', function () {
   describe('without log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
-      this.serialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
+      const jsonSerialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
+      const marshaller = new OverpassMarshaller({serialization: jsonSerialization})
+      const unmarshaller = new OverpassUnmarshaller({serialization: jsonSerialization})
+      this.serialization = new OverpassMessageSerialization({mimeType: 'application/json', marshaller, unmarshaller})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
 
       this.subject = new OverpassConnection({
         socket: this.socket,
         serialization: this.serialization,
+        TextEncoder,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout
       })
     })
 
+    describe('handshake', handshakeSpecs)
     describe('event handlers', eventHandlerSpecs)
     describe('session', sessionSpecs)
     describe('close', closeSpecs)
