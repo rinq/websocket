@@ -5,6 +5,7 @@ import OverpassLogger from './logger'
 const logger = new OverpassLogger({console})
 
 const connectionFactory = new OverpassConnectionFactory({
+  TextDecoder: window.TextDecoder,
   TextEncoder: window.TextEncoder,
   setTimeout: window.setTimeout.bind(window),
   clearTimeout: window.clearTimeout.bind(window),

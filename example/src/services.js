@@ -1,6 +1,7 @@
 import * as CBOR from 'cbor-js'
 import * as overpass from 'overpass-websocket/managed'
 import fetch from 'isomorphic-fetch'
+import {TextDecoder, TextEncoder} from 'text-encoding'
 
 import ConfigurationReader from './configuration/reader'
 
@@ -13,6 +14,8 @@ const debug = window.location.hash.substring(1).match(/\bdebug\b/)
 
 const connectionManager = overpass.connectionManager({
   CBOR,
+  TextDecoder,
+  TextEncoder,
   log: {
     debug,
     prefix: '[connection] '
