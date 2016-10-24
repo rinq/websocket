@@ -12,7 +12,7 @@ const configurationReader = new ConfigurationReader({
 const debug = window.location.hash.substring(1).match(/\bdebug\b/)
 
 const connectionManager = overpass.connectionManager({
-  CBOR,
+  CBOR: !debug && CBOR,
   log: {
     debug,
     prefix: '[connection] '

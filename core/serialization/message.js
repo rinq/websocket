@@ -1,4 +1,4 @@
-import {bufferCopy} from '../buffer'
+import {bufferCopy, toArrayBuffer} from '../buffer'
 
 export default class OverpassMessageSerialization {
   constructor ({mimeType, marshaller, unmarshaller}) {
@@ -32,6 +32,7 @@ export default class OverpassMessageSerialization {
   }
 
   unserialize (buffer) {
+    if (buffer instanceof Buffer) buffer = toArrayBuffer(buffer)
     buffer = new DataView(buffer)
 
     const headerLength = buffer.getUint16(0)
