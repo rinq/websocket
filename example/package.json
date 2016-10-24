@@ -24,6 +24,7 @@
     "webpack": "^1.13.2"
   },
   "devDependencies": {
+    "webpack-bundle-size-analyzer": "^2.2.0",
     "webpack-dev-server": "^1.16.1"
   }
 }
