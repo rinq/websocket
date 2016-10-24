@@ -16,8 +16,7 @@
     "nyc": "^8.3.1",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
-    "standard": "^8.3.0",
-    "text-encoding": "^0.6.1"
+    "standard": "^8.3.0"
   },
   "standard": {
     "globals": [
@@ -27,8 +26,6 @@
       "expect",
       "it",
       "sinon",
-      "TextDecoder",
-      "TextEncoder",
       "WebSocket"
     ],
     "ignore": [

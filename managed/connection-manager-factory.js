@@ -14,8 +14,6 @@ export default class OverpassConnectionManagerFactory {
       delayFn: options.delayFn || this._delayFn,
       window: this._window,
       CBOR: options.CBOR,
-      TextDecoder: options.TextDecoder,
-      TextEncoder: options.TextEncoder,
       logger: this._logger,
       log: options.log
     })

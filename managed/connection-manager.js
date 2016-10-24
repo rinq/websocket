@@ -9,8 +9,6 @@ export default class OverpassConnectionManager extends EventEmitter {
     delayFn,
     window,
     CBOR,
-    TextDecoder,
-    TextEncoder,
     logger,
     log
   }) {
@@ -21,8 +19,6 @@ export default class OverpassConnectionManager extends EventEmitter {
     this._delayFn = delayFn
     this._window = window
     this._CBOR = CBOR
-    this._TextDecoder = TextDecoder
-    this._TextEncoder = TextEncoder
     this._logger = logger
     this._log = log
 
@@ -204,11 +200,7 @@ export default class OverpassConnectionManager extends EventEmitter {
   }
 
   _connect () {
-    const options = {
-      CBOR: this._CBOR,
-      TextDecoder: this._TextDecoder,
-      TextEncoder: this._TextEncoder
-    }
+    const options = {CBOR: this._CBOR}
 
     if (this._log) {
       if (this._log.debug) {

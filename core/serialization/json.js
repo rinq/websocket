@@ -1,14 +1,11 @@
-export default class OverpassJsonSerialization {
-  constructor ({TextDecoder, TextEncoder}) {
-    this._decoder = new TextDecoder()
-    this._encoder = new TextEncoder()
-  }
+import {utf8Bytes} from '../utf8'
 
+export default class OverpassJsonSerialization {
   serialize (data) {
-    return this._encoder.encode(JSON.stringify(data)).buffer
+    return utf8Bytes(JSON.stringify(data))
   }
 
   unserialize (data) {
-    return JSON.parse(this._decoder.decode(data))
+    return JSON.parse(data)
   }
 }

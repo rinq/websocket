@@ -3,17 +3,10 @@ import {EventEmitter} from 'events'
 import OverpassSession from './session'
 import {bufferCopy} from './buffer'
 import {SESSION_CREATE} from './constants'
+import {utf8Bytes} from './utf8'
 
 export default class OverpassConnection extends EventEmitter {
-  constructor ({
-    socket,
-    serialization,
-    TextEncoder,
-    setTimeout,
-    clearTimeout,
-    logger,
-    log
-  }) {
+  constructor ({socket, serialization, setTimeout, clearTimeout, logger, log}) {
     super()
 
     this._socket = socket
@@ -27,9 +20,7 @@ export default class OverpassConnection extends EventEmitter {
     this._sessions = {}
     this._debugSymbol = '\u{1F41E}'
 
-    const encoder = new TextEncoder()
-    const mimeType =
-      new DataView(encoder.encode(this._serialization.mimeType).buffer)
+    const mimeType = new DataView(utf8Bytes(this._serialization.mimeType))
     const handshake = new DataView(new ArrayBuffer(mimeType.byteLength + 5))
 
     handshake.setUint8(0, 'O'.charCodeAt(0))
