@@ -1,10 +1,7 @@
 import {
   SESSION_CREATE,
   SESSION_DESTROY,
-  COMMAND_REQUEST,
-  COMMAND_RESPONSE_SUCCESS,
-  COMMAND_RESPONSE_FAILURE,
-  COMMAND_RESPONSE_ERROR
+  COMMAND_REQUEST
 } from '../constants'
 
 export default class OverpassMessageMarshaller {
@@ -33,11 +30,6 @@ export default class OverpassMessageMarshaller {
 
       case COMMAND_REQUEST:
         return this._commandRequestHeader(message, header)
-
-      case COMMAND_RESPONSE_SUCCESS:
-      case COMMAND_RESPONSE_FAILURE:
-      case COMMAND_RESPONSE_ERROR:
-        return this._commandResponseHeader(message, header)
     }
 
     throw new Error(
@@ -48,12 +40,6 @@ export default class OverpassMessageMarshaller {
   _commandRequestHeader (message, header) {
     header.push(message.namespace, message.command)
     if (message.seq) header.push(message.seq)
-
-    return header
-  }
-
-  _commandResponseHeader (message, header) {
-    header.push(message.seq)
 
     return header
   }
