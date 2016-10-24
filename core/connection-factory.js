@@ -1,19 +1,12 @@
+import OverpassCborSerialization from './serialization/cbor'
+import OverpassJsonSerialization from './serialization/json'
 import OverpassConnection from './connection'
+import OverpassMessageMarshaller from './serialization/marshaller'
+import OverpassMessageSerialization from './serialization/message'
+import OverpassMessageUnmarshaller from './serialization/unmarshaller'
 
 export default class OverpassConnectionFactory {
-  constructor ({
-    cborAvailable,
-    cborSerialization,
-    jsonSerialization,
-    TextEncoder,
-    setTimeout,
-    clearTimeout,
-    WebSocket,
-    logger
-  }) {
-    this._cborAvailable = cborAvailable
-    this._cborSerialization = cborSerialization
-    this._jsonSerialization = jsonSerialization
+  constructor ({TextEncoder, setTimeout, clearTimeout, WebSocket, logger}) {
     this._TextEncoder = TextEncoder
     this._setTimeout = setTimeout
     this._clearTimeout = clearTimeout
@@ -24,10 +17,10 @@ export default class OverpassConnectionFactory {
   connection (url, options = {}) {
     let serialization
 
-    if (this._cborAvailable) {
-      serialization = this._cborSerialization
+    if (options.CBOR) {
+      serialization = this._createCborSerialization(options.CBOR)
     } else {
-      serialization = this._jsonSerialization
+      serialization = this._createJsonSerialization()
     }
 
     const socket = new this._WebSocket(url)
@@ -41,6 +34,29 @@ export default class OverpassConnectionFactory {
       clearTimeout: this._clearTimeout,
       logger: this._logger,
       log: options.log
+    })
+  }
+
+  _createJsonSerialization () {
+    const serialization = new OverpassJsonSerialization({
+      TextDecoder: window.TextDecoder,
+      TextEncoder: window.TextEncoder
+    })
+
+    return new OverpassMessageSerialization({
+      mimeType: 'application/json',
+      marshaller: new OverpassMessageMarshaller({serialization}),
+      unmarshaller: new OverpassMessageUnmarshaller({serialization})
+    })
+  }
+
+  _createCborSerialization (CBOR) {
+    const serialization = new OverpassCborSerialization({CBOR})
+
+    return new OverpassMessageSerialization({
+      mimeType: 'application/cbor',
+      marshaller: new OverpassMessageMarshaller({serialization}),
+      unmarshaller: new OverpassMessageUnmarshaller({serialization})
     })
   }
 }

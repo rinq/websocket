@@ -13,6 +13,7 @@ export default class OverpassConnectionManagerFactory {
       overpassConnection: this._overpassConnection,
       delayFn: options.delayFn || this._delayFn,
       window: this._window,
+      CBOR: options.CBOR,
       logger: this._logger,
       log: options.log
     })

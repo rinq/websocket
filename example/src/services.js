@@ -1,3 +1,4 @@
+import * as CBOR from 'cbor-js'
 import * as overpass from 'overpass-websocket/managed'
 import fetch from 'isomorphic-fetch'
 
@@ -11,6 +12,7 @@ const configurationReader = new ConfigurationReader({
 const debug = window.location.hash.substring(1).match(/\bdebug\b/)
 
 const connectionManager = overpass.connectionManager({
+  CBOR,
   log: {
     debug,
     prefix: '[connection] '

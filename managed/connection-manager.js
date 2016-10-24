@@ -3,13 +3,14 @@ import {EventEmitter} from 'events'
 import SessionManager from './session-manager'
 
 export default class OverpassConnectionManager extends EventEmitter {
-  constructor ({url, overpassConnection, delayFn, window, logger, log}) {
+  constructor ({url, overpassConnection, delayFn, window, CBOR, logger, log}) {
     super()
 
     this.url = url
     this._overpassConnection = overpassConnection
     this._delayFn = delayFn
     this._window = window
+    this._CBOR = CBOR
     this._logger = logger
     this._log = log
 
@@ -191,7 +192,7 @@ export default class OverpassConnectionManager extends EventEmitter {
   }
 
   _connect () {
-    let options
+    const options = {CBOR: this._CBOR}
 
     if (this._log) {
       if (this._log.debug) {
@@ -205,9 +206,7 @@ export default class OverpassConnectionManager extends EventEmitter {
         )
       }
 
-      options = {log: this._log}
-    } else {
-      options = {}
+      options.log = this._log
     }
 
     this._connection = this._overpassConnection(this.url, options)
