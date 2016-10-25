@@ -1,14 +1,14 @@
 import * as CBOR from 'cbor-js'
 
-import marshalCommandRequest from '../../../core/serialization/marshaller/command-request'
-import marshalCommandResponse from '../../../core/serialization/marshaller/command-response'
-import OverpassCborSerialization from '../../../core/serialization/cbor'
-import OverpassJsonSerialization from '../../../core/serialization/json'
-import OverpassMessageMarshaller from '../../../core/serialization/marshaller'
-import OverpassMessageSerialization from '../../../core/serialization/message'
-import OverpassMessageUnmarshaller from '../../../core/serialization/unmarshaller'
-import unmarshalCommandRequest from '../../../core/serialization/unmarshaller/command-request'
-import unmarshalCommandResponse from '../../../core/serialization/unmarshaller/command-response'
+import marshalCommandRequest from '../../serialization/marshaller/command-request'
+import marshalCommandResponse from '../../serialization/marshaller/command-response'
+import OverpassCborSerialization from '../../serialization/cbor'
+import OverpassJsonSerialization from '../../serialization/json'
+import OverpassMessageMarshaller from '../../serialization/marshaller'
+import OverpassMessageSerialization from '../../serialization/message'
+import OverpassMessageUnmarshaller from '../../serialization/unmarshaller'
+import unmarshalCommandRequest from '../../serialization/unmarshaller/command-request'
+import unmarshalCommandResponse from '../../serialization/unmarshaller/command-response'
 
 import {
   SESSION_CREATE,
@@ -17,7 +17,7 @@ import {
   COMMAND_RESPONSE_SUCCESS,
   COMMAND_RESPONSE_FAILURE,
   COMMAND_RESPONSE_ERROR
-} from '../../../core/constants'
+} from '../../core/constants'
 
 const messageSpec = function (subject, message) {
   return function () {

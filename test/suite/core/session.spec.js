@@ -1,9 +1,9 @@
-import marshalCommandRequest from '../../../core/serialization/marshaller/command-request'
+import marshalCommandRequest from '../../../serialization/marshaller/command-request'
 import OverpassConnection from '../../../core/connection'
-import OverpassJsonSerialization from '../../../core/serialization/json'
-import OverpassMarshaller from '../../../core/serialization/marshaller'
-import OverpassMessageSerialization from '../../../core/serialization/message'
-import OverpassUnmarshaller from '../../../core/serialization/unmarshaller'
+import OverpassJsonSerialization from '../../../serialization/json'
+import OverpassMarshaller from '../../../serialization/marshaller'
+import OverpassMessageSerialization from '../../../serialization/message'
+import OverpassUnmarshaller from '../../../serialization/unmarshaller'
 import {isFailureType} from '../../../core/index'
 
 import {

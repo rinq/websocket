@@ -1,4 +1,4 @@
-import {decodeUtf8, encodeUtf8} from '../utf8'
+import {decodeUtf8, encodeUtf8} from '../core/utf8'
 
 export default class OverpassJsonSerialization {
   serialize (data) {

@@ -1,11 +1,11 @@
-import marshalCommandRequest from './serialization/marshaller/command-request'
-import OverpassCborSerialization from './serialization/cbor'
+import marshalCommandRequest from '../serialization/marshaller/command-request'
+import OverpassCborSerialization from '../serialization/cbor'
 import OverpassConnection from './connection'
-import OverpassJsonSerialization from './serialization/json'
-import OverpassMessageMarshaller from './serialization/marshaller'
-import OverpassMessageSerialization from './serialization/message'
-import OverpassMessageUnmarshaller from './serialization/unmarshaller'
-import unmarshalCommandResponse from './serialization/unmarshaller/command-response'
+import OverpassJsonSerialization from '../serialization/json'
+import OverpassMessageMarshaller from '../serialization/marshaller'
+import OverpassMessageSerialization from '../serialization/message'
+import OverpassMessageUnmarshaller from '../serialization/unmarshaller'
+import unmarshalCommandResponse from '../serialization/unmarshaller/command-response'
 
 import {
   SESSION_CREATE,

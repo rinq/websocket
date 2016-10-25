@@ -1,4 +1,4 @@
-import {bufferCopy, toArrayBuffer} from '../buffer'
+import {bufferCopy, toArrayBuffer} from '../core/buffer'
 
 export default class OverpassMessageSerialization {
   constructor ({mimeType, marshaller, unmarshaller}) {
