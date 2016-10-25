@@ -1,11 +1,14 @@
 import * as CBOR from 'cbor-js'
-import {TextDecoder, TextEncoder} from 'text-encoding'
 
+import marshalCommandRequest from '../../../core/serialization/marshaller/command-request'
+import marshalCommandResponse from '../../../core/serialization/marshaller/command-response'
 import OverpassCborSerialization from '../../../core/serialization/cbor'
 import OverpassJsonSerialization from '../../../core/serialization/json'
 import OverpassMessageMarshaller from '../../../core/serialization/marshaller'
 import OverpassMessageSerialization from '../../../core/serialization/message'
 import OverpassMessageUnmarshaller from '../../../core/serialization/unmarshaller'
+import unmarshalCommandRequest from '../../../core/serialization/unmarshaller/command-request'
+import unmarshalCommandResponse from '../../../core/serialization/unmarshaller/command-response'
 
 import {
   SESSION_CREATE,
@@ -89,21 +92,37 @@ const messageSpecs = function (subject) {
 }
 
 describe('Serialization', function () {
-  describe('JSON', function () {
-    const serialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
-    const marshaller = new OverpassMessageMarshaller({serialization})
-    const unmarshaller = new OverpassMessageUnmarshaller({serialization})
+  const marshallers = {}
+  marshallers[SESSION_CREATE] = null
+  marshallers[SESSION_DESTROY] = null
+  marshallers[COMMAND_REQUEST] = marshalCommandRequest
+  marshallers[COMMAND_RESPONSE_SUCCESS] = marshalCommandResponse
+  marshallers[COMMAND_RESPONSE_FAILURE] = marshalCommandResponse
+  marshallers[COMMAND_RESPONSE_ERROR] = marshalCommandResponse
+
+  const unmarshallers = {}
+  unmarshallers[SESSION_CREATE] = null
+  unmarshallers[SESSION_DESTROY] = null
+  unmarshallers[COMMAND_REQUEST] = unmarshalCommandRequest
+  unmarshallers[COMMAND_RESPONSE_SUCCESS] = unmarshalCommandResponse
+  unmarshallers[COMMAND_RESPONSE_FAILURE] = unmarshalCommandResponse
+  unmarshallers[COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
+
+  describe('of JSON', function () {
+    const serialization = new OverpassJsonSerialization()
+    const marshaller = new OverpassMessageMarshaller({serialization, marshallers})
+    const unmarshaller = new OverpassMessageUnmarshaller({serialization, unmarshallers})
     const subject = new OverpassMessageSerialization({mimeType: 'application/json', marshaller, unmarshaller})
 
-    describe('of Overpass messages', messageSpecs(subject))
+    describe('Overpass messages', messageSpecs(subject))
   })
 
-  describe('CBOR', function () {
+  describe('of CBOR', function () {
     const serialization = new OverpassCborSerialization({CBOR})
-    const marshaller = new OverpassMessageMarshaller({serialization})
-    const unmarshaller = new OverpassMessageUnmarshaller({serialization})
-    const subject = new OverpassMessageSerialization({mimeType: 'application/cbon', marshaller, unmarshaller})
+    const marshaller = new OverpassMessageMarshaller({serialization, marshallers})
+    const unmarshaller = new OverpassMessageUnmarshaller({serialization, unmarshallers})
+    const subject = new OverpassMessageSerialization({mimeType: 'application/cbor', marshaller, unmarshaller})
 
-    describe('of Overpass messages', messageSpecs(subject))
+    describe('Overpass messages', messageSpecs(subject))
   })
 })

@@ -1,23 +1,42 @@
-import {TextDecoder, TextEncoder} from 'text-encoding'
-
+import marshalCommandRequest from '../../../core/serialization/marshaller/command-request'
+import marshalCommandResponse from '../../../core/serialization/marshaller/command-response'
 import OverpassConnection from '../../../core/connection'
 import OverpassJsonSerialization from '../../../core/serialization/json'
 import OverpassMarshaller from '../../../core/serialization/marshaller'
 import OverpassMessageSerialization from '../../../core/serialization/message'
 import OverpassSession from '../../../core/session'
 import OverpassUnmarshaller from '../../../core/serialization/unmarshaller'
+import unmarshalCommandResponse from '../../../core/serialization/unmarshaller/command-response'
 import {bufferCopy} from '../../../core/buffer'
+import {decodeUtf8} from '../../../core/utf8'
 
-import {SESSION_CREATE, COMMAND_RESPONSE_SUCCESS} from '../../../core/constants'
+import {
+  SESSION_CREATE,
+  COMMAND_REQUEST,
+  COMMAND_RESPONSE_SUCCESS
+} from '../../../core/constants'
 
 describe('OverpassConnection', function () {
+  beforeEach(function () {
+    const marshallers = {}
+    marshallers[SESSION_CREATE] = null
+    marshallers[COMMAND_REQUEST] = marshalCommandRequest
+    marshallers[COMMAND_RESPONSE_SUCCESS] = marshalCommandResponse
+
+    const unmarshallers = {}
+    unmarshallers[COMMAND_RESPONSE_SUCCESS] = unmarshalCommandResponse
+
+    const serialization = new OverpassJsonSerialization()
+
+    const marshaller = new OverpassMarshaller({serialization, marshallers})
+    const unmarshaller = new OverpassUnmarshaller({serialization, unmarshallers})
+
+    this.serialization = new OverpassMessageSerialization({mimeType: 'application/json', marshaller, unmarshaller})
+  })
+
   describe('constructor', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
-      const jsonSerialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
-      const marshaller = new OverpassMarshaller({serialization: jsonSerialization})
-      const unmarshaller = new OverpassUnmarshaller({serialization: jsonSerialization})
-      this.serialization = new OverpassMessageSerialization({mimeType: 'application/json', marshaller, unmarshaller})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}
@@ -25,7 +44,6 @@ describe('OverpassConnection', function () {
       this.subject = new OverpassConnection({
         socket: this.socket,
         serialization: this.serialization,
-        TextEncoder,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
         logger: this.logger
@@ -61,9 +79,8 @@ describe('OverpassConnection', function () {
 
       const mimeType = new DataView(new ArrayBuffer(this.serialization.mimeType.length))
       bufferCopy(view, 5, mimeType, 0, this.serialization.mimeType.length)
-      const decoder = new TextDecoder()
 
-      expect(decoder.decode(mimeType)).to.equal(this.serialization.mimeType)
+      expect(decodeUtf8(mimeType.buffer)).to.equal(this.serialization.mimeType)
     })
 
     describe('for the first message', function () {
@@ -272,10 +289,6 @@ describe('OverpassConnection', function () {
   describe('with log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
-      const jsonSerialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
-      const marshaller = new OverpassMarshaller({serialization: jsonSerialization})
-      const unmarshaller = new OverpassUnmarshaller({serialization: jsonSerialization})
-      this.serialization = new OverpassMessageSerialization({mimeType: 'application/json', marshaller, unmarshaller})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}
@@ -284,7 +297,6 @@ describe('OverpassConnection', function () {
       this.subject = new OverpassConnection({
         socket: this.socket,
         serialization: this.serialization,
-        TextEncoder,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
         logger: this.logger,
@@ -334,17 +346,12 @@ describe('OverpassConnection', function () {
   describe('without log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
-      const jsonSerialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
-      const marshaller = new OverpassMarshaller({serialization: jsonSerialization})
-      const unmarshaller = new OverpassUnmarshaller({serialization: jsonSerialization})
-      this.serialization = new OverpassMessageSerialization({mimeType: 'application/json', marshaller, unmarshaller})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
 
       this.subject = new OverpassConnection({
         socket: this.socket,
         serialization: this.serialization,
-        TextEncoder,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout
       })

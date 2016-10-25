@@ -1,10 +1,13 @@
-import {TextDecoder, TextEncoder} from 'text-encoding'
-
+import marshalCommandRequest from '../../../core/serialization/marshaller/command-request'
 import OverpassConnection from '../../../core/connection'
 import OverpassJsonSerialization from '../../../core/serialization/json'
+import OverpassMarshaller from '../../../core/serialization/marshaller'
+import OverpassMessageSerialization from '../../../core/serialization/message'
+import OverpassUnmarshaller from '../../../core/serialization/unmarshaller'
 import {isFailureType} from '../../../core/index'
 
 import {
+  SESSION_CREATE,
   SESSION_DESTROY,
   COMMAND_REQUEST,
   COMMAND_RESPONSE_SUCCESS,
@@ -166,10 +169,25 @@ describe('OverpassSession', () => {
     })
   }
 
+  beforeEach(function () {
+    const marshallers = {}
+    marshallers[SESSION_CREATE] = null
+    marshallers[SESSION_DESTROY] = null
+    marshallers[COMMAND_REQUEST] = marshalCommandRequest
+
+    const unmarshallers = {}
+
+    const serialization = new OverpassJsonSerialization()
+
+    const marshaller = new OverpassMarshaller({serialization, marshallers})
+    const unmarshaller = new OverpassUnmarshaller({serialization, unmarshallers})
+
+    this.serialization = new OverpassMessageSerialization({mimeType: 'application/json', marshaller, unmarshaller})
+  })
+
   describe('with log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
-      this.serialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
       this.setTimeout = sinon.stub()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}
@@ -177,7 +195,6 @@ describe('OverpassSession', () => {
       this.connection = new OverpassConnection({
         socket: this.socket,
         serialization: this.serialization,
-        TextEncoder,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout,
         logger: this.logger
@@ -226,7 +243,6 @@ describe('OverpassSession', () => {
   describe('without log options', function () {
     beforeEach(function () {
       this.socket = new WebSocket('ws://example.org/')
-      this.serialization = new OverpassJsonSerialization({TextDecoder, TextEncoder})
       this.setTimeout = sinon.spy()
       this.clearTimeout = sinon.spy()
       this.logger = {log: sinon.spy()}
@@ -234,7 +250,6 @@ describe('OverpassSession', () => {
       this.connection = new OverpassConnection({
         socket: this.socket,
         serialization: this.serialization,
-        TextEncoder,
         setTimeout: this.setTimeout,
         clearTimeout: this.clearTimeout
       })

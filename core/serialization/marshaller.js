@@ -1,12 +1,7 @@
-import {
-  SESSION_CREATE,
-  SESSION_DESTROY,
-  COMMAND_REQUEST
-} from '../constants'
-
 export default class OverpassMessageMarshaller {
-  constructor ({serialization}) {
+  constructor ({serialization, marshallers}) {
     this._serialization = serialization
+    this._marshallers = marshallers
   }
 
   marshal (message) {
@@ -23,23 +18,12 @@ export default class OverpassMessageMarshaller {
   _header (message) {
     const header = [message.type, message.session]
 
-    switch (message.type) {
-      case SESSION_CREATE:
-      case SESSION_DESTROY:
-        return header
-
-      case COMMAND_REQUEST:
-        return this._commandRequestHeader(message, header)
+    if (!this._marshallers.hasOwnProperty(message.type)) {
+      throw new Error('Unsupported message type: ' + message.type + '.')
     }
 
-    throw new Error(
-      'Unsupported message type: ' + message.type + '.'
-    )
-  }
-
-  _commandRequestHeader (message, header) {
-    header.push(message.namespace, message.command)
-    if (message.seq) header.push(message.seq)
+    const marshaller = this._marshallers[message.type]
+    if (marshaller) marshaller({message, header})
 
     return header
   }

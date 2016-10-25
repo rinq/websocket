@@ -1,16 +1,11 @@
-import {
-  COMMAND_RESPONSE_SUCCESS,
-  COMMAND_RESPONSE_FAILURE,
-  COMMAND_RESPONSE_ERROR
-} from '../constants'
-
 export default class OverpassMessageUnmarshaller {
-  constructor ({serialization}) {
+  constructor ({serialization, unmarshallers}) {
     this._serialization = serialization
+    this._unmarshallers = unmarshallers
   }
 
   unmarshal (header, payload) {
-    const message = this._header(header)
+    const message = this._message(header)
 
     if (payload.byteLength > 0) {
       const serialization = this._serialization
@@ -25,41 +20,28 @@ export default class OverpassMessageUnmarshaller {
     return message
   }
 
-  _header (header) {
+  _message (header) {
     header = this._serialization.unserialize(header)
 
     if (!Array.isArray(header)) {
       throw new Error('Invalid Overpass message header.')
     }
 
-    const message = {type: header[0], session: header[1]}
-
-    if (typeof message.type !== 'string') {
+    if (typeof header[0] !== 'string') {
       throw new Error('Invalid Overpass message header (type).')
     }
 
-    if (!Number.isInteger(message.session)) {
+    if (!this._unmarshallers.hasOwnProperty(header[0])) {
+      throw new Error('Unsupported message type: ' + header[0] + '.')
+    }
+
+    if (!Number.isInteger(header[1])) {
       throw new Error('Invalid Overpass message header (session).')
     }
 
-    switch (message.type) {
-      case COMMAND_RESPONSE_SUCCESS:
-      case COMMAND_RESPONSE_FAILURE:
-      case COMMAND_RESPONSE_ERROR:
-        return this._commandResponseHeader(header, message)
-    }
-
-    throw new Error(
-      'Unsupported message type: ' + message.type + '.'
-    )
-  }
-
-  _commandResponseHeader (header, message) {
-    message.seq = header[2]
-
-    if (!Number.isInteger(message.seq)) {
-      throw new Error('Invalid Overpass message header (seq).')
-    }
+    const message = {type: header[0], session: header[1]}
+    const unmarshaller = this._unmarshallers[header[0]]
+    if (unmarshaller) unmarshaller({message, header})
 
     return message
   }
