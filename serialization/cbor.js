@@ -1,13 +1,9 @@
-export default class OverpassCborSerialization {
-  constructor ({CBOR}) {
-    this._CBOR = CBOR
+module.exports = function OverpassCborSerialization (CBOR) {
+  this.serialize = function serialize (data) {
+    return CBOR.encode(data)
   }
 
-  serialize (data) {
-    return this._CBOR.encode(data)
-  }
-
-  unserialize (data) {
-    return this._CBOR.decode(data)
+  this.unserialize = function unserialize (data) {
+    return CBOR.decode(data)
   }
 }

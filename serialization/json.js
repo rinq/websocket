@@ -1,11 +1,12 @@
-import {decodeUtf8, encodeUtf8} from '../core/utf8'
+var decodeUtf8 = require('../core/utf8/decode')
+var encodeUtf8 = require('../core/utf8/encode')
 
-export default class OverpassJsonSerialization {
-  serialize (data) {
+module.exports = function OverpassJsonSerialization () {
+  this.serialize = function serialize (data) {
     return encodeUtf8(JSON.stringify(data))
   }
 
-  unserialize (data) {
+  this.unserialize = function unserialize (data) {
     return JSON.parse(decodeUtf8(data))
   }
 }

@@ -1,4 +1,4 @@
-export default function unmarshalCommandRequest ({message, header}) {
+module.exports = function unmarshalCommandRequest ({message, header}) {
   if (typeof header[2] !== 'string') {
     throw new Error('Invalid Overpass message header (namespace).')
   }

@@ -1,4 +1,4 @@
-export default function unmarshalCommandResponse ({message, header}) {
+module.exports = function unmarshalCommandResponse ({message, header}) {
   if (!Number.isInteger(header[2])) {
     throw new Error('Invalid Overpass message header (seq).')
   }

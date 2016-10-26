@@ -6,10 +6,6 @@
   "license": "MIT",
   "main": "core",
   "devDependencies": {
-    "babel-eslint": "^7.0.0",
-    "babel-plugin-istanbul": "^2.0.1",
-    "babel-preset-latest": "^6.16.0",
-    "babel-register": "^6.16.3",
     "cbor-js": "^0.1.0",
     "chai": "^3.5.0",
     "mocha": "^3.1.2",
@@ -21,28 +17,18 @@
   "standard": {
     "globals": [
       "beforeEach",
-      "CBOR",
       "describe",
-      "expect",
-      "it",
-      "sinon",
-      "WebSocket"
+      "it"
     ],
     "ignore": [
       "example/node_modules/**",
       "example/web/**",
       "web/**"
-    ],
-    "parser": "babel-eslint"
+    ]
   },
   "nyc": {
     "extension": [
       ".js"
-    ],
-    "require": [
-      "babel-register"
-    ],
-    "sourceMap": false,
-    "instrument": false
+    ]
   }
 }

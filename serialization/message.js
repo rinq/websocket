@@ -1,16 +1,22 @@
-import {bufferCopy, toArrayBuffer} from '../core/buffer'
+var bufferCopy = require('../core/buffer/copy')
 
-export default class OverpassMessageSerialization {
-  constructor ({mimeType, marshaller, unmarshaller}) {
-    this.mimeType = mimeType
-    this._marshaller = marshaller
-    this._unmarshaller = unmarshaller
+module.exports = function OverpassMessageSerialization (
+  marshaller,
+  unmarshaller
+) {
+  function toArrayBuffer (buffer) {
+    var arrayBuffer = new ArrayBuffer(buffer.length)
+    var view = new Uint8Array(arrayBuffer)
+
+    for (var i = 0; i < buffer.length; ++i) view[i] = buffer[i]
+
+    return arrayBuffer
   }
 
-  serialize (message) {
-    let [header, payload] = this._marshaller.marshal(message)
+  this.serialize = function serialize (message) {
+    var [header, payload] = marshaller.marshal(message)
     header = new DataView(header)
-    let buffer
+    var buffer
 
     if (payload == null) {
       buffer = new DataView(new ArrayBuffer(header.byteLength + 2))
@@ -31,20 +37,20 @@ export default class OverpassMessageSerialization {
     return buffer.buffer
   }
 
-  unserialize (buffer) {
+  this.unserialize = function unserialize (buffer) {
     if (buffer instanceof Buffer) buffer = toArrayBuffer(buffer)
     buffer = new DataView(buffer)
 
-    const headerLength = buffer.getUint16(0)
-    const header = new DataView(new ArrayBuffer(headerLength))
+    var headerLength = buffer.getUint16(0)
+    var header = new DataView(new ArrayBuffer(headerLength))
 
-    const payloadOffset = headerLength + 2
-    const payloadLength = buffer.byteLength - payloadOffset
-    const payload = new DataView(new ArrayBuffer(payloadLength))
+    var payloadOffset = headerLength + 2
+    var payloadLength = buffer.byteLength - payloadOffset
+    var payload = new DataView(new ArrayBuffer(payloadLength))
 
     bufferCopy(buffer, 2, header, 0, headerLength)
     bufferCopy(buffer, payloadOffset, payload, 0, payloadLength)
 
-    return this._unmarshaller.unmarshal(header.buffer, payload.buffer)
+    return unmarshaller.unmarshal(header.buffer, payload.buffer)
   }
 }
