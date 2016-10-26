@@ -1,4 +1,4 @@
-module.exports = function unmarshalCommandRequest ({message, header}) {
+module.exports = function unmarshalCommandRequest (header) {
   if (typeof header[2] !== 'string') {
     throw new Error('Invalid Overpass message header (namespace).')
   }
@@ -11,7 +11,9 @@ module.exports = function unmarshalCommandRequest ({message, header}) {
     throw new Error('Invalid Overpass message header (seq).')
   }
 
-  message.namespace = header[2]
-  message.command = header[3]
-  if (header[4]) message.seq = header[4]
+  if (header[4]) {
+    return {namespace: header[2], command: header[3], seq: header[4]}
+  }
+
+  return {namespace: header[2], command: header[3]}
 }

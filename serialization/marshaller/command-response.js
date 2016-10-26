@@ -1,3 +1,3 @@
-module.exports = function marshalCommandResponse ({message, header}) {
-  header.push(message.seq)
+module.exports = function marshalCommandResponse (message) {
+  return [message.seq]
 }

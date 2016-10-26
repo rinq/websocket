@@ -1,21 +1,36 @@
 var CBOR = require('cbor-js')
 var expect = require('chai').expect
 
+var jsonDecode = require('../../serialization/json/decode')
+var jsonEncode = require('../../serialization/json/encode')
 var marshalCommandRequest = require('../../serialization/marshaller/command-request')
 var marshalCommandResponse = require('../../serialization/marshaller/command-response')
-var OverpassCborSerialization = require('../../serialization/cbor')
-var OverpassJsonSerialization = require('../../serialization/json')
-var OverpassMessageMarshaller = require('../../serialization/marshaller')
-var OverpassMessageSerialization = require('../../serialization/message')
-var OverpassMessageUnmarshaller = require('../../serialization/unmarshaller')
+var serializeMessage = require('../../serialization/serialize-message')
 var types = require('../../core/message-types')
 var unmarshalCommandRequest = require('../../serialization/unmarshaller/command-request')
 var unmarshalCommandResponse = require('../../serialization/unmarshaller/command-response')
+var unserializeMessage = require('../../serialization/unserialize-message')
 
-var messageSpec = function (subject, message) {
+var marshallers = {}
+marshallers[types.SESSION_CREATE] = null
+marshallers[types.SESSION_DESTROY] = null
+marshallers[types.COMMAND_REQUEST] = marshalCommandRequest
+marshallers[types.COMMAND_RESPONSE_SUCCESS] = marshalCommandResponse
+marshallers[types.COMMAND_RESPONSE_FAILURE] = marshalCommandResponse
+marshallers[types.COMMAND_RESPONSE_ERROR] = marshalCommandResponse
+
+var unmarshallers = {}
+unmarshallers[types.SESSION_CREATE] = null
+unmarshallers[types.SESSION_DESTROY] = null
+unmarshallers[types.COMMAND_REQUEST] = unmarshalCommandRequest
+unmarshallers[types.COMMAND_RESPONSE_SUCCESS] = unmarshalCommandResponse
+unmarshallers[types.COMMAND_RESPONSE_FAILURE] = unmarshalCommandResponse
+unmarshallers[types.COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
+
+function messageSpec (serialize, unserialize, message) {
   return function () {
-    var serialized = subject.serialize(message)
-    var unserialized = subject.unserialize(serialized)
+    var serialized = serializeMessage(message, marshallers, serialize)
+    var unserialized = unserializeMessage(serialized, unmarshallers, unserialize)
 
     var messageWithoutPayload = Object.assign({}, message)
     delete messageWithoutPayload.payload
@@ -29,19 +44,19 @@ var messageSpec = function (subject, message) {
   }
 }
 
-var messageSpecs = function (subject) {
+function messageSpecs (serialize, unserialize) {
   return function () {
-    it('should support session create messages', messageSpec(subject, {
+    it('should support session create messages', messageSpec(serialize, unserialize, {
       type: types.SESSION_CREATE,
       session: 111
     }))
 
-    it('should support session destroy messages', messageSpec(subject, {
+    it('should support session destroy messages', messageSpec(serialize, unserialize, {
       type: types.SESSION_DESTROY,
       session: 111
     }))
 
-    it('should support command requests with sequence numbers', messageSpec(subject, {
+    it('should support command requests with sequence numbers', messageSpec(serialize, unserialize, {
       type: types.COMMAND_REQUEST,
       session: 111,
       seq: 222,
@@ -50,7 +65,7 @@ var messageSpecs = function (subject) {
       payload: 'payload'
     }))
 
-    it('should support command requests without sequence numbers', messageSpec(subject, {
+    it('should support command requests without sequence numbers', messageSpec(serialize, unserialize, {
       type: types.COMMAND_REQUEST,
       session: 111,
       namespace: 'ns',
@@ -58,14 +73,14 @@ var messageSpecs = function (subject) {
       payload: 'payload'
     }))
 
-    it('should support command response success messages', messageSpec(subject, {
+    it('should support command response success messages', messageSpec(serialize, unserialize, {
       type: types.COMMAND_RESPONSE_SUCCESS,
       session: 111,
       seq: 222,
       payload: 'payload'
     }))
 
-    it('should support command response failure messages', messageSpec(subject, {
+    it('should support command response failure messages', messageSpec(serialize, unserialize, {
       type: types.COMMAND_RESPONSE_FAILURE,
       session: 111,
       seq: 222,
@@ -76,7 +91,7 @@ var messageSpecs = function (subject) {
       }
     }))
 
-    it('should support command response error messages', messageSpec(subject, {
+    it('should support command response error messages', messageSpec(serialize, unserialize, {
       type: types.COMMAND_RESPONSE_ERROR,
       session: 111,
       seq: 222
@@ -85,37 +100,11 @@ var messageSpecs = function (subject) {
 }
 
 describe('Serialization', function () {
-  var marshallers = {}
-  marshallers[types.SESSION_CREATE] = null
-  marshallers[types.SESSION_DESTROY] = null
-  marshallers[types.COMMAND_REQUEST] = marshalCommandRequest
-  marshallers[types.COMMAND_RESPONSE_SUCCESS] = marshalCommandResponse
-  marshallers[types.COMMAND_RESPONSE_FAILURE] = marshalCommandResponse
-  marshallers[types.COMMAND_RESPONSE_ERROR] = marshalCommandResponse
-
-  var unmarshallers = {}
-  unmarshallers[types.SESSION_CREATE] = null
-  unmarshallers[types.SESSION_DESTROY] = null
-  unmarshallers[types.COMMAND_REQUEST] = unmarshalCommandRequest
-  unmarshallers[types.COMMAND_RESPONSE_SUCCESS] = unmarshalCommandResponse
-  unmarshallers[types.COMMAND_RESPONSE_FAILURE] = unmarshalCommandResponse
-  unmarshallers[types.COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
-
   describe('of JSON', function () {
-    var serialization = new OverpassJsonSerialization()
-    var marshaller = new OverpassMessageMarshaller(serialization, marshallers)
-    var unmarshaller = new OverpassMessageUnmarshaller(serialization, unmarshallers)
-    var subject = new OverpassMessageSerialization(marshaller, unmarshaller)
-
-    describe('Overpass messages', messageSpecs(subject))
+    describe('Overpass messages', messageSpecs(jsonEncode, jsonDecode))
   })
 
   describe('of CBOR', function () {
-    var serialization = new OverpassCborSerialization(CBOR)
-    var marshaller = new OverpassMessageMarshaller(serialization, marshallers)
-    var unmarshaller = new OverpassMessageUnmarshaller(serialization, unmarshallers)
-    var subject = new OverpassMessageSerialization(marshaller, unmarshaller)
-
-    describe('Overpass messages', messageSpecs(subject))
+    describe('Overpass messages', messageSpecs(CBOR.encode, CBOR.decode))
   })
 })
