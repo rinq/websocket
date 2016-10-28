@@ -1,5 +1,5 @@
-var encodeUtf8 = require('../../core/utf8/encode')
+var utf8encode = require('../../core/utf8/encode')
 
 module.exports = function encodeJson (data) {
-  return encodeUtf8(JSON.stringify(data))
+  return utf8encode(JSON.stringify(data))
 }

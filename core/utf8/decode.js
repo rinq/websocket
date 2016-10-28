@@ -1,4 +1,4 @@
-module.exports = function decodeUtf8 (buffer) {
+module.exports = function utf8Decode (buffer) {
   var view = new DataView(buffer)
   var charCodes = []
   var offset = 0

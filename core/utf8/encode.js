@@ -1,4 +1,4 @@
-module.exports = function encodeUtf8 (string) {
+module.exports = function utf8Encode (string) {
   var i
   var bytes = []
 
@@ -26,11 +26,8 @@ module.exports = function encodeUtf8 (string) {
     }
   }
 
-  var view = new DataView(new ArrayBuffer(bytes.length))
+  var encoded = new Uint8Array(bytes.length)
+  encoded.set(bytes)
 
-  for (i = 0; i < bytes.length; ++i) {
-    view.setUint8(i, bytes[i])
-  }
-
-  return view.buffer
+  return encoded.buffer
 }
