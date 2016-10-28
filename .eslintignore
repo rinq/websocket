@@ -1,0 +1,4 @@
+/.nyc-output/*
+/coverage/*
+/example/*
+/test/*

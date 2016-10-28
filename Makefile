@@ -11,6 +11,7 @@ open-coverage:
 
 lint: node_modules
 	node_modules/.bin/standard --fix '**/*.js'
+	node_modules/.bin/eslint .
 
 example:
 	cd example; make build
