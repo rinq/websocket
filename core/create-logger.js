@@ -1,19 +1,19 @@
 module.exports = function createLogger (console) {
   return function log (primary, secondary) {
     if (!secondary) {
-      console.log(...primary)
+      console.log.apply(null, primary)
 
       return
     }
 
     if (console.groupCollapsed) {
-      console.groupCollapsed(...primary)
+      console.groupCollapsed.apply(null, primary)
     } else {
-      console.group(...primary)
+      console.group.apply(null, primary)
     }
 
-    for (const args of secondary) {
-      console.log(...args)
+    for (var i = 0; i < secondary.length; ++i) {
+      console.log.apply(null, secondary[i])
     }
 
     console.groupEnd()
