@@ -4,8 +4,8 @@ var OverpassFailure = require('../../../../core/failure/failure')
 
 describe('OverpassFailure', function () {
   it('represents a call failure', function () {
-    const data = {a: 'b', c: 'd'}
-    const failure = new OverpassFailure('type-a', 'Failure message.', data)
+    var data = {a: 'b', c: 'd'}
+    var failure = new OverpassFailure('type-a', 'Failure message.', data)
 
     expect(failure).to.be.an.instanceof(Error)
     expect(failure.isFailure).to.be.true

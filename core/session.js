@@ -1,12 +1,12 @@
 var EventEmitter = require('events').EventEmitter
 
-var OverpassFailure = require('./failure')
+var OverpassFailure = require('./failure/failure')
 var types = require('./message-types')
 
 function OverpassSession (
   id,
-  send,
-  receive,
+  connectionSend,
+  connectionReceive,
   setTimeout,
   clearTimeout,
   logger,
@@ -40,7 +40,7 @@ function OverpassSession (
 
   function dispatchSessionDestroy () {
     if (log) {
-      logger.log(
+      logger(
         [
           '%c%s %s[recv] session destroy',
           'color: orange',
@@ -94,7 +94,7 @@ function OverpassSession (
           color = 'red'
       }
 
-      logger.log(
+      logger(
         [
           '%c%s %s[recv] [%d] command response (%s)',
           'color: ' + color,
@@ -141,9 +141,11 @@ function OverpassSession (
     }
   }
 
+  connectionReceive(dispatch)
+
   this.destroy = function destroy () {
     if (log && log.debug) {
-      logger.log(
+      logger(
         [
           '%c%s %sDestroying session.',
           'color: orange',
@@ -153,7 +155,7 @@ function OverpassSession (
       )
     }
 
-    send({type: types.SESSION_DESTROY, session: id})
+    connectionSend({type: types.SESSION_DESTROY, session: id})
     destroyWithError(new Error('Session destroyed locally.'))
   }
 
@@ -161,7 +163,7 @@ function OverpassSession (
     if (destroyError) throw destroyError
 
     if (log) {
-      logger.log(
+      logger(
         [
           '%c%s %s[send] command request %s %s',
           'color: blue',
@@ -174,7 +176,7 @@ function OverpassSession (
       )
     }
 
-    send({
+    connectionSend({
       type: types.COMMAND_REQUEST,
       session: id,
       namespace: namespace,
@@ -206,7 +208,7 @@ function OverpassSession (
     }
 
     if (log) {
-      logger.log(
+      logger(
         [
           '%c%s %s[call] [%d] command request %s %s',
           'color: blue',
@@ -220,7 +222,7 @@ function OverpassSession (
       )
     }
 
-    send({
+    connectionSend({
       type: types.COMMAND_REQUEST,
       session: id,
       namespace: namespace,
@@ -230,8 +232,6 @@ function OverpassSession (
       timeout: timeout
     })
   }
-
-  receive(dispatch)
 }
 
 OverpassSession.prototype = Object.create(EventEmitter.prototype)

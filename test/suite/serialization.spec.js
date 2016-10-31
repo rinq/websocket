@@ -50,7 +50,7 @@ function makeSuccessSpec (serialize, unserialize) {
 function makeFailureSpec (serialize, unserialize) {
   return function failureSpec (expected, message) {
     return function () {
-      const serialized = serializeMessage(message, marshallers, serialize)
+      var serialized = serializeMessage(message, marshallers, serialize)
 
       expect(function () {
         unserializeMessage(serialized, unmarshallers, unserialize)
@@ -60,8 +60,8 @@ function makeFailureSpec (serialize, unserialize) {
 }
 
 function messageSpecs (serialize, unserialize) {
-  const successSpec = makeSuccessSpec(serialize, unserialize)
-  const failureSpec = makeFailureSpec(serialize, unserialize)
+  var successSpec = makeSuccessSpec(serialize, unserialize)
+  var failureSpec = makeFailureSpec(serialize, unserialize)
 
   return function () {
     it('should support session create messages', successSpec({
@@ -159,7 +159,7 @@ function messageSpecs (serialize, unserialize) {
     )
 
     it('should fail when serializing unsupported message types', function () {
-      const message = {
+      var message = {
         type: 'type-a',
         session: 111
       }
@@ -170,7 +170,7 @@ function messageSpecs (serialize, unserialize) {
     })
 
     it('should fail when unserializing insufficient data', function () {
-      const serialized = new ArrayBuffer(0)
+      var serialized = new ArrayBuffer(0)
 
       expect(function () {
         unserializeMessage(serialized, unmarshallers, unserialize)
@@ -178,7 +178,7 @@ function messageSpecs (serialize, unserialize) {
     })
 
     it('should fail when unserializing insufficient header data', function () {
-      const serialized = new ArrayBuffer(2)
+      var serialized = new ArrayBuffer(2)
       new DataView(serialized).setUint16(0, 1)
 
       expect(function () {
@@ -187,10 +187,10 @@ function messageSpecs (serialize, unserialize) {
     })
 
     it('should fail when unserializing non-array header data', function () {
-      const header = serialize({})
-      const headerLength = new ArrayBuffer(2)
+      var header = serialize({})
+      var headerLength = new ArrayBuffer(2)
       new DataView(headerLength).setUint16(0, header.byteLength)
-      const serialized = bufferJoin(headerLength, header)
+      var serialized = bufferJoin(headerLength, header)
 
       expect(function () {
         unserializeMessage(serialized, unmarshallers, unserialize)
@@ -198,10 +198,10 @@ function messageSpecs (serialize, unserialize) {
     })
 
     it('should fail when unserializing non-string message types', function () {
-      const header = serialize([true, 111])
-      const headerLength = new ArrayBuffer(2)
+      var header = serialize([true, 111])
+      var headerLength = new ArrayBuffer(2)
       new DataView(headerLength).setUint16(0, header.byteLength)
-      const serialized = bufferJoin(headerLength, header)
+      var serialized = bufferJoin(headerLength, header)
 
       expect(function () {
         unserializeMessage(serialized, unmarshallers, unserialize)
@@ -209,11 +209,11 @@ function messageSpecs (serialize, unserialize) {
     })
 
     it('should fail when unserializing non-integer sessions', function () {
-      const message = {
+      var message = {
         type: types.COMMAND_RESPONSE_SUCCESS,
         session: true
       }
-      const serialized = serializeMessage(message, marshallers, serialize)
+      var serialized = serializeMessage(message, marshallers, serialize)
 
       expect(function () {
         unserializeMessage(serialized, unmarshallers, unserialize)
@@ -221,13 +221,13 @@ function messageSpecs (serialize, unserialize) {
     })
 
     it('should fail when unserializing unsupported message types', function () {
-      const marshallers = {}
+      var marshallers = {}
       marshallers['type-a'] = null
-      const message = {
+      var message = {
         type: 'type-a',
         session: 111
       }
-      const serialized = serializeMessage(message, marshallers, serialize)
+      var serialized = serializeMessage(message, marshallers, serialize)
 
       expect(function () {
         unserializeMessage(serialized, unmarshallers, unserialize)
