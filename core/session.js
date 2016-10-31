@@ -22,7 +22,7 @@ function OverpassSession (
   var inSymbol = '\uD83D\uDCEC'
   var outSymbol = '\uD83D\uDCEE'
 
-  var emit = this.emit
+  var emit = this.emit.bind(this)
 
   function destroyWithError (error) {
     destroyError = error
