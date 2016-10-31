@@ -68,18 +68,20 @@ function OverpassSession (
     }
 
     if (log) {
-      var type, color
+      var type, color, logSecondary
 
       switch (message.type) {
         case types.COMMAND_RESPONSE_SUCCESS:
           type = 'success'
           color = 'green'
+          logSecondary = [[{payload: payload}]]
 
           break
 
         case types.COMMAND_RESPONSE_FAILURE:
           type = 'failure'
           color = 'orange'
+          logSecondary = [[{payload: payload}]]
 
           break
 
@@ -103,7 +105,7 @@ function OverpassSession (
           message.seq,
           type
         ],
-        [[{payload: payload}]]
+        logSecondary
       )
     }
 
