@@ -85,14 +85,8 @@ function OverpassSession (
 
           break
 
-        case types.COMMAND_RESPONSE_ERROR:
-          type = 'error'
-          color = 'red'
-
-          break
-
         default:
-          type = 'unknown'
+          type = 'error'
           color = 'red'
       }
 

@@ -8,21 +8,39 @@ var OverpassFailure = require('../../../core/failure/failure')
 var OverpassSession = require('../../../core/session')
 var types = require('../../../core/message-types')
 
-var id, connectionSend, connectionReceive, setTimeout, clearTimeout, logger, receiver, subject
+var id,
+  connectionSend,
+  connectionReceive,
+  setTimeout,
+  clearTimeout,
+  logger,
+  receiver,
+  timeoutFn,
+  timeoutDelay,
+  timeoutId,
+  subject
 
 function makeSessionSpecs (log) {
   return function sessionSpecs () {
     beforeEach(function () {
       id = 'session-a'
       connectionSend = spy()
-      connectionReceive = spy(function (r) {
+      connectionReceive = function (r) {
         receiver = r
-      })
-      setTimeout = spy()
+      }
+      setTimeout = function (fn, delay) {
+        timeoutFn = fn
+        timeoutDelay = delay
+
+        return timeoutId
+      }
       clearTimeout = spy()
       logger = spy()
 
       receiver = null
+      timeoutFn = null
+      timeoutDelay = null
+      timeoutId = 123
 
       subject = new OverpassSession(
         id,
@@ -53,6 +71,8 @@ function makeSessionSpecs (log) {
         command: command,
         payload: requestPayload
       })
+      expect(timeoutFn).not.to.be.a.function
+      expect(clearTimeout).not.to.have.been.called
 
       if (log) expect(logger).to.have.been.called
     })
@@ -78,6 +98,9 @@ function makeSessionSpecs (log) {
           seq: 1,
           timeout: timeout
         })
+        expect(timeoutFn).to.be.a.function
+        expect(timeoutDelay).to.equal(timeout)
+        expect(clearTimeout).to.have.been.calledWith(timeoutId)
 
         if (log) expect(logger).to.have.been.called
 
@@ -124,6 +147,9 @@ function makeSessionSpecs (log) {
           seq: 1,
           timeout: timeout
         })
+        expect(timeoutFn).to.be.a.function
+        expect(timeoutDelay).to.equal(timeout)
+        expect(clearTimeout).to.have.been.calledWith(timeoutId)
 
         if (log) expect(logger).to.have.been.called
 
@@ -160,6 +186,9 @@ function makeSessionSpecs (log) {
           seq: 1,
           timeout: timeout
         })
+        expect(timeoutFn).to.be.a.function
+        expect(timeoutDelay).to.equal(timeout)
+        expect(clearTimeout).to.have.been.calledWith(timeoutId)
 
         if (log) expect(logger).to.have.been.called
 
@@ -169,6 +198,76 @@ function makeSessionSpecs (log) {
       receiver({
         type: responseType,
         seq: 1
+      })
+    })
+
+    it('should handle being destroyed when there are active calls', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var requestPayload = 'request-payload'
+      var timeout = 111
+
+      subject.call(namespace, command, requestPayload, timeout, function (error, response) {
+        expect(error).to.be.an.error
+        expect(error.message).to.match(/session destroyed remotely/i)
+        expect(response).to.not.be.ok
+        expect(connectionSend).to.have.been.calledWith({
+          type: types.COMMAND_REQUEST,
+          session: id,
+          namespace: namespace,
+          command: command,
+          payload: requestPayload,
+          seq: 1,
+          timeout: timeout
+        })
+        expect(timeoutFn).to.be.a.function
+        expect(timeoutDelay).to.equal(timeout)
+        expect(clearTimeout).to.have.been.calledWith(timeoutId)
+
+        if (log) expect(logger).to.have.been.called
+
+        done()
+      })
+
+      receiver({type: types.SESSION_DESTROY})
+    })
+
+    it('should honor timeouts', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var requestPayload = 'request-payload'
+      var timeout = 111
+
+      subject.call(namespace, command, requestPayload, timeout, function (error, response) {
+        expect(error).to.be.an.error
+        expect(error.message).to.match(/timed out/i)
+        expect(response).to.not.be.ok
+        expect(connectionSend).to.have.been.calledWith({
+          type: types.COMMAND_REQUEST,
+          session: id,
+          namespace: namespace,
+          command: command,
+          payload: requestPayload,
+          seq: 1,
+          timeout: timeout
+        })
+        expect(clearTimeout).not.to.have.been.called
+
+        if (log) expect(logger).to.have.been.called
+
+        done()
+      })
+
+      expect(timeoutFn).to.be.a.function
+      expect(timeoutDelay).to.equal(timeout)
+
+      timeoutFn()
+    })
+
+    it('should ignore command responses that cannot be correlated', function () {
+      receiver({
+        type: types.COMMAND_RESPONSE_ERROR,
+        seq: 999
       })
     })
 
@@ -198,6 +297,10 @@ function makeSessionSpecs (log) {
       receiver({type: types.SESSION_DESTROY})
     })
 
+    it('should ignore messages with an unknown type', function () {
+      receiver({type: 'type-a'})
+    })
+
     describe('after being destroyed', function () {
       beforeEach(function (done) {
         subject.once('destroy', function () {
@@ -211,6 +314,16 @@ function makeSessionSpecs (log) {
         expect(function () {
           subject.send('ns-a', 'cmd-a', 'request-payload')
         }).to.throw(/session destroyed locally/i)
+      })
+
+      it('should throw an error when attempting to send a correlated command request', function (done) {
+        subject.call('ns-a', 'cmd-a', 'request-payload', 111, function (error, response) {
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/session destroyed locally/i)
+          expect(response).to.not.be.ok
+
+          done()
+        })
       })
     })
   }
