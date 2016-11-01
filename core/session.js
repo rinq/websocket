@@ -26,22 +26,6 @@ function OverpassSession (
 
   connectionReceive(dispatch)
 
-  this.destroy = function destroy () {
-    if (log && log.debug) {
-      logger(
-        [
-          '%c%s %sDestroying session.',
-          'color: orange',
-          debugSymbol,
-          log.prefix
-        ]
-      )
-    }
-
-    connectionSend({type: types.SESSION_DESTROY, session: id})
-    destroyWithError(new Error('Session destroyed locally.'))
-  }
-
   this.send = function send (namespace, command, payload) {
     if (destroyError) throw destroyError
 
@@ -114,6 +98,22 @@ function OverpassSession (
       seq: seq,
       timeout: timeout
     })
+  }
+
+  this.destroy = function destroy () {
+    if (log && log.debug) {
+      logger(
+        [
+          '%c%s %sDestroying session.',
+          'color: orange',
+          debugSymbol,
+          log.prefix
+        ]
+      )
+    }
+
+    connectionSend({type: types.SESSION_DESTROY, session: id})
+    destroyWithError(new Error('Session destroyed locally.'))
   }
 
   function dispatch (message) {

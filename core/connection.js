@@ -26,8 +26,33 @@ function OverpassConnection (
   socket.addEventListener('close', onClose)
   socket.addEventListener('message', onFirstMessage)
 
-  this.send = function send (message) {
-    socket.send(serialize(message))
+  this.session = function session (options) {
+    var id = ++sessionSeq
+    send({type: types.SESSION_CREATE, session: id})
+
+    sessions[id] = {}
+
+    function receive (receiver) {
+      sessions[id].receiver = receiver
+    }
+
+    var session = new OverpassSession(
+      id,
+      send,
+      receive,
+      setTimeout,
+      clearTimeout,
+      logger,
+      options && options.log
+    )
+
+    session.once('destroy', function () {
+      delete sessions[id]
+    })
+
+    sessions[id].session = session
+
+    return session
   }
 
   this.close = function close () {
@@ -45,35 +70,6 @@ function OverpassConnection (
     shutdown(new Error('Connection closed locally.'))
     socket.close()
     emit('close')
-  }
-
-  this.session = function session (options) {
-    var id = ++sessionSeq
-    this.send({type: types.SESSION_CREATE, session: id})
-
-    sessions[id] = {}
-
-    function receive (receiver) {
-      sessions[id].receiver = receiver
-    }
-
-    var session = new OverpassSession(
-      id,
-      this.send,
-      receive,
-      setTimeout,
-      clearTimeout,
-      logger,
-      options && options.log
-    )
-
-    session.once('destroy', function () {
-      delete sessions[id]
-    })
-
-    sessions[id].session = session
-
-    return session
   }
 
   function onOpen () {
@@ -146,6 +142,10 @@ function OverpassConnection (
     } catch (error) {
       closeError(error)
     }
+  }
+
+  function send (message) {
+    socket.send(serialize(message))
   }
 
   function validateHandshake (data) {
