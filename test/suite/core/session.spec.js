@@ -15,6 +15,7 @@ var id,
   clearTimeout,
   logger,
   receiver,
+  destroyer,
   timeoutFn,
   timeoutDelay,
   timeoutId,
@@ -25,8 +26,9 @@ function makeSessionSpecs (log) {
     beforeEach(function () {
       id = 234
       connectionSend = spy()
-      connectionReceive = function (r) {
+      connectionReceive = function (r, d) {
         receiver = r
+        destroyer = d
       }
       setTimeout = function (fn, delay) {
         timeoutFn = fn
@@ -38,6 +40,7 @@ function makeSessionSpecs (log) {
       logger = spy()
 
       receiver = null
+      destroyer = null
       timeoutFn = null
       timeoutDelay = null
       timeoutId = 123
@@ -56,6 +59,11 @@ function makeSessionSpecs (log) {
     it('should prepare to receive messages', function () {
       expect(receiver).to.be.a.function
       expect(receiver.name).to.equal('dispatch')
+    })
+
+    it('should prepare to be destroyed', function () {
+      expect(destroyer).to.be.a.function
+      expect(destroyer.name).to.equal('destroyWithError')
     })
 
     it('should support sending of command requests', function () {

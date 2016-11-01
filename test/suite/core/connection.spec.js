@@ -122,6 +122,30 @@ function makeConnectionSpecs (log) {
 
         expect(actual).to.be.an.instanceof(OverpassSession)
       })
+
+      it('should clean up sessions that are destroyed', function () {
+        subject.session().destroy()
+      })
+
+      it('should be able to be closed manually', function (done) {
+        var session = subject.session()
+        var sessionError
+
+        session.once('destroy', function (error) {
+          sessionError = error
+        })
+
+        subject.once('close', function (error) {
+          expect(error).to.not.be.ok
+          expect(sessionError).to.be.an.error
+          expect(sessionError.message).to.match(/connection closed locally/i)
+          expect(socket.close).to.have.been.called
+
+          done()
+        })
+
+        subject.close()
+      })
     })
   }
 }

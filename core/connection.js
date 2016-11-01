@@ -32,8 +32,9 @@ function OverpassConnection (
 
     sessions[id] = {}
 
-    function receive (receiver) {
+    function receive (receiver, destroyer) {
       sessions[id].receiver = receiver
+      sessions[id].destroyer = destroyer
     }
 
     var session = new OverpassSession(
@@ -203,7 +204,7 @@ function OverpassConnection (
     socket.removeEventListener('message', onMessage)
 
     for (var seq in sessions) {
-      sessions[seq].session.destroyWithError(error)
+      sessions[seq].destroyer(error)
     }
 
     sessions = {}

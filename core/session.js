@@ -24,7 +24,7 @@ function OverpassSession (
 
   var emit = this.emit.bind(this)
 
-  connectionReceive(dispatch)
+  connectionReceive(dispatch, destroyWithError)
 
   this.send = function send (namespace, command, payload) {
     if (destroyError) throw destroyError
