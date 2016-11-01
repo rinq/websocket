@@ -5,11 +5,13 @@ module.exports = function createHandshake (major, minor, mimeType) {
   var mimeTypeBytes = encodeUtf8(mimeType)
 
   var header = new Uint8Array(5)
-  header[0] = 'O'.charCodeAt(0)
-  header[1] = 'P'.charCodeAt(0)
-  header[2] = major
-  header[3] = minor
-  header[4] = mimeTypeBytes.byteLength
+  header.set([
+    'O'.charCodeAt(0),
+    'P'.charCodeAt(0),
+    major,
+    minor,
+    mimeTypeBytes.byteLength
+  ])
 
   return bufferJoin(header.buffer, mimeTypeBytes)
 }

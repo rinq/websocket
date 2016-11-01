@@ -1,3 +1,4 @@
+var EventEmitter = require('events').EventEmitter
 var expect = require('chai').expect
 var spy = require('sinon').spy
 
@@ -31,6 +32,7 @@ unmarshallers[types.COMMAND_RESPONSE_FAILURE] = unmarshalCommandResponse
 unmarshallers[types.COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
 
 var socket,
+  socketEmitter,
   handshake,
   serialize,
   unserialize,
@@ -42,9 +44,14 @@ var socket,
 function makeConnectionSpecs (log) {
   return function connectionSpecs () {
     beforeEach(function () {
+      socketEmitter = new EventEmitter()
       socket = {
-        addEventListener: spy(),
-        send: spy()
+        addEventListener: function () {
+          socketEmitter.on.apply(socketEmitter, arguments)
+        },
+        removeEventListener: spy(),
+        send: spy(),
+        close: spy()
       }
       handshake = createHandshake(2, 0, 'application/json')
       serialize = function (message) {
@@ -69,16 +76,52 @@ function makeConnectionSpecs (log) {
       )
     })
 
-    it('should be able to create sessions', function () {
-      var actual = subject.session()
+    describe('after the socket is open', function () {
+      beforeEach(function () {
+        socketEmitter.emit('open')
+      })
 
-      expect(actual).to.be.an.instanceof(OverpassSession)
+      it('should send a handshake', function () {
+        expect(socket.send).to.have.been.calledWith(handshake)
+      })
+
+      it('should emit an open event once the handshake succeeds', function (done) {
+        subject.once('open', function () {
+          done()
+        })
+
+        var handshakeResponse = new Uint8Array(4)
+        handshakeResponse.set(['O'.charCodeAt(0), 'P'.charCodeAt(0), 2, 0])
+
+        socketEmitter.emit('message', {data: handshakeResponse.buffer})
+      })
     })
 
-    it('should be able to create sessions with log options', function () {
-      var actual = subject.session({log: {prefix: '[session prefix] '}})
+    describe('after the connection is open', function () {
+      beforeEach(function (done) {
+        subject.once('open', function () {
+          done()
+        })
 
-      expect(actual).to.be.an.instanceof(OverpassSession)
+        socketEmitter.emit('open')
+
+        var handshakeResponse = new Uint8Array(4)
+        handshakeResponse.set(['O'.charCodeAt(0), 'P'.charCodeAt(0), 2, 0])
+
+        socketEmitter.emit('message', {data: handshakeResponse.buffer})
+      })
+
+      it('should be able to create sessions', function () {
+        var actual = subject.session()
+
+        expect(actual).to.be.an.instanceof(OverpassSession)
+      })
+
+      it('should be able to create sessions with log options', function () {
+        var actual = subject.session({log: {prefix: '[session prefix] '}})
+
+        expect(actual).to.be.an.instanceof(OverpassSession)
+      })
     })
   }
 }

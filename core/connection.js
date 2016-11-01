@@ -19,6 +19,8 @@ function OverpassConnection (
   var sessions = {}
   var debugSymbol = '\uD83D\uDC1E'
 
+  var emit = this.emit.bind(this)
+
   function validateHandshake (data) {
     if (!(data instanceof ArrayBuffer)) {
       throw new Error('Invalid handshake: ' + data)
@@ -42,7 +44,7 @@ function OverpassConnection (
 
   function closeError (error) {
     if (log && log.debug) {
-      logger.log(
+      logger(
         [
           '%c%s %sConnection closing with error: %s',
           'color: red',
@@ -56,7 +58,7 @@ function OverpassConnection (
 
     shutdown(error)
     socket.close()
-    this.emit('close', error)
+    emit('close', error)
   }
 
   function dispatch (message) {
@@ -90,7 +92,7 @@ function OverpassConnection (
 
   function onClose (event) {
     if (log && log.debug) {
-      logger.log(
+      logger(
         [
           '%c%s %sConnection closed: %s',
           'color: orange',
@@ -105,7 +107,7 @@ function OverpassConnection (
     var error = new Error('Connection closed: ' + event.reason)
 
     shutdown(error)
-    this.emit('close', error)
+    emit('close', error)
   }
 
   function onFirstMessage (event) {
@@ -113,7 +115,7 @@ function OverpassConnection (
       validateHandshake(event.data)
     } catch (error) {
       if (log && log.debug) {
-        logger.log(
+        logger(
           [
             '%c%s %sHandshake failed.',
             'color: red',
@@ -128,7 +130,7 @@ function OverpassConnection (
     }
 
     if (log && log.debug) {
-      logger.log(
+      logger(
         [
           '%c%s %sHandshake succeeded.',
           'color: green',
@@ -141,7 +143,7 @@ function OverpassConnection (
     socket.removeEventListener('message', onFirstMessage)
     socket.addEventListener('message', onMessage)
 
-    this.emit('open')
+    emit('open')
   }
 
   function onMessage (event) {
@@ -163,7 +165,7 @@ function OverpassConnection (
 
   this.close = function close () {
     if (log && log.debug) {
-      logger.log(
+      logger(
         [
           '%c%s %sClosing connection.',
           'color: orange',
@@ -175,7 +177,7 @@ function OverpassConnection (
 
     shutdown(new Error('Connection closed locally.'))
     socket.close()
-    this.emit('close')
+    emit('close')
   }
 
   this.session = function session (options) {
