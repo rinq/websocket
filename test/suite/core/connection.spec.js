@@ -49,7 +49,9 @@ function makeConnectionSpecs (log) {
         addEventListener: function () {
           socketEmitter.on.apply(socketEmitter, arguments)
         },
-        removeEventListener: spy(),
+        removeEventListener: function () {
+          socketEmitter.removeListener.apply(socketEmitter, arguments)
+        },
         send: spy(),
         close: spy()
       }
@@ -58,7 +60,7 @@ function makeConnectionSpecs (log) {
         return serializeMessage(message, marshallers, jsonEncode)
       }
       unserialize = function (message) {
-        return unserializeMessage(message, marshallers, jsonDecode)
+        return unserializeMessage(message, unmarshallers, jsonDecode)
       }
       setTimeout = function () {}
       clearTimeout = function () {}
@@ -173,19 +175,79 @@ function makeConnectionSpecs (log) {
       })
 
       it('should be able to create sessions', function () {
-        var actual = subject.session()
-
-        expect(actual).to.be.an.instanceof(OverpassSession)
+        expect(subject.session()).to.be.an.instanceof(OverpassSession)
       })
 
       it('should be able to create sessions with log options', function () {
-        var actual = subject.session({log: {prefix: '[session prefix] '}})
-
-        expect(actual).to.be.an.instanceof(OverpassSession)
+        expect(subject.session({log: {prefix: '[session prefix] '}})).to.be.an.instanceof(OverpassSession)
       })
 
       it('should clean up sessions that are destroyed', function () {
         subject.session().destroy()
+      })
+
+      it('should dispatch messages to relevant sessions', function (done) {
+        var sessionA = subject.session()
+        var sessionB = subject.session()
+        var callADone = false
+        var callBDone = false
+
+        function checkIfDone () {
+          if (callADone && callBDone) done()
+        }
+
+        sessionA.call('ns-a', 'cmd-a', 'payload', 111, function (error, response) {
+          expect(error).to.not.be.ok
+          expect(response).to.equal('response-a')
+
+          callADone = true
+          checkIfDone()
+        })
+        sessionB.call('ns-a', 'cmd-a', 'payload', 111, function (error, response) {
+          expect(error).to.not.be.ok
+          expect(response).to.equal('response-b')
+
+          callBDone = true
+          checkIfDone()
+        })
+
+        socketEmitter.emit('message', {data: serialize({
+          type: types.COMMAND_RESPONSE_SUCCESS,
+          session: 2,
+          seq: 1,
+          payload: 'response-b'
+        })})
+        socketEmitter.emit('message', {data: serialize({
+          type: types.COMMAND_RESPONSE_SUCCESS,
+          session: 1,
+          seq: 1,
+          payload: 'response-a'
+        })})
+      })
+
+      it('should handle responses for unexpected sessions', function (done) {
+        subject.once('close', function (error) {
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/unexpected session/i)
+
+          done()
+        })
+
+        socketEmitter.emit('message', {data: serialize({
+          type: types.SESSION_DESTROY,
+          session: 111
+        })})
+      })
+
+      it('should handle invalid messages', function (done) {
+        subject.once('close', function (error) {
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/invalid/i)
+
+          done()
+        })
+
+        socketEmitter.emit('message', {data: ''})
       })
 
       it('should be able to be closed manually', function (done) {
@@ -206,6 +268,48 @@ function makeConnectionSpecs (log) {
         })
 
         subject.close()
+      })
+
+      it('should handle being forcibly closed', function (done) {
+        var session = subject.session()
+        var sessionError
+
+        session.once('destroy', function (error) {
+          sessionError = error
+        })
+
+        subject.once('close', function (error) {
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/connection closed: close reason/i)
+          expect(sessionError).to.be.an.error
+          expect(sessionError.message).to.match(/connection closed: close reason/i)
+          expect(socket.close).not.to.have.been.called
+
+          done()
+        })
+
+        socketEmitter.emit('close', {reason: 'Close reason.'})
+      })
+
+      it('should handle connection errors', function (done) {
+        var session = subject.session()
+        var sessionError
+
+        session.once('destroy', function (error) {
+          sessionError = error
+        })
+
+        subject.once('close', function (error) {
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/error message/i)
+          expect(sessionError).to.be.an.error
+          expect(sessionError.message).to.match(/error message/i)
+          expect(socket.close).to.have.been.called
+
+          done()
+        })
+
+        socketEmitter.emit('error', new Error('Error message.'))
       })
     })
   }

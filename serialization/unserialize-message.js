@@ -7,6 +7,10 @@ module.exports = function unserializeMessage (
   unmarshallers,
   unserialize
 ) {
+  if (!(buffer instanceof ArrayBuffer)) {
+    throw new Error('Invalid Overpass message data.')
+  }
+
   if (buffer.byteLength < 2) {
     throw new Error('Insufficient Overpass message data.')
   }

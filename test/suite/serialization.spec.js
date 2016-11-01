@@ -169,6 +169,14 @@ function messageSpecs (serialize, unserialize) {
       }).to.throw(/unsupported message type/i)
     })
 
+    it('should fail when unserializing non array buffer data', function () {
+      var serialized = ''
+
+      expect(function () {
+        unserializeMessage(serialized, unmarshallers, unserialize)
+      }).to.throw(/invalid.*message/i)
+    })
+
     it('should fail when unserializing insufficient data', function () {
       var serialized = new ArrayBuffer(0)
 
