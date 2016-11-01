@@ -21,65 +21,59 @@ function OverpassConnection (
 
   var emit = this.emit.bind(this)
 
-  function validateHandshake (data) {
-    if (!(data instanceof ArrayBuffer)) {
-      throw new Error('Invalid handshake: ' + data)
-    }
+  socket.addEventListener('open', onOpen)
+  socket.addEventListener('error', onError)
+  socket.addEventListener('close', onClose)
+  socket.addEventListener('message', onFirstMessage)
 
-    if (data.byteLength !== 4) {
-      throw new Error('Invalid handshake length: ' + data.byteLength)
-    }
-
-    var view = new Uint8Array(data)
-    var prefix = String.fromCharCode(view[0], view[1])
-
-    if (prefix !== 'OP') {
-      throw new Error('Unexpected handshake prefix: ' + JSON.stringify(prefix))
-    }
-
-    if (view[2] !== 2) {
-      throw new Error('Unsupported handshake version.')
-    }
+  this.send = function send (message) {
+    socket.send(serialize(message))
   }
 
-  function closeError (error) {
+  this.close = function close () {
     if (log && log.debug) {
       logger(
         [
-          '%c%s %sConnection closing with error: %s',
-          'color: red',
+          '%c%s %sClosing connection.',
+          'color: orange',
           debugSymbol,
-          log.prefix,
-          error.message
-        ],
-        [[{error: error}]]
+          log.prefix
+        ]
       )
     }
 
-    shutdown(error)
+    shutdown(new Error('Connection closed locally.'))
     socket.close()
-    emit('close', error)
+    emit('close')
   }
 
-  function dispatch (message) {
-    var session = sessions[message.session]
-    if (session) return session.receiver(message)
+  this.session = function session (options) {
+    var id = ++sessionSeq
+    this.send({type: types.SESSION_CREATE, session: id})
 
-    closeError(new Error('Unexpected session: ' + message.session + '.'))
-  }
+    sessions[id] = {}
 
-  function shutdown (error) {
-    socket.removeEventListener('open', onOpen)
-    socket.removeEventListener('error', onError)
-    socket.removeEventListener('close', onClose)
-    socket.removeEventListener('message', onFirstMessage)
-    socket.removeEventListener('message', onMessage)
-
-    for (var seq in sessions) {
-      sessions[seq].session.destroyWithError(error)
+    function receive (receiver) {
+      sessions[id].receiver = receiver
     }
 
-    sessions = {}
+    var session = new OverpassSession(
+      id,
+      this.send,
+      receive,
+      setTimeout,
+      clearTimeout,
+      logger,
+      options && options.log
+    )
+
+    session.once('destroy', function () {
+      delete sessions[id]
+    })
+
+    sessions[id].session = session
+
+    return session
   }
 
   function onOpen () {
@@ -154,59 +148,65 @@ function OverpassConnection (
     }
   }
 
-  socket.addEventListener('open', onOpen)
-  socket.addEventListener('error', onError)
-  socket.addEventListener('close', onClose)
-  socket.addEventListener('message', onFirstMessage)
+  function validateHandshake (data) {
+    if (!(data instanceof ArrayBuffer)) {
+      throw new Error('Invalid handshake: ' + data)
+    }
 
-  this.send = function send (message) {
-    socket.send(serialize(message))
+    if (data.byteLength !== 4) {
+      throw new Error('Invalid handshake length: ' + data.byteLength)
+    }
+
+    var view = new Uint8Array(data)
+    var prefix = String.fromCharCode(view[0], view[1])
+
+    if (prefix !== 'OP') {
+      throw new Error('Unexpected handshake prefix: ' + JSON.stringify(prefix))
+    }
+
+    if (view[2] !== 2) {
+      throw new Error('Unsupported handshake version.')
+    }
   }
 
-  this.close = function close () {
+  function dispatch (message) {
+    var session = sessions[message.session]
+    if (session) return session.receiver(message)
+
+    closeError(new Error('Unexpected session: ' + message.session + '.'))
+  }
+
+  function closeError (error) {
     if (log && log.debug) {
       logger(
         [
-          '%c%s %sClosing connection.',
-          'color: orange',
+          '%c%s %sConnection closing with error: %s',
+          'color: red',
           debugSymbol,
-          log.prefix
-        ]
+          log.prefix,
+          error.message
+        ],
+        [[{error: error}]]
       )
     }
 
-    shutdown(new Error('Connection closed locally.'))
+    shutdown(error)
     socket.close()
-    emit('close')
+    emit('close', error)
   }
 
-  this.session = function session (options) {
-    var id = ++sessionSeq
-    this.send({type: types.SESSION_CREATE, session: id})
+  function shutdown (error) {
+    socket.removeEventListener('open', onOpen)
+    socket.removeEventListener('error', onError)
+    socket.removeEventListener('close', onClose)
+    socket.removeEventListener('message', onFirstMessage)
+    socket.removeEventListener('message', onMessage)
 
-    sessions[id] = {}
-
-    function receive (receiver) {
-      sessions[id].receiver = receiver
+    for (var seq in sessions) {
+      sessions[seq].session.destroyWithError(error)
     }
 
-    var session = new OverpassSession(
-      id,
-      this.send,
-      receive,
-      setTimeout,
-      clearTimeout,
-      logger,
-      options && options.log
-    )
-
-    session.once('destroy', function () {
-      delete sessions[id]
-    })
-
-    sessions[id].session = session
-
-    return session
+    sessions = {}
   }
 }
 
