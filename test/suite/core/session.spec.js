@@ -23,7 +23,7 @@ var id,
 function makeSessionSpecs (log) {
   return function sessionSpecs () {
     beforeEach(function () {
-      id = 'session-a'
+      id = 234
       connectionSend = spy()
       connectionReceive = function (r) {
         receiver = r
