@@ -1,6 +1,7 @@
 var expect = require('chai').expect
 var spy = require('sinon').spy
 
+var createHandshake = require('../../../core/create-handshake')
 var jsonDecode = require('../../../serialization/json/decode')
 var jsonEncode = require('../../../serialization/json/encode')
 var marshalCommandRequest = require('../../../serialization/marshaller/command-request')
@@ -30,7 +31,7 @@ unmarshallers[types.COMMAND_RESPONSE_FAILURE] = unmarshalCommandResponse
 unmarshallers[types.COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
 
 var socket,
-  mimeType,
+  handshake,
   serialize,
   unserialize,
   setTimeout,
@@ -45,7 +46,7 @@ function makeConnectionSpecs (log) {
         addEventListener: spy(),
         send: spy()
       }
-      mimeType = 'application/json'
+      handshake = createHandshake(2, 0, 'application/json')
       serialize = function (message) {
         return serializeMessage(message, marshallers, jsonEncode)
       }
@@ -58,7 +59,7 @@ function makeConnectionSpecs (log) {
 
       subject = new OverpassConnection(
         socket,
-        mimeType,
+        handshake,
         serialize,
         unserialize,
         setTimeout,

@@ -1,13 +1,11 @@
 var EventEmitter = require('events').EventEmitter
 
-var bufferJoin = require('./buffer/join')
-var encodeUtf8 = require('./utf8/encode')
 var OverpassSession = require('./session')
 var types = require('./message-types')
 
 function OverpassConnection (
   socket,
-  mimeType,
+  handshake,
   serialize,
   unserialize,
   setTimeout,
@@ -20,15 +18,6 @@ function OverpassConnection (
   var sessionSeq = 0
   var sessions = {}
   var debugSymbol = '\uD83D\uDC1E'
-
-  var mimeTypeBytes = encodeUtf8(mimeType)
-  var header = new Uint8Array(5)
-  header[0] = 'O'.charCodeAt(0)
-  header[1] = 'P'.charCodeAt(0)
-  header[2] = 2
-  header[3] = 0
-  header[4] = mimeTypeBytes.byteLength
-  var handshake = bufferJoin(header.buffer, mimeTypeBytes)
 
   function validateHandshake (data) {
     if (!(data instanceof ArrayBuffer)) {
