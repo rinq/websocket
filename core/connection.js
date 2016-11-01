@@ -77,30 +77,6 @@ function OverpassConnection (
     socket.send(handshake)
   }
 
-  function onError (error) {
-    closeError(error)
-  }
-
-  function onClose (event) {
-    if (log && log.debug) {
-      logger(
-        [
-          '%c%s %sConnection closed: %s',
-          'color: orange',
-          debugSymbol,
-          log.prefix,
-          event.reason
-        ],
-        [[{event: event}]]
-      )
-    }
-
-    var error = new Error('Connection closed: ' + event.reason)
-
-    shutdown(error)
-    emit('close', error)
-  }
-
   function onFirstMessage (event) {
     try {
       validateHandshake(event.data)
@@ -143,6 +119,30 @@ function OverpassConnection (
     } catch (error) {
       closeError(error)
     }
+  }
+
+  function onError (error) {
+    closeError(error)
+  }
+
+  function onClose (event) {
+    if (log && log.debug) {
+      logger(
+        [
+          '%c%s %sConnection closed: %s',
+          'color: orange',
+          debugSymbol,
+          log.prefix,
+          event.reason
+        ],
+        [[{event: event}]]
+      )
+    }
+
+    var error = new Error('Connection closed: ' + event.reason)
+
+    shutdown(error)
+    emit('close', error)
   }
 
   function send (message) {

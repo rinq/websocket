@@ -95,6 +95,67 @@ function makeConnectionSpecs (log) {
 
         socketEmitter.emit('message', {data: handshakeResponse.buffer})
       })
+
+      it('should handle handshake responses with invalid data types', function (done) {
+        subject.once('close', function (error) {
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/invalid handshake/i)
+
+          done()
+        })
+
+        socketEmitter.emit('message', {data: ''})
+      })
+
+      it('should handle handshake responses with invalid data length', function (done) {
+        subject.once('close', function (error) {
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/invalid handshake length/i)
+
+          done()
+        })
+
+        socketEmitter.emit('message', {data: new ArrayBuffer()})
+      })
+
+      it('should handle handshake responses with unexpected prefixes', function (done) {
+        subject.once('close', function (error) {
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/unexpected handshake prefix/i)
+
+          done()
+        })
+
+        socketEmitter.emit('message', {data: new ArrayBuffer(4)})
+      })
+
+      it('should handle handshake responses with versions that are too low', function (done) {
+        subject.once('close', function (error) {
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/unsupported handshake version/i)
+
+          done()
+        })
+
+        var handshakeResponse = new Uint8Array(4)
+        handshakeResponse.set(['O'.charCodeAt(0), 'P'.charCodeAt(0), 1, 99])
+
+        socketEmitter.emit('message', {data: handshakeResponse.buffer})
+      })
+
+      it('should handle handshake responses with versions that are too high', function (done) {
+        subject.once('close', function (error) {
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/unsupported handshake version/i)
+
+          done()
+        })
+
+        var handshakeResponse = new Uint8Array(4)
+        handshakeResponse.set(['O'.charCodeAt(0), 'P'.charCodeAt(0), 3, 0])
+
+        socketEmitter.emit('message', {data: handshakeResponse.buffer})
+      })
     })
 
     describe('after the connection is open', function () {
