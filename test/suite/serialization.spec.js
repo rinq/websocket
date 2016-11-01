@@ -2,15 +2,15 @@ var CBOR = require('cbor-js')
 var expect = require('chai').expect
 
 var bufferJoin = require('../../core/buffer/join')
+var createSerialize = require('../../serialization/create-serialize')
+var createUnserialize = require('../../serialization/create-unserialize')
 var jsonDecode = require('../../serialization/json/decode')
 var jsonEncode = require('../../serialization/json/encode')
 var marshalCommandRequest = require('../../serialization/marshaller/command-request')
 var marshalCommandResponse = require('../../serialization/marshaller/command-response')
-var serializeMessage = require('../../serialization/serialize-message')
 var types = require('../../core/message-types')
 var unmarshalCommandRequest = require('../../serialization/unmarshaller/command-request')
 var unmarshalCommandResponse = require('../../serialization/unmarshaller/command-response')
-var unserializeMessage = require('../../serialization/unserialize-message')
 
 var marshallers = {}
 marshallers[types.SESSION_CREATE] = null
@@ -31,8 +31,8 @@ unmarshallers[types.COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
 function makeSuccessSpec (serialize, unserialize) {
   return function successSpec (message) {
     return function () {
-      var serialized = serializeMessage(message, marshallers, serialize)
-      var unserialized = unserializeMessage(serialized, unmarshallers, unserialize)
+      var serialized = createSerialize(marshallers, serialize)(message)
+      var unserialized = createUnserialize(unmarshallers, unserialize)(serialized)
 
       var messageWithoutPayload = Object.assign({}, message)
       delete messageWithoutPayload.payload
@@ -50,10 +50,10 @@ function makeSuccessSpec (serialize, unserialize) {
 function makeFailureSpec (serialize, unserialize) {
   return function failureSpec (expected, message) {
     return function () {
-      var serialized = serializeMessage(message, marshallers, serialize)
+      var serialized = createSerialize(marshallers, serialize)(message)
 
       expect(function () {
-        unserializeMessage(serialized, unmarshallers, unserialize)
+        createUnserialize(unmarshallers, unserialize)(serialized)
       }).to.throw(expected)
     }
   }
@@ -165,7 +165,7 @@ function messageSpecs (serialize, unserialize) {
       }
 
       expect(function () {
-        serializeMessage(message, marshallers, serialize)
+        createSerialize(marshallers, serialize)(message)
       }).to.throw(/unsupported message type/i)
     })
 
@@ -173,7 +173,7 @@ function messageSpecs (serialize, unserialize) {
       var serialized = ''
 
       expect(function () {
-        unserializeMessage(serialized, unmarshallers, unserialize)
+        createUnserialize(unmarshallers, unserialize)(serialized)
       }).to.throw(/invalid.*message/i)
     })
 
@@ -181,7 +181,7 @@ function messageSpecs (serialize, unserialize) {
       var serialized = new ArrayBuffer(0)
 
       expect(function () {
-        unserializeMessage(serialized, unmarshallers, unserialize)
+        createUnserialize(unmarshallers, unserialize)(serialized)
       }).to.throw(/insufficient/i)
     })
 
@@ -190,7 +190,7 @@ function messageSpecs (serialize, unserialize) {
       new DataView(serialized).setUint16(0, 1)
 
       expect(function () {
-        unserializeMessage(serialized, unmarshallers, unserialize)
+        createUnserialize(unmarshallers, unserialize)(serialized)
       }).to.throw(/insufficient/i)
     })
 
@@ -201,7 +201,7 @@ function messageSpecs (serialize, unserialize) {
       var serialized = bufferJoin(headerLength, header)
 
       expect(function () {
-        unserializeMessage(serialized, unmarshallers, unserialize)
+        createUnserialize(unmarshallers, unserialize)(serialized)
       }).to.throw(/invalid.*header/i)
     })
 
@@ -212,7 +212,7 @@ function messageSpecs (serialize, unserialize) {
       var serialized = bufferJoin(headerLength, header)
 
       expect(function () {
-        unserializeMessage(serialized, unmarshallers, unserialize)
+        createUnserialize(unmarshallers, unserialize)(serialized)
       }).to.throw(/invalid.*type/i)
     })
 
@@ -221,10 +221,10 @@ function messageSpecs (serialize, unserialize) {
         type: types.COMMAND_RESPONSE_SUCCESS,
         session: true
       }
-      var serialized = serializeMessage(message, marshallers, serialize)
+      var serialized = createSerialize(marshallers, serialize)(message)
 
       expect(function () {
-        unserializeMessage(serialized, unmarshallers, unserialize)
+        createUnserialize(unmarshallers, unserialize)(serialized)
       }).to.throw(/invalid.*session/i)
     })
 
@@ -235,10 +235,10 @@ function messageSpecs (serialize, unserialize) {
         type: 'type-a',
         session: 111
       }
-      var serialized = serializeMessage(message, marshallers, serialize)
+      var serialized = createSerialize(marshallers, serialize)(message)
 
       expect(function () {
-        unserializeMessage(serialized, unmarshallers, unserialize)
+        createUnserialize(unmarshallers, unserialize)(serialized)
       }).to.throw(/unsupported message type/i)
     })
   }
