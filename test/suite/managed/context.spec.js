@@ -63,7 +63,7 @@ function makeContextSpecs (log) {
       })
 
       it('should initialize on the next session event when started', function (done) {
-        subject.on('ready', function () {
+        subject.once('ready', function () {
           expect(subject.isReady).to.be.true
 
           done()
@@ -80,7 +80,7 @@ function makeContextSpecs (log) {
       })
 
       it('should initialize immediately if a session is already available when started', function (done) {
-        subject.on('ready', function () {
+        subject.once('ready', function () {
           expect(subject.isReady).to.be.true
 
           done()
@@ -97,7 +97,7 @@ function makeContextSpecs (log) {
       })
 
       it('should propagate errors supplied by initializers', function (done) {
-        subject.on('error', function (error) {
+        subject.once('error', function (error) {
           expect(error).to.equal(expected)
 
           done()
@@ -112,6 +112,22 @@ function makeContextSpecs (log) {
         expect(initDone).to.be.a.function
 
         initDone(expected)
+      })
+
+      it('should throw an exception if not ready to send command requesets', function () {
+        expect(function () {
+          subject.send('ns-a', 'cmd-a', 'payload')
+        }).to.throw(/not ready/i)
+      })
+
+      it('should respond with an exception if not ready to send correlated command requesets', function (done) {
+        subject.call('ns-a', 'cmd-a', 'payload', 111, function (error, response) {
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/not ready/i)
+          expect(response).to.not.be.ok
+
+          done()
+        })
       })
     })
 
@@ -131,7 +147,7 @@ function makeContextSpecs (log) {
       })
 
       it('should initialize on the next session event when started', function (done) {
-        subject.on('ready', function () {
+        subject.once('ready', function () {
           expect(subject.isReady).to.be.true
 
           done()
@@ -161,7 +177,7 @@ function makeContextSpecs (log) {
       })
 
       it('should propagate the thrown exceptions', function (done) {
-        subject.on('error', function (error) {
+        subject.once('error', function (error) {
           expect(error).to.equal(expected)
 
           done()
@@ -172,6 +188,60 @@ function makeContextSpecs (log) {
         var session = new EventEmitter()
         sessionManager.session = session
         subject.start()
+      })
+    })
+
+    describe('once ready', function () {
+      beforeEach(function (done) {
+        sessionManager = new EventEmitter()
+        sessionManager.start = spy()
+        initializer = null
+        logger = spy()
+
+        subject = new OverpassContext(
+          sessionManager,
+          initializer,
+          logger,
+          log
+        )
+        subject.on('ready', done)
+
+        sessionManager.session = new EventEmitter()
+        sessionManager.session.send = spy()
+        sessionManager.session.call = spy()
+
+        subject.start()
+      })
+
+      it('should handle sessions being destroyed', function (done) {
+        subject.once('error', function (error) {
+          expect(error).to.equal(expected)
+
+          done()
+        })
+
+        var expected = new Error('Error message.')
+        sessionManager.session.emit('destroy', expected)
+      })
+
+      it('should support sending of command requests', function () {
+        var namespace = 'ns-a'
+        var command = 'cmd-a'
+        var requestPayload = 'request-payload'
+        subject.send(namespace, command, requestPayload)
+
+        expect(sessionManager.session.send).to.have.been.calledWith(namespace, command, requestPayload)
+      })
+
+      it('should support correlated command requests', function () {
+        var namespace = 'ns-a'
+        var command = 'cmd-a'
+        var requestPayload = 'request-payload'
+        var timeout = 111
+        var handler = function () {}
+        subject.call(namespace, command, requestPayload, timeout, handler)
+
+        expect(sessionManager.session.call).to.have.been.calledWith(namespace, command, requestPayload, timeout, handler)
       })
     })
   }

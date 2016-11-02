@@ -108,7 +108,7 @@ function OverpassContext (sessionManager, initializer, logger, log) {
     session = null
     context.isReady = false
 
-    if (context.isStarted) emit('error', error)
+    emit('error', error)
   }
 
   function initialize (newSession) {
@@ -142,7 +142,7 @@ function OverpassContext (sessionManager, initializer, logger, log) {
 
       session = newSession
       context.isReady = true
-      emit('ready', context)
+      emit('ready')
     }
 
     if (initializer) {
