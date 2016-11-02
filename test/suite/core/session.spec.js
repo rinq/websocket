@@ -26,11 +26,11 @@ function makeSessionSpecs (log) {
     beforeEach(function () {
       id = 234
       connectionSend = spy()
-      connectionReceive = function (r, d) {
+      connectionReceive = function connectionReceive (r, d) {
         receiver = r
         destroyer = d
       }
-      setTimeout = function (fn, delay) {
+      setTimeout = function setTimeout (fn, delay) {
         timeoutFn = fn
         timeoutDelay = delay
 

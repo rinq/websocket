@@ -46,10 +46,10 @@ function makeConnectionSpecs (log) {
     beforeEach(function () {
       socketEmitter = new EventEmitter()
       socket = {
-        addEventListener: function () {
+        addEventListener: function addEventListener () {
           socketEmitter.on.apply(socketEmitter, arguments)
         },
-        removeEventListener: function () {
+        removeEventListener: function removeEventListener () {
           socketEmitter.removeListener.apply(socketEmitter, arguments)
         },
         send: spy(),
