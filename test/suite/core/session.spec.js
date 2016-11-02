@@ -1,7 +1,5 @@
 var expect = require('chai').expect
-var sinon = require('sinon')
-
-var spy = sinon.spy
+var spy = require('sinon').spy
 
 var isFailureType = require('../../../core/failure/is-type')
 var OverpassFailure = require('../../../core/failure/failure')
