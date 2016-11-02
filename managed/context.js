@@ -6,13 +6,14 @@ function OverpassContext (sessionManager, initializer, logger, log) {
   var debugSymbol = '\uD83D\uDC1E'
   var session = null
 
+  var context = this
   var emit = this.emit.bind(this)
 
   this.isStarted = false
   this.isReady = false
 
   this.start = function start () {
-    if (this.isStarted) return
+    if (context.isStarted) return
 
     if (log && log.debug) {
       logger(
@@ -25,18 +26,21 @@ function OverpassContext (sessionManager, initializer, logger, log) {
       )
     }
 
-    this.isStarted = true
-    this.isReady = false
+    context.isStarted = true
+    context.isReady = false
 
     session = sessionManager.session
     sessionManager.on('session', onSession)
     sessionManager.start()
 
-    if (session) initialize(session)
+    if (session) {
+      session.once('destroy', onDestroy)
+      initialize(session)
+    }
   }
 
   this.stop = function stop () {
-    if (!this.isStarted) return
+    if (!context.isStarted) return
 
     if (log && log.debug) {
       logger(
@@ -51,18 +55,18 @@ function OverpassContext (sessionManager, initializer, logger, log) {
 
     sessionManager.removeListener('session', onSession)
 
-    this.isStarted = false
-    this.isReady = false
+    context.isStarted = false
+    context.isReady = false
   }
 
   this.send = function send (namespace, command, payload) {
-    if (!this.isReady) throw new Error('Context not ready.')
+    if (!context.isReady) throw new Error('Context not ready.')
 
     return session.send(namespace, command, payload)
   }
 
   this.call = function call (namespace, command, payload, timeout, callback) {
-    if (!this.isReady) {
+    if (!context.isReady) {
       callback(new Error('Context not ready.'))
 
       return
@@ -84,9 +88,8 @@ function OverpassContext (sessionManager, initializer, logger, log) {
       )
     }
 
-    session.once('destroy', onDestroy)
-
-    if (this.isStarted) initialize(newSession)
+    newSession.once('destroy', onDestroy)
+    initialize(newSession)
   }
 
   function onDestroy (error) {
@@ -103,9 +106,9 @@ function OverpassContext (sessionManager, initializer, logger, log) {
     }
 
     session = null
-    this.isReady = false
+    context.isReady = false
 
-    if (this.isStarted) emit('error', error)
+    if (context.isStarted) emit('error', error)
   }
 
   function initialize (newSession) {
@@ -138,8 +141,8 @@ function OverpassContext (sessionManager, initializer, logger, log) {
       }
 
       session = newSession
-      this.isReady = true
-      emit('ready', this)
+      context.isReady = true
+      emit('ready', context)
     }
 
     if (initializer) {
@@ -154,7 +157,11 @@ function OverpassContext (sessionManager, initializer, logger, log) {
         )
       }
 
-      initializer(session, done)
+      try {
+        initializer(newSession, done)
+      } catch (error) {
+        done(error)
+      }
     } else {
       done()
     }

@@ -8,44 +8,171 @@ var sessionManager, initializer, logger, initSession, initDone, subject
 
 function makeContextSpecs (log) {
   return function contextSpecs () {
-    beforeEach(function () {
-      sessionManager = new EventEmitter()
-      sessionManager.start = spy()
-      initializer = function (s, d) {
-        initSession = s
-        initDone = d
-      }
-      logger = spy()
+    describe('with an initializer', function () {
+      beforeEach(function () {
+        sessionManager = new EventEmitter()
+        sessionManager.start = spy()
+        initializer = function (s, d) {
+          initSession = s
+          initDone = d
+        }
+        logger = spy()
 
-      initSession = null
-      initDone = null
+        initSession = null
+        initDone = null
 
-      subject = new OverpassContext(
-        sessionManager,
-        initializer,
-        logger,
-        log
-      )
+        subject = new OverpassContext(
+          sessionManager,
+          initializer,
+          logger,
+          log
+        )
+      })
+
+      it('should not initially be started or ready', function () {
+        expect(subject.isStarted).to.be.false
+        expect(subject.isReady).to.be.false
+      })
+
+      it('should be able to be started', function () {
+        subject.start()
+
+        expect(subject.isStarted).to.be.true
+        expect(sessionManager.start).to.have.been.calledOnce
+      })
+
+      it('should do nothing if already started', function () {
+        subject.start()
+        subject.start()
+
+        expect(subject.isStarted).to.be.true
+        expect(sessionManager.start).to.have.been.calledOnce
+      })
+
+      it('should be able to be stopped', function () {
+        subject.start()
+        subject.stop()
+
+        expect(subject.isStarted).to.be.false
+      })
+
+      it('should do nothing if already stopped', function () {
+        subject.stop()
+
+        expect(subject.isStarted).to.be.false
+      })
+
+      it('should initialize on the next session event when started', function (done) {
+        subject.on('ready', function () {
+          expect(subject.isReady).to.be.true
+
+          done()
+        })
+
+        var session = new EventEmitter()
+        subject.start()
+        sessionManager.emit('session', session)
+
+        expect(initSession).to.equal(session)
+        expect(initDone).to.be.a.function
+
+        initDone()
+      })
+
+      it('should initialize immediately if a session is already available when started', function (done) {
+        subject.on('ready', function () {
+          expect(subject.isReady).to.be.true
+
+          done()
+        })
+
+        var session = new EventEmitter()
+        sessionManager.session = session
+        subject.start()
+
+        expect(initSession).to.equal(session)
+        expect(initDone).to.be.a.function
+
+        initDone()
+      })
+
+      it('should propagate errors supplied by initializers', function (done) {
+        subject.on('error', function (error) {
+          expect(error).to.equal(expected)
+
+          done()
+        })
+
+        var expected = new Error('Error message.')
+        var session = new EventEmitter()
+        sessionManager.session = session
+        subject.start()
+
+        expect(initSession).to.equal(session)
+        expect(initDone).to.be.a.function
+
+        initDone(expected)
+      })
     })
 
-    it('should not initially be started or ready', function () {
-      expect(subject.isStarted).to.be.false
-      expect(subject.isReady).to.be.false
+    describe('without an initializer', function () {
+      beforeEach(function () {
+        sessionManager = new EventEmitter()
+        sessionManager.start = spy()
+        initializer = null
+        logger = spy()
+
+        subject = new OverpassContext(
+          sessionManager,
+          initializer,
+          logger,
+          log
+        )
+      })
+
+      it('should initialize on the next session event when started', function (done) {
+        subject.on('ready', function () {
+          expect(subject.isReady).to.be.true
+
+          done()
+        })
+
+        var session = new EventEmitter()
+        subject.start()
+        sessionManager.emit('session', session)
+      })
     })
 
-    it('should be able to be started', function () {
-      subject.start()
+    describe('with an initializer that throws exceptions', function () {
+      beforeEach(function () {
+        sessionManager = new EventEmitter()
+        sessionManager.start = spy()
+        initializer = function () {
+          throw initializer.error
+        }
+        logger = spy()
 
-      expect(subject.isStarted).to.be.true
-      expect(sessionManager.start).to.have.been.calledOnce
-    })
+        subject = new OverpassContext(
+          sessionManager,
+          initializer,
+          logger,
+          log
+        )
+      })
 
-    it('should do nothing if already started', function () {
-      subject.start()
-      subject.start()
+      it('should propagate the thrown exceptions', function (done) {
+        subject.on('error', function (error) {
+          expect(error).to.equal(expected)
 
-      expect(subject.isStarted).to.be.true
-      expect(sessionManager.start).to.have.been.calledOnce
+          done()
+        })
+
+        var expected = new Error('Error message.')
+        initializer.error = expected
+        var session = new EventEmitter()
+        sessionManager.session = session
+        subject.start()
+      })
     })
   }
 }
