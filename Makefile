@@ -19,7 +19,10 @@ example:
 serve-example:
 	cd example; make serve
 
-.PHONY: test coverage open-coverage lint example serve-example
+open-example:
+	cd example; make open
+
+.PHONY: test coverage open-coverage lint example serve-example open-example
 
 node_modules:
 	yarn install
