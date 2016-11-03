@@ -32,6 +32,7 @@ function OverpassSessionManager (connectionManager, logger, log) {
 
     connection = connectionManager.connection
     connectionManager.on('connection', onConnection)
+    connectionManager.on('error', onError)
     connectionManager.start()
 
     if (connection) onConnection(connection)
@@ -52,6 +53,7 @@ function OverpassSessionManager (connectionManager, logger, log) {
     }
 
     connectionManager.removeListener('connection', onConnection)
+    connectionManager.removeListener('error', onError)
     if (connection) connection.removeListener('close', onClose)
 
     sessionManager.isStarted = false
@@ -89,6 +91,22 @@ function OverpassSessionManager (connectionManager, logger, log) {
     initialize(newConnection)
   }
 
+  function onError (error) {
+    if (log && log.debug) {
+      logger(
+        [
+          '%c%s %sConnection manager error.',
+          'color: red',
+          debugSymbol,
+          log.prefix
+        ],
+        [[{error: error}]]
+      )
+    }
+
+    emit('error', error)
+  }
+
   function onClose (error) {
     if (log && log.debug) {
       logger(
@@ -121,7 +139,6 @@ function OverpassSessionManager (connectionManager, logger, log) {
     }
 
     sessionManager.session = null
-
     emit('error', error)
   }
 

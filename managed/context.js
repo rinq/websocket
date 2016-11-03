@@ -31,6 +31,7 @@ function OverpassContext (sessionManager, initializer, logger, log) {
 
     session = sessionManager.session
     sessionManager.on('session', onSession)
+    sessionManager.on('error', onError)
     sessionManager.start()
 
     if (session) onSession(session)
@@ -51,6 +52,7 @@ function OverpassContext (sessionManager, initializer, logger, log) {
     }
 
     sessionManager.removeListener('session', onSession)
+    sessionManager.removeListener('error', onError)
     if (session) session.removeListener('destroy', onDestroy)
 
     context.isStarted = false
@@ -88,6 +90,22 @@ function OverpassContext (sessionManager, initializer, logger, log) {
 
     newSession.once('destroy', onDestroy)
     initialize(newSession)
+  }
+
+  function onError (error) {
+    if (log && log.debug) {
+      logger(
+        [
+          '%c%s %sSession manager error.',
+          'color: red',
+          debugSymbol,
+          log.prefix
+        ],
+        [[{error: error}]]
+      )
+    }
+
+    emit('error', error)
   }
 
   function onDestroy (error) {

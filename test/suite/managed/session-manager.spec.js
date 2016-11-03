@@ -166,6 +166,17 @@ function makeSessionManagerSpecs (log) {
         var expected = new Error('Error message.')
         session.emit('destroy', expected)
       })
+
+      it('should propagate errors from the connection manager', function (done) {
+        subject.once('error', function (error) {
+          expect(error).to.equal(expected)
+
+          done()
+        })
+
+        var expected = new Error('Error message.')
+        connectionManager.emit('error', expected)
+      })
     })
   }
 }

@@ -249,6 +249,17 @@ function makeContextSpecs (log) {
 
         expect(sessionManager.session.call).to.have.been.calledWith(namespace, command, requestPayload, timeout, handler)
       })
+
+      it('should propagate errors from the session manager', function (done) {
+        subject.once('error', function (error) {
+          expect(error).to.equal(expected)
+
+          done()
+        })
+
+        var expected = new Error('Error message.')
+        sessionManager.emit('error', expected)
+      })
     })
   }
 }
