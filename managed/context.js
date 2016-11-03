@@ -54,6 +54,7 @@ function OverpassContext (sessionManager, initializer, logger, log) {
     }
 
     sessionManager.removeListener('session', onSession)
+    if (session) session.removeListener('destroy', onDestroy)
 
     context.isStarted = false
     context.isReady = false

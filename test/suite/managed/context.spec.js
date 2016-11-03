@@ -213,6 +213,12 @@ function makeContextSpecs (log) {
         subject.start()
       })
 
+      it('should be able to be stopped', function () {
+        subject.stop()
+
+        expect(subject.isStarted).to.be.false
+      })
+
       it('should handle sessions being destroyed', function (done) {
         subject.once('error', function (error) {
           expect(error).to.equal(expected)
