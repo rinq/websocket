@@ -6,6 +6,8 @@ sinon.useFakeServer = false
 chai.use(sinonChai)
 
 global.window = new function window () {
+  this.addEventListener = function () {}
+
   this.setTimeout = function () {}
   this.clearTimeout = function () {}
 
