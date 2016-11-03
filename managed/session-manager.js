@@ -34,10 +34,7 @@ function OverpassSessionManager (connectionManager, logger, log) {
     connectionManager.on('connection', onConnection)
     connectionManager.start()
 
-    if (connection) {
-      connection.once('close', onClose)
-      initialize(connection)
-    }
+    if (connection) onConnection(connection)
   }
 
   this.stop = function stop () {

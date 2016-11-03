@@ -33,10 +33,7 @@ function OverpassContext (sessionManager, initializer, logger, log) {
     sessionManager.on('session', onSession)
     sessionManager.start()
 
-    if (session) {
-      session.once('destroy', onDestroy)
-      initialize(session)
-    }
+    if (session) onSession(session)
   }
 
   this.stop = function stop () {

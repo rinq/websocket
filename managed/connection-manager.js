@@ -5,8 +5,10 @@ var OverpassSessionManager = require('./session-manager')
 function OverpassConnectionManager (
   overpassConnection,
   delayFn,
-  window,
   CBOR,
+  networkStatus,
+  setTimeout,
+  clearTimeout,
   logger,
   log
 ) {
@@ -40,7 +42,12 @@ function OverpassConnectionManager (
 
     connectionManager.isStarted = true
     closeCount = 0
-    connectWhenOnline()
+
+    networkStatus.on('online', onOnline)
+
+    if (networkStatus.isOnline) {
+      // TODO
+    }
   }
 
   this.stop = function stop () {
@@ -71,11 +78,11 @@ function OverpassConnectionManager (
         )
       }
 
-      window.clearTimeout(reconnectTimeout)
+      clearTimeout(reconnectTimeout)
       reconnectTimeout = null
     }
 
-    window.removeEventListener('online', onOnline)
+    networkStatus.removeListener('online', onOnline)
     disconnect()
 
     if (connection) {
@@ -104,7 +111,6 @@ function OverpassConnectionManager (
       )
     }
 
-    window.removeEventListener('online', onOnline)
     connect()
   }
 
@@ -139,7 +145,7 @@ function OverpassConnectionManager (
     disconnect()
     connection = null
 
-    if (!window.navigator.onLine) return connectWhenOnline()
+    if (!networkStatus.isOnline) return connectWhenOnline()
 
     var delay = delayFn(++closeCount)
 
@@ -155,7 +161,7 @@ function OverpassConnectionManager (
       )
     }
 
-    reconnectTimeout = window.setTimeout(reconnect, delay)
+    reconnectTimeout = setTimeout(reconnect, delay)
   }
 
   function connect () {
@@ -183,7 +189,7 @@ function OverpassConnectionManager (
   }
 
   function connectWhenOnline () {
-    if (window.navigator.onLine) return connect()
+    if (networkStatus.isOnline) return connect()
 
     if (log && log.debug) {
       logger(
@@ -196,7 +202,7 @@ function OverpassConnectionManager (
       )
     }
 
-    window.addEventListener('online', onOnline)
+    networkStatus.once('online', onOnline)
   }
 
   function reconnect () {
