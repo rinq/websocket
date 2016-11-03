@@ -9,6 +9,7 @@ var OverpassConnectionManager = require('../../../managed/connection-manager')
 var OverpassSessionManager = require('../../../managed/session-manager')
 
 var overpassConnection,
+  url,
   delayFn,
   CBOR,
   networkStatus,
@@ -18,13 +19,17 @@ var overpassConnection,
   timeoutFn,
   timeoutDelay,
   timeoutId,
+  delayDisconnects,
   subject
 
 function makeConnectionManagerSpecs (log) {
   return function connectionManagerSpecs () {
     beforeEach(function () {
       overpassConnection = stub()
-      delayFn = function () {
+      url = null
+      delayFn = function (c) {
+        delayDisconnects = c
+
         return 111
       }
       CBOR = null
@@ -42,9 +47,11 @@ function makeConnectionManagerSpecs (log) {
       timeoutFn = null
       timeoutDelay = null
       timeoutId = 123
+      delayDisconnects = null
 
       subject = new OverpassConnectionManager(
         overpassConnection,
+        url,
         delayFn,
         CBOR,
         networkStatus,
@@ -196,6 +203,8 @@ function makeConnectionManagerSpecs (log) {
         connection.emit('close')
 
         expect(timeoutFn).to.be.a.function
+        expect(timeoutDelay).to.equal(111)
+        expect(delayDisconnects).to.equal(1)
 
         var expected = new EventEmitter()
         overpassConnection.returns(expected)

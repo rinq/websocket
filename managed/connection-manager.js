@@ -4,6 +4,7 @@ var OverpassSessionManager = require('./session-manager')
 
 function OverpassConnectionManager (
   overpassConnection,
+  url,
   delayFn,
   CBOR,
   networkStatus,
@@ -22,7 +23,7 @@ function OverpassConnectionManager (
   var connectionManager = this
   var emit = this.emit.bind(this)
 
-  this.url = null
+  this.url = url
   this.isStarted = false
   this.connection = null
 

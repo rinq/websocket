@@ -11,7 +11,7 @@ describe('connectionFactory', function () {
     WebSocket = function WebSocket (url) {
       socket = this
       this.url = url
-      this.addEventListener = function () {}
+      this.addEventListener = function addEventListener () {}
     }
     setTimeout = function setTimeout () {}
     clearTimeout = function clearTimeout () {}

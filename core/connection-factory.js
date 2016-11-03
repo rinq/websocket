@@ -28,6 +28,8 @@ module.exports = function connectionFactory (
   unmarshallers[types.COMMAND_RESPONSE_FAILURE] = unmarshalCommandResponse
   unmarshallers[types.COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
 
+  var logger = createLogger(console)
+
   return function connection (url, options) {
     var mimeType, serialize, unserialize
 
@@ -51,7 +53,7 @@ module.exports = function connectionFactory (
       createUnserialize(unmarshallers, unserialize),
       setTimeout,
       clearTimeout,
-      createLogger(console),
+      logger,
       options && options.log
     )
   }
