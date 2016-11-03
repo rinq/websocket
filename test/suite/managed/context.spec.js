@@ -254,7 +254,7 @@ function makeContextSpecs (log) {
 }
 
 describe('OverpassContext', function () {
-  describe('With debug logging', makeContextSpecs({prefix: '[prefix] ', debug: true}))
-  describe('With non-debug logging', makeContextSpecs({prefix: '[prefix] '}))
-  describe('Without logging', makeContextSpecs())
+  describe('with debug logging', makeContextSpecs({prefix: '[prefix] ', debug: true}))
+  describe('with non-debug logging', makeContextSpecs({prefix: '[prefix] '}))
+  describe('without logging', makeContextSpecs())
 })

@@ -316,7 +316,7 @@ function makeConnectionSpecs (log) {
 }
 
 describe('Connection', function () {
-  describe('With debug logging', makeConnectionSpecs({prefix: '[prefix] ', debug: true}))
-  describe('With non-debug logging', makeConnectionSpecs({prefix: '[prefix] '}))
-  describe('Without logging', makeConnectionSpecs())
+  describe('with debug logging', makeConnectionSpecs({prefix: '[prefix] ', debug: true}))
+  describe('with non-debug logging', makeConnectionSpecs({prefix: '[prefix] '}))
+  describe('without logging', makeConnectionSpecs())
 })

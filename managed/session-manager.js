@@ -104,11 +104,8 @@ function OverpassSessionManager (connectionManager, logger, log) {
 
     connection = null
 
-    if (error) {
-      emit('error', error)
-    } else {
-      emit('error', new Error('Connection closed unexpectedly.'))
-    }
+    if (!error) error = new Error('Connection closed unexpectedly.')
+    emit('error', error)
   }
 
   function onDestroy (error) {

@@ -17,6 +17,7 @@ function OverpassConnectionManager (
   var debugSymbol = '\uD83D\uDC1E'
   var closeCount = 0
   var reconnectTimeout = null
+  var connection = null
 
   var connectionManager = this
   var emit = this.emit.bind(this)
@@ -41,13 +42,12 @@ function OverpassConnectionManager (
     }
 
     connectionManager.isStarted = true
+    connectionManager.connection = null
     closeCount = 0
 
     networkStatus.on('online', onOnline)
 
-    if (networkStatus.isOnline) {
-      // TODO
-    }
+    if (networkStatus.isOnline) onOnline()
   }
 
   this.stop = function stop () {
@@ -65,6 +65,7 @@ function OverpassConnectionManager (
     }
 
     connectionManager.isStarted = false
+    connectionManager.connection = null
 
     if (reconnectTimeout) {
       if (log && log.debug) {
@@ -83,9 +84,9 @@ function OverpassConnectionManager (
     }
 
     networkStatus.removeListener('online', onOnline)
-    disconnect()
 
     if (connection) {
+      connection.removeListener('close', onClose)
       connection.close()
       connection = null
     }
@@ -111,7 +112,7 @@ function OverpassConnectionManager (
       )
     }
 
-    connect()
+    if (!connection) connect()
   }
 
   function onOpen () {
@@ -127,10 +128,11 @@ function OverpassConnectionManager (
     }
 
     closeCount = 0
+    connectionManager.connection = connection
     emit('connection', connection)
   }
 
-  function onClose () {
+  function onClose (error) {
     if (log && log.debug) {
       logger(
         [
@@ -142,10 +144,13 @@ function OverpassConnectionManager (
       )
     }
 
-    disconnect()
     connection = null
+    connectionManager.connection = null
 
-    if (!networkStatus.isOnline) return connectWhenOnline()
+    if (!error) error = new Error('Connection closed unexpectedly.')
+    emit('error', error)
+
+    if (!networkStatus.isOnline) return
 
     var delay = delayFn(++closeCount)
 
@@ -188,55 +193,21 @@ function OverpassConnectionManager (
     connection.once('close', onClose)
   }
 
-  function connectWhenOnline () {
-    if (networkStatus.isOnline) return connect()
-
-    if (log && log.debug) {
-      logger(
-        [
-          '%c%s %sWaiting until online.',
-          'color: black',
-          debugSymbol,
-          log.prefix
-        ]
-      )
-    }
-
-    networkStatus.once('online', onOnline)
-  }
-
   function reconnect () {
     if (log && log.debug) {
       logger(
         [
-          '%c%s %sReconnecting.',
+          '%c%s %sReconnecting when online.',
           'color: black',
           debugSymbol,
           log.prefix
-        ]
+        ],
+        [[{isOnline: networkStatus.isOnline}]]
       )
     }
 
     reconnectTimeout = null
-    connectWhenOnline()
-  }
-
-  function disconnect () {
-    if (!connection) return
-
-    if (log && log.debug) {
-      logger(
-        [
-          '%c%s %sDisconnecting.',
-          'color: orange',
-          debugSymbol,
-          log.prefix
-        ]
-      )
-    }
-
-    connection.removeListener('open', onOpen)
-    connection.removeListener('close', onClose)
+    if (networkStatus.isOnline) connect()
   }
 }
 

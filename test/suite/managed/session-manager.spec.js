@@ -171,7 +171,7 @@ function makeSessionManagerSpecs (log) {
 }
 
 describe('OverpassSessionManager', function () {
-  describe('With debug logging', makeSessionManagerSpecs({prefix: '[prefix] ', debug: true}))
-  describe('With non-debug logging', makeSessionManagerSpecs({prefix: '[prefix] '}))
-  describe('Without logging', makeSessionManagerSpecs())
+  describe('with debug logging', makeSessionManagerSpecs({prefix: '[prefix] ', debug: true}))
+  describe('with non-debug logging', makeSessionManagerSpecs({prefix: '[prefix] '}))
+  describe('without logging', makeSessionManagerSpecs())
 })

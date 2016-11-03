@@ -336,7 +336,7 @@ function makeSessionSpecs (log) {
 }
 
 describe('OverpassSession', function () {
-  describe('With debug logging', makeSessionSpecs({prefix: '[prefix] ', debug: true}))
-  describe('With non-debug logging', makeSessionSpecs({prefix: '[prefix] '}))
-  describe('Without logging', makeSessionSpecs())
+  describe('with debug logging', makeSessionSpecs({prefix: '[prefix] ', debug: true}))
+  describe('with non-debug logging', makeSessionSpecs({prefix: '[prefix] '}))
+  describe('without logging', makeSessionSpecs())
 })
