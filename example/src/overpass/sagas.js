@@ -8,7 +8,6 @@ export function* watchContextStatus (name, context) {
   const disconnect = error => actions.overpassDisconnect(name, error)
 
   yield fork(watchEvents, context, 'ready', connect)
-  yield fork(watchEvents, context, 'destroy', disconnect)
   yield fork(watchEvents, context, 'error', disconnect)
 }
 

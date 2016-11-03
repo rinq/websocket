@@ -1,45 +1,29 @@
-import {call, put} from 'redux-saga/effects'
+import {call, put, take} from 'redux-saga/effects'
+import {buffers, eventChannel} from 'redux-saga'
 
-export function eventIterator (emitter, name) {
-  let deferred
-
-  let listener = event => {
-    if (!deferred) {
-      console.error('DROPPED ' + name + ' EVENT:', event)
-
-      return
-    }
-
-    deferred.resolve(event)
-    deferred = null
-  }
+export function createEventChannel (emitter, name) {
+  let add, remove
 
   if (emitter.on) {
-    emitter.on(name, listener)
+    add = emitter.on.bind(emitter)
+    remove = emitter.removeListener.bind(emitter)
   } else {
-    emitter.addEventListener(name, listener)
+    add = emitter.addEventListener.bind(emitter)
+    remove = emitter.removeEventListener.bind(emitter)
   }
 
-  return {
-    listener: listener,
-    nextEvent: () => {
-      if (!deferred) {
-        deferred = {}
-        deferred.promise = new Promise(
-          resolve => { deferred.resolve = resolve }
-        )
-      }
+  return eventChannel(emit => {
+    add(name, () => emit(Array.prototype.slice.call(arguments)))
 
-      return deferred.promise
-    }
-  }
+    return remove
+  }, buffers.expanding())
 }
 
 export default function* watchEvents (emitter, name, actionCreator) {
-  const iterator = yield call(eventIterator, emitter, name)
+  const channel = yield call(createEventChannel, emitter, name)
 
   while (true) {
-    const event = yield call(iterator.nextEvent)
+    const event = yield take(channel)
     yield put(actionCreator(event))
   }
 }
