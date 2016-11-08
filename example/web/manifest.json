@@ -1,0 +1,12 @@
+{
+	"name": "Overpass",
+	"icons": [
+		{
+			"src": "\/android-chrome-192x192.png",
+			"sizes": "192x192",
+			"type": "image\/png"
+		}
+	],
+	"theme_color": "#865cd6",
+	"display": "standalone"
+}
