@@ -7,6 +7,10 @@ describe('Core module', function () {
     expect(subject.connection).to.be.a.function
   })
 
+  it('should expose a function for checking whether an error is a failure', function () {
+    expect(subject.isFailure).to.be.a.function
+  })
+
   it('should expose a function for checking the type of failures', function () {
     expect(subject.isFailureType).to.be.a.function
   })

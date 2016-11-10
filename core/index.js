@@ -1,4 +1,5 @@
 var connectionFactory = require('./connection-factory')
+var isFailure = require('./failure/is-failure')
 var isFailureType = require('./failure/is-type')
 
 var connection = connectionFactory(
@@ -10,5 +11,6 @@ var connection = connectionFactory(
 
 module.exports = {
   connection: connection,
+  isFailure: isFailure,
   isFailureType: isFailureType
 }
