@@ -1,7 +1,7 @@
 {
   "name": "overpass-websocket",
   "version": "0.0.0",
-  "description": "Client library for Overpass websocket communication.",
+  "description": "Client library for Overpass WebSocket communication.",
   "repository": "icecave/overpass-websocket",
   "license": "MIT",
   "main": "core",
