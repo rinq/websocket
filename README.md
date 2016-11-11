@@ -41,7 +41,7 @@ var sessionManager = connectionManager.sessionManager()
 var context = sessionManager.context()
 
 context.on('ready', function () {
-  session.send('namespace', 'command', 'payload')
+  context.send('namespace', 'command', 'payload')
 })
 
 context.start()
@@ -63,7 +63,7 @@ var context = sessionManager.context({
 })
 
 context.on('ready', function () {
-  session.send('namespace', 'command', 'payload')
+  context.send('namespace', 'command', 'payload')
 })
 
 context.start()
