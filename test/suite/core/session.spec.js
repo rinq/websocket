@@ -61,7 +61,7 @@ function makeSessionSpecs (log) {
 
     it('should prepare to be destroyed', function () {
       expect(destroyer).to.be.a.function
-      expect(destroyer.name).to.equal('destroyWithError')
+      expect(destroyer.name).to.equal('doDestroy')
     })
 
     it('should support sending of command requests', function () {
@@ -279,8 +279,7 @@ function makeSessionSpecs (log) {
 
     it('should support local destroying', function (done) {
       subject.once('destroy', function (error) {
-        expect(error).to.be.an.error
-        expect(error.message).to.match(/session destroyed locally/i)
+        expect(error).to.not.be.ok
 
         if (log && log.debug) expect(logger).to.have.been.called
 

@@ -24,7 +24,7 @@ function OverpassSession (
 
   var emit = this.emit.bind(this)
 
-  connectionReceive(dispatch, destroyWithError)
+  connectionReceive(dispatch, doDestroy)
 
   this.send = function send (namespace, command, payload) {
     if (destroyError) throw destroyError
@@ -113,7 +113,7 @@ function OverpassSession (
     }
 
     connectionSend({type: types.SESSION_DESTROY, session: id})
-    destroyWithError(new Error('Session destroyed locally.'))
+    doDestroy()
   }
 
   function dispatch (message) {
@@ -140,7 +140,7 @@ function OverpassSession (
       )
     }
 
-    destroyWithError(new Error('Session destroyed remotely.'))
+    doDestroy(new Error('Session destroyed remotely.'))
   }
 
   function dispatchCommandResponse (message) {
@@ -215,14 +215,14 @@ function OverpassSession (
     delete calls[message.seq]
   }
 
-  function destroyWithError (error) {
-    destroyError = error
+  function doDestroy (error) {
+    destroyError = error || new Error('Session destroyed locally.')
 
     for (var seq in calls) {
       var call = calls[seq]
 
       clearTimeout(call.timeout)
-      call.callback(error)
+      call.callback(destroyError)
     }
 
     calls = {}
