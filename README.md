@@ -232,7 +232,21 @@ will be `undefined`.
 
 #### Failure
 
-TODO
+Represents a failure response sent by a server. Failures typically represent
+"expected" error cases that may need to be handled by the client. Some examples
+of failures might be:
+
+- Resource not found
+- Input validation failures
+- Unauthorized
+
+Failures are normal JavaScript errors, with the following properties:
+
+Property  | Description                                                     | Type    | Example
+----------|-----------------------------------------------------------------|---------|---------------------------------------
+`type`    | A type used to categorize the failure.                          | string  | `'not-found'`
+`message` | A message describing the failure.                               | string  | `'The specified user does not exist.'`
+`data`    | An optional value populated with additional data by the server. | *(any)* | `{username: 'jsmith'}`
 
 ### Managed module
 
