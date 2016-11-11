@@ -660,6 +660,8 @@ Option   | Description                                 | Type    | Example      
 `prefix` | A prefix to use when logging.               | string  | `'[context-a] '` | `''`
 `debug`  | Specifies whether to log debug information. | boolean | `true`           | `false`
 
+If logging options are omitted entirely, no logging will take place.
+
 <!-- References -->
 
 [cbor-js]: https://github.com/paroga/cbor-js
