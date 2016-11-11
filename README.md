@@ -2,6 +2,73 @@
 
 *Client library for Overpass WebSocket communication.*
 
+## Usage
+
+### Core module usage
+
+The core module centers around single-use [connections]. It does not implement
+any reconnection logic, or application-level state. First a connection must be
+made, from which a [session] is created in order to communicate:
+
+```js
+var overpass = require('overpass-websocket')
+
+var connection = overpass.connection('ws://example.org/')
+var session = overpass.session()
+
+connection.on('open', function () {
+  session.send('namespace', 'command', 'payload')
+})
+```
+
+With this approach, once the connection is closed, or the session is destroyed,
+these objects must be discarded, and new ones created. It is up to the user to
+manage any application state that depends upon access to an *Overpass*
+connection or session.
+
+### Managed module usage
+
+The managed module implements some higher-level constructs that simplify the
+management of transient communication issues, such as network dropouts. First a
+[connection manager] is created, then a [session manager], and finally
+[contexts], which provide similar functionality to a [session]:
+
+```js
+var overpass = require('overpass-websocket/managed')
+
+var connectionManager = overpass.connectionManager({url: 'ws://example.org/'})
+var sessionManager = connectionManager.sessionManager()
+var context = sessionManager.context()
+
+context.on('ready', function () {
+  session.send('namespace', 'command', 'payload')
+})
+
+context.start()
+```
+
+With this approach, transient communication issues are managed by *Overpass*.
+This means it is safe to store references to the connection manager, session
+manager, and context, across the lifetime of the application.
+
+Additionally, contexts provide some basic application-level state management, as
+they can specify an [initialization function] that must execute before the
+context is "ready":
+
+```js
+var context = sessionManager.context({
+  initialize: function (done, session) {
+    session.call('auth.1', 'token', 'U53R-70K3N', 10000, done)
+  }
+})
+
+context.on('ready', function () {
+  session.send('namespace', 'command', 'payload')
+})
+
+context.start()
+```
+
 ## API
 
 - [Core module](#core-module)
@@ -459,7 +526,8 @@ var context = sessionManager.context({
 
 > *void* [**`sessionManager.start`**](#sessionManager.start) `()`
 
-Starts the session manager.
+Starts the session manager, and the connection manager from which it was
+created.
 
 While the session manager is started, it will attempt to maintain a session.
 
@@ -520,7 +588,8 @@ asynchronous initialization logic before communication can commence:
 
 > *void* [**`context.start`**](#context.start) `()`
 
-Starts the context.
+Starts the context, and the session manager and connection manager from which it
+was created.
 
 While the context is started, it will attempt to maintain a "ready" state.
 
@@ -597,10 +666,12 @@ Option   | Description                                 | Type    | Example      
 [CBOR]: https://tools.ietf.org/html/rfc7049
 [connection manager]: #connection-manager
 [connection]: #connection
+[connections]: #connection
 [context]: #context
 [contexts]: #context
 [failure]: #failure
 [failures]: #failure
+[initialization function]: #sessionManager.context
 [JSON]: http://json.org/
 [logging options]: #logging-options
 [session manager]: #session-manager
