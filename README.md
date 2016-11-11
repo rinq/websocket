@@ -7,8 +7,13 @@
 - [Core module](#core-module)
 - [Managed module](#managed-module)
 - [Serialization module](#serialization-module)
+- [Logging options](#logging-options)
 
 ### Core module
+
+```js
+require('overpass-websocket')
+```
 
 The core module contains only the essential functionality for communicating via
 the *Overpass* protocol:
@@ -26,7 +31,7 @@ the *Overpass* protocol:
 
 > *[`Connection`](#connection)* [**`connection`**](#core.connection) `(url[, options])`
 
-Creates a new *Overpass* connection to `url`.
+Creates a new *Overpass* [connection] to `url`.
 
 The `options` are represented as a generic object, and may specify:
 
@@ -39,12 +44,8 @@ Specifying `CBOR` is recommended, as it enables messages to be serialized with
 [CBOR] rather than [JSON]:
 
 ```js
-connection('ws://example.org/', {CBOR: CBOR})
+var c = connection('ws://example.org/', {CBOR: CBOR})
 ```
-
-[cbor-js]: https://github.com/paroga/cbor-js
-[CBOR]: https://tools.ietf.org/html/rfc7049
-[JSON]: http://json.org/
 
 <a name="core.isFailure" />
 
@@ -110,7 +111,7 @@ communication:
 
 > *[`Session`](#session)* [**`connection.session`**](#connection.session) `([options])`
 
-Creates a new session.
+Creates a new [session].
 
 The `options` are represented as a generic object, and may specify:
 
@@ -250,6 +251,174 @@ Property  | Description                                                     | Ty
 
 ### Managed module
 
+```js
+require('overpass-websocket/managed')
+```
+
+The managed module contains higher-lever tools for managing *Overpass*
+connections and sessions in an environment where connection to the server is
+transient, and dependent on network connectivity and availability of servers:
+
+- [connectionManager()](#core.connectionManager)
+- [ConnectionManager class](#connection-manager)
+- [SessionManager class](#session-manager)
+- [Context class](#context)
+
+<a name="core.connectionManager" />
+
+---
+
+> *[`ConnectionManager`](#connection-manager)* [**`connectionManager`**](#core.connectionManager) `([options])`
+
+Creates a new *Overpass* [connection manager].
+
+The `options` are represented as a generic object, and may specify:
+
+Option   | Description                                               | Type     | Example               | Default
+---------|-----------------------------------------------------------|----------|-----------------------|--------------
+`url`    | The URL to connect to.                                    | string   | `'ws://example.org/'` | *(none)*
+`delay`  | A function for calculating the delay before reconnecting. | function | *(see below)*         | *(see below)*
+`CBOR`   | A reference to the [cbor-js] module.                      | object   | `require('cbor-js')`  | *(none)*
+`log`    | A set of [logging options].                               | object   | `{debug: true}`       | *(none)*
+
+The `url` is optional, because it is sometimes necessary to determine this
+information based upon the outcome of some asynchronous action, such as fetching
+some external configuration. The URL can also be set later via the
+[connectionManager.url](#connection-manager) property.
+
+The `delay` option allows customization of the amount of time between a
+disconnection, and the subsequent reconnection attempt, based upon the number of
+consecutive disconnections. The supplied function should take a single argument
+representing the number of disconnects, and return a delay time in milliseconds.
+For example, the default `delay` function is:
+
+```js
+function delay (disconnects) {
+  return Math.min(Math.pow(2, disconnects - 1) * 1000, 32000)
+}
+```
+
+Which produces the following delay times:
+
+Disconnects | Delay (seconds)
+------------|-----------
+1           | 1
+2           | 2
+3           | 4
+4           | 8
+5           | 16
+6+          | 32
+
+Specifying `CBOR` is recommended, as it enables messages to be serialized with
+[CBOR] rather than [JSON].
+
+#### ConnectionManager
+
+Represents a transient *Overpass* connection, and allows the creation of
+[session managers]:
+
+- [sessionManager()](#connectionManager.sessionManager)
+- [start()](#connectionManager.start)
+- [stop()](#connectionManager.stop)
+- [*connection* event](#connectionManager.event.connection)
+- [*error* event](#connectionManager.event.error)
+
+<a name="connectionManager.sessionManager" />
+
+---
+
+> *[`SessionManager`](#session-manager)* [**`connectionManager.sessionManager`**](#connectionManager.sessionManager) `([options])`
+
+Creates a new [session manager].
+
+The `options` are represented as a generic object, and may specify:
+
+Option   | Description                               | Type    | Example              | Default
+---------|-------------------------------------------|---------|----------------------|---------
+`log`    | A set of [logging options].               | object  | `{debug: true}`      | *(none)*
+
+```js
+connectionManager.sessionManager({log: {prefix: '[session-a] '}})
+```
+
+<a name="connectionManager.start" />
+
+---
+
+> *void* [**`connectionManager.start`**](#connectionManager.start) `()`
+
+Starts the connection manager.
+
+While the connection manager is started, it will attempt to maintain a
+connection. It will also monitor network availability, and avoid attempting to
+reconnect when the network is down.
+
+<a name="connectionManager.stop" />
+
+---
+
+> *void* [**`connectionManager.stop`**](#connectionManager.stop) `()`
+
+Stops the connection manager.
+
+When the connection manager is stopped, it will close the current connection if
+it is open, and will not attempt to reconnect until started again.
+
+<a name="connectionManager.event.connection" />
+
+---
+
+> `connectionManager.on(` [**`'connection'`**](#connectionManager.event.connection) `, function (connection) {})`
+
+This event is emitted when a new *open* connection is available.
+
+The `handler` for this event accepts a single `connection` argument, which is an
+*Overpass* [connection]. The handler is only called when the connection is open,
+and ready for communication.
+
+This event will fire multiple times (interspersed with
+[`error` events](#errorManager.event.connection)) as transient communication
+problems arise, and are resolved. The latest connection should always replace
+any previous connections.
+
+<a name="connectionManager.event.error" />
+
+---
+
+> `connectionManager.on(` [**`'error'`**](#connectionManager.event.error) `, function (error) {})`
+
+This event is emitted when connection issues arise.
+
+The `handler` for this event accepts a single `error` argument. Upon handling
+this event, no further communication should be attempted until a new connection
+is received via the next
+[`connection` event](#connectionManager.event.connection).
+
+#### SessionManager
+
+Represents a transient *Overpass* session, and allows the creation of
+[contexts]:
+
+- [context()](#sessionManager.context)
+- [start()](#sessionManager.start)
+- [stop()](#sessionManager.stop)
+- [*session* event](#sessionManager.event.session)
+- [*error* event](#sessionManager.event.error)
+
+TODO
+
+#### Context
+
+Allows communication over a transient *Overpass* session, with the option of
+asynchronous initialization logic before communication can commence:
+
+- [send()](#context.send)
+- [call()](#context.call)
+- [start()](#context.start)
+- [stop()](#context.stop)
+- [*ready* event](#context.event.ready)
+- [*error* event](#context.event.error)
+
 TODO
 
 ### Serialization module
@@ -267,7 +436,16 @@ Option   | Description                                 | Type    | Example      
 
 <!-- References -->
 
+[cbor-js]: https://github.com/paroga/cbor-js
+[CBOR]: https://tools.ietf.org/html/rfc7049
+[connection manager]: #connection-manager
+[connection]: #connection
+[contexts]: #context
 [failure]: #failure
 [failures]: #failure
+[JSON]: http://json.org/
 [logging options]: #logging-options
+[session manager]: #session-manager
+[session managers]: #session-manager
+[session]: #session
 [sessions]: #session
