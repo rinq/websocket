@@ -174,7 +174,7 @@ function OverpassContext (sessionManager, initializer, logger, log) {
       }
 
       try {
-        initializer(newSession, done)
+        initializer(done, newSession)
       } catch (error) {
         done(error)
       }

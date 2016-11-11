@@ -12,7 +12,7 @@ function makeContextSpecs (log) {
       beforeEach(function () {
         sessionManager = new EventEmitter()
         sessionManager.start = spy()
-        initializer = function (s, d) {
+        initializer = function (d, s) {
           initSession = s
           initDone = d
         }

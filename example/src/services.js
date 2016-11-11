@@ -37,7 +37,7 @@ const contextB = sessionManager.context({
     debug,
     prefix: '[context-b] '
   },
-  initialize: (session, done) => {
+  initialize: (done, session) => {
     session.call(
       'echo.1',
       'success',
