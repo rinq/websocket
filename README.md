@@ -377,7 +377,7 @@ The `handler` for this event accepts a single `connection` argument, which is an
 and ready for communication.
 
 This event will fire multiple times (interspersed with
-[`error` events](#errorManager.event.connection)) as transient communication
+[`error` events](#connectionManager.event.error)) as transient communication
 problems arise, and are resolved. The latest connection should always replace
 any previous connections.
 
@@ -387,7 +387,7 @@ any previous connections.
 
 > `connectionManager.on(` [**`'error'`**](#connectionManager.event.error) `, function (error) {})`
 
-This event is emitted when connection issues arise.
+This event is emitted when communication issues arise.
 
 The `handler` for this event accepts a single `error` argument. Upon handling
 this event, no further communication should be attempted until a new connection
@@ -405,7 +405,104 @@ Represents a transient *Overpass* session, and allows the creation of
 - [*session* event](#sessionManager.event.session)
 - [*error* event](#sessionManager.event.error)
 
-TODO
+<a name="sessionManager.context" />
+
+---
+
+> *[`Context`](#context)* [**`sessionManager.context`**](#sessionManager.context) `([options])`
+
+Creates a new [context].
+
+The `options` are represented as a generic object, and may specify:
+
+Option       | Description                                                | Type     | Example              | Default
+-------------|------------------------------------------------------------|----------|----------------------|---------
+`initialize` | A function that must complete before the context is ready. | function | *(see below)*        | *(none)*
+`log`        | A set of [logging options].                                | object   | `{debug: true}`      | *(none)*
+
+The `initialize` option allows for the situation where a context is not ready
+for use until some initialization logic has been performed. This initialization
+*may* involve asynchronous operations, and can include communication over an
+*Overpass* [session].
+
+The function supplied for the `initialize` option should accept a `done`
+callback as the first argument, that must be executed in order for the context
+to be considered "ready", and an *Overpass* [session] as the second argument:
+
+```js
+var context = sessionManager.context({
+  initialize: function (done) {
+    done()
+  }
+})
+```
+
+The `done` callback accepts an optional error which, if supplied, will cause the
+context to emit an `error` event. An `error` event will also be emitted if the
+`initialize` function throws, using the thrown value as the error. The context
+will not proceed to the "ready" state, unless the `done` callback is called
+without an error argument.
+
+A common use case for context initialization is authentication. For example,
+this initialization function demonstrates authenticating via an *Overpass*
+service:
+
+```js
+var context = sessionManager.context({
+  initialize: function (done, session) {
+    session.call('auth.1', 'token', 'U53R-70K3N', 10000, done)
+  }
+})
+```
+
+<a name="sessionManager.start" />
+
+---
+
+> *void* [**`sessionManager.start`**](#sessionManager.start) `()`
+
+Starts the session manager.
+
+While the session manager is started, it will attempt to maintain a session.
+
+<a name="sessionManager.stop" />
+
+---
+
+> *void* [**`sessionManager.stop`**](#sessionManager.stop) `()`
+
+Stops the session manager.
+
+When the session manager is stopped, it will destroy the current session if it
+is open, and will not attempt to create a new session until started again.
+
+<a name="sessionManager.event.session" />
+
+---
+
+> `sessionManager.on(` [**`'session'`**](#sessionManager.event.session) `, function (session) {})`
+
+This event is emitted when a new session is available.
+
+The `handler` for this event accepts a single `session` argument, which is an
+*Overpass* [session].
+
+This event will fire multiple times (interspersed with
+[`error` events](#sessionManager.event.error)) as transient communication
+problems arise, and are resolved. The latest session should always replace any
+previous sessions.
+
+<a name="sessionManager.event.error" />
+
+---
+
+> `sessionManager.on(` [**`'error'`**](#sessionManager.event.error) `, function (error) {})`
+
+This event is emitted when communication issues arise.
+
+The `handler` for this event accepts a single `error` argument. Upon handling
+this event, no further communication should be attempted until a new connection
+is received via the next [`session` event](#sessionManager.event.session).
 
 #### Context
 
@@ -440,6 +537,7 @@ Option   | Description                                 | Type    | Example      
 [CBOR]: https://tools.ietf.org/html/rfc7049
 [connection manager]: #connection-manager
 [connection]: #connection
+[context]: #context
 [contexts]: #context
 [failure]: #failure
 [failures]: #failure
