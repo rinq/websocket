@@ -141,7 +141,7 @@ Once a connection is closed, it cannot be re-opened.
 
 This event is emitted once the connection is open and ready to communicate.
 
-The `handler` for this event accepts no arguments.
+The handler for this event accepts no arguments.
 
 <a name="connection.event.close" />
 
@@ -151,7 +151,7 @@ The `handler` for this event accepts no arguments.
 
 This event is emitted once the connection is closed.
 
-The `handler` for this event accepts a single, optional `error` argument. If the
+The handler for this event accepts a single, optional `error` argument. If the
 connection was closed normally, via [`close()`](#connection.close), `error` will
 be `undefined`.
 
@@ -227,7 +227,7 @@ Once a session is destroyed, it cannot be re-used.
 
 This event is emitted once the session is destroyed.
 
-The `handler` for this event accepts a single, optional `error` argument. If the
+The handler for this event accepts a single, optional `error` argument. If the
 session was destroyed normally, via [`destroy()`](#session.destroy), `error`
 will be `undefined`.
 
@@ -372,7 +372,7 @@ it is open, and will not attempt to reconnect until started again.
 
 This event is emitted when a new *open* connection is available.
 
-The `handler` for this event accepts a single `connection` argument, which is an
+The handler for this event accepts a single `connection` argument, which is an
 *Overpass* [connection]. The handler is only called when the connection is open,
 and ready for communication.
 
@@ -389,10 +389,9 @@ any previous connections.
 
 This event is emitted when communication issues arise.
 
-The `handler` for this event accepts a single `error` argument. Upon handling
-this event, no further communication should be attempted until a new connection
-is received via the next
-[`connection` event](#connectionManager.event.connection).
+The handler for this event accepts a single `error` argument. Upon handling this
+event, no further communication should be attempted until a new connection is
+received via the next [`connection` event](#connectionManager.event.connection).
 
 #### SessionManager
 
@@ -484,7 +483,7 @@ is open, and will not attempt to create a new session until started again.
 
 This event is emitted when a new session is available.
 
-The `handler` for this event accepts a single `session` argument, which is an
+The handler for this event accepts a single `session` argument, which is an
 *Overpass* [session].
 
 This event will fire multiple times (interspersed with
@@ -500,23 +499,88 @@ previous sessions.
 
 This event is emitted when communication issues arise.
 
-The `handler` for this event accepts a single `error` argument. Upon handling
-this event, no further communication should be attempted until a new connection
-is received via the next [`session` event](#sessionManager.event.session).
+The handler for this event accepts a single `error` argument. Upon handling this
+event, no further communication should be attempted until a new connection is
+received via the next [`session` event](#sessionManager.event.session).
 
 #### Context
 
 Allows communication over a transient *Overpass* session, with the option of
 asynchronous initialization logic before communication can commence:
 
-- [send()](#context.send)
-- [call()](#context.call)
 - [start()](#context.start)
 - [stop()](#context.stop)
+- [send()](#context.send)
+- [call()](#context.call)
 - [*ready* event](#context.event.ready)
 - [*error* event](#context.event.error)
 
-TODO
+<a name="context.start" />
+
+---
+
+> *void* [**`context.start`**](#context.start) `()`
+
+Starts the context.
+
+While the context is started, it will attempt to maintain a "ready" state.
+
+<a name="context.stop" />
+
+---
+
+> *void* [**`context.stop`**](#context.stop) `()`
+
+Stops the context.
+
+When the context is stopped, it will not attempt to maintain a "ready" state.
+
+<a name="context.send" />
+
+---
+
+> *`void`* [**`context.send`**](#context.send) `(namespace, command, payload)`
+
+Sends an *Overpass* command, for which no response is expected.
+
+Functionally equivalent to [session.send](#session.send).
+
+<a name="context.call" />
+
+---
+
+> *`void`* [**`context.call`**](#context.call) `(namespace, command, payload, timeout, function (error, response) {})`
+
+Sends an *Overpass* command, and handles the response.
+
+Functionally equivalent to [session.call](#session.call).
+
+<a name="context.event.ready" />
+
+---
+
+> `context.on(` [**`'ready'`**](#context.event.ready) `, function () {})`
+
+This event is emitted when the context has completed any initialization steps,
+and is ready for communication.
+
+The handler for this event accepts no arguments.
+
+This event will fire multiple times (interspersed with
+[`error` events](#context.event.error)) as transient communication
+problems arise, and are resolved.
+
+<a name="context.event.error" />
+
+---
+
+> `context.on(` [**`'error'`**](#context.event.error) `, function (error) {})`
+
+This event is emitted when communication issues arise.
+
+The handler for this event accepts a single `error` argument. Upon handling this
+event, no further communication should be attempted until the next
+[`ready` event](#context.event.ready).
 
 ### Serialization module
 
