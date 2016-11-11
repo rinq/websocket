@@ -6,7 +6,6 @@
 
 - [Core module](#core-module)
 - [Managed module](#managed-module)
-- [Serialization module](#serialization-module)
 - [Logging options](#logging-options)
 
 ### Core module
@@ -582,9 +581,6 @@ The handler for this event accepts a single `error` argument. Upon handling this
 event, no further communication should be attempted until the next
 [`ready` event](#context.event.ready).
 
-### Serialization module
-
-TODO
 
 ### Logging options
 
