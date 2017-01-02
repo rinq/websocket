@@ -75,6 +75,14 @@ function OverpassContext (sessionManager, initializer, logger, log) {
     session.call(namespace, command, payload, timeout, callback)
   }
 
+  this.whenReady = function whenReady (callback) {
+    if (context.isReady) {
+      callback()
+    } else {
+      context.once('ready', callback)
+    }
+  }
+
   function onSession (newSession) {
     if (log && log.debug) {
       logger(

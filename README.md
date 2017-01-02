@@ -579,6 +579,7 @@ asynchronous initialization logic before communication can commence:
 - [stop()](#context.stop)
 - [send()](#context.send)
 - [call()](#context.call)
+- [whenReady()](#context.whenReady)
 - [*ready* event](#context.event.ready)
 - [*error* event](#context.event.error)
 
@@ -622,6 +623,15 @@ Functionally equivalent to [session.send](#session.send).
 Sends an *Overpass* command, and handles the response.
 
 Functionally equivalent to [session.call](#session.call).
+
+<a name="context.whenReady" />
+
+---
+
+> *`void`* [**`context.whenReady`**](#context.whenReady) `(function () {})`
+
+Calls the supplied callback when the context is ready, or immediately if the
+context is already ready.
 
 <a name="context.event.ready" />
 

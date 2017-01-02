@@ -129,6 +129,23 @@ function makeContextSpecs (log) {
           done()
         })
       })
+
+      it('should call whenReady() callbacks when ready', function (done) {
+        subject.whenReady(function () {
+          expect(subject.isReady).to.be.true
+
+          done()
+        })
+
+        var session = new EventEmitter()
+        subject.start()
+        sessionManager.emit('session', session)
+
+        expect(initSession).to.equal(session)
+        expect(initDone).to.be.a.function
+
+        initDone()
+      })
     })
 
     describe('without an initializer', function () {
@@ -259,6 +276,15 @@ function makeContextSpecs (log) {
 
         var expected = new Error('Error message.')
         sessionManager.emit('error', expected)
+      })
+
+      it('should call whenReady() callbacks immediately', function () {
+        var wasCalled = false
+        subject.whenReady(function () {
+          wasCalled = true
+        })
+
+        expect(wasCalled).to.be.true
       })
     })
   }
