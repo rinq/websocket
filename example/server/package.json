@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "dependencies": {
+    "babel-preset-latest-minimal": "^1.1.2",
+    "babel-register": "^6.16.3",
+    "cbor-js": "^0.1.0",
+    "overpass-websocket": "ezzatron/overpass-websocket#master",
+    "text-encoding": "^0.6.1",
+    "winston": "^2.2.0",
+    "ws": "^1.1.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^7.0.0",
+    "standard": "^8.3.0"
+  },
+  "standard": {
+    "parser": "babel-eslint"
+  }
+}

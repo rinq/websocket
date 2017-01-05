@@ -1,0 +1,8 @@
+{
+  "presets": ["latest-minimal"],
+  "env": {
+    "test": {
+      "plugins": ["istanbul"]
+    }
+  }
+}
