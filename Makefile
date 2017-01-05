@@ -13,16 +13,16 @@ lint: node_modules
 	node_modules/.bin/standard --fix '**/*.js'
 	node_modules/.bin/eslint .
 
-example:
-	cd example; make build
+serve-example-server:
+	cd example/server; make serve
 
-serve-example:
-	cd example; make serve
+serve-example-client:
+	cd example/client; make serve
 
 open-example:
-	cd example; make open
+	cd example/client; make open
 
-.PHONY: test coverage open-coverage lint example serve-example open-example
+.PHONY: test coverage open-coverage lint serve-example-server serve-example-client open-example
 
 node_modules:
 	yarn install

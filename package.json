@@ -22,8 +22,8 @@
       "it"
     ],
     "ignore": [
-      "example/node_modules/**",
-      "example/web/**",
+      "example/client/node_modules/**",
+      "example/client/web/**",
       "web/**"
     ]
   },
