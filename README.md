@@ -326,15 +326,15 @@ connections and sessions in an environment where connection to the server is
 transient, and dependent on network connectivity and availability of servers:
 
 - [connectionManager()](#core.connectionManager)
-- [ConnectionManager class](#connection-manager)
-- [SessionManager class](#session-manager)
+- [ConnectionManager class](#connectionmanager)
+- [SessionManager class](#sessionmanager)
 - [Context class](#context)
 
 <a name="core.connectionManager" />
 
 ---
 
-> *[`ConnectionManager`](#connection-manager)* [**`connectionManager`**](#core.connectionManager) `([options])`
+> *[`ConnectionManager`](#connectionmanager)* [**`connectionManager`**](#core.connectionManager) `([options])`
 
 Creates a new *Overpass* [connection manager].
 
@@ -350,7 +350,7 @@ Option   | Description                                               | Type     
 The `url` is optional, because it is sometimes necessary to determine this
 information based upon the outcome of some asynchronous action, such as fetching
 some external configuration. The URL can also be set later via the
-[connectionManager.url](#connection-manager) property.
+[connectionManager.url](#connectionmanager) property.
 
 The `delay` option allows customization of the amount of time between a
 disconnection, and the subsequent reconnection attempt, based upon the number of
@@ -393,7 +393,7 @@ Represents a transient *Overpass* connection, and allows the creation of
 
 ---
 
-> *[`SessionManager`](#session-manager)* [**`connectionManager.sessionManager`**](#connectionManager.sessionManager) `([options])`
+> *[`SessionManager`](#sessionmanager)* [**`connectionManager.sessionManager`**](#connectionManager.sessionManager) `([options])`
 
 Creates a new [session manager].
 
@@ -676,7 +676,7 @@ If logging options are omitted entirely, no logging will take place.
 
 [cbor-js]: https://github.com/paroga/cbor-js
 [CBOR]: https://tools.ietf.org/html/rfc7049
-[connection manager]: #connection-manager
+[connection manager]: #connectionmanager
 [connection]: #connection
 [connections]: #connection
 [context]: #context
@@ -686,7 +686,7 @@ If logging options are omitted entirely, no logging will take place.
 [initialization function]: #sessionManager.context
 [JSON]: http://json.org/
 [logging options]: #logging-options
-[session manager]: #session-manager
-[session managers]: #session-manager
+[session manager]: #sessionmanager
+[session managers]: #sessionmanager
 [session]: #session
 [sessions]: #session
