@@ -24,6 +24,8 @@ function makeContextSpecs (log) {
         subject = new OverpassContext(
           sessionManager,
           initializer,
+          setTimeout,
+          clearTimeout,
           logger,
           log
         )
@@ -131,8 +133,9 @@ function makeContextSpecs (log) {
       })
 
       it('should call whenReady() callbacks when ready', function (done) {
-        subject.whenReady(function () {
+        subject.whenReady(function (error) {
           expect(subject.isReady).to.be.true
+          expect(error).to.not.be.ok
 
           done()
         })
@@ -146,6 +149,16 @@ function makeContextSpecs (log) {
 
         initDone()
       })
+
+      it('should throw an exception when whenReady() times out', function (done) {
+        subject.whenReady(function (error) {
+          expect(subject.isReady).to.be.false
+          expect(error).to.be.an.error
+          expect(error.message).to.match(/timed out/i)
+
+          done()
+        }, 1)
+      })
     })
 
     describe('without an initializer', function () {
@@ -158,6 +171,8 @@ function makeContextSpecs (log) {
         subject = new OverpassContext(
           sessionManager,
           initializer,
+          setTimeout,
+          clearTimeout,
           logger,
           log
         )
@@ -188,6 +203,8 @@ function makeContextSpecs (log) {
         subject = new OverpassContext(
           sessionManager,
           initializer,
+          setTimeout,
+          clearTimeout,
           logger,
           log
         )
@@ -218,6 +235,8 @@ function makeContextSpecs (log) {
         subject = new OverpassContext(
           sessionManager,
           initializer,
+          setTimeout,
+          clearTimeout,
           logger,
           log
         )
@@ -280,11 +299,14 @@ function makeContextSpecs (log) {
 
       it('should call whenReady() callbacks immediately', function () {
         var wasCalled = false
-        subject.whenReady(function () {
+        var error = null
+        subject.whenReady(function (e) {
           wasCalled = true
+          error = e
         })
 
         expect(wasCalled).to.be.true
+        expect(error).to.not.be.ok
       })
     })
   }

@@ -628,10 +628,13 @@ Functionally equivalent to [session.call](#session.call).
 
 ---
 
-> *`void`* [**`context.whenReady`**](#context.whenReady) `(function () {})`
+> *`void`* [**`context.whenReady`**](#context.whenReady) `(function (error) {}[, timeout])`
 
 Calls the supplied callback when the context is ready, or immediately if the
 context is already ready.
+
+If a `timeout` value is specificed, the callback will be called with an error as
+the first argument after `timeout` milliseconds.
 
 <a name="context.event.ready" />
 

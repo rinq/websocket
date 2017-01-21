@@ -1,6 +1,13 @@
 var EventEmitter = require('events').EventEmitter
 
-function OverpassContext (sessionManager, initializer, logger, log) {
+function OverpassContext (
+  sessionManager,
+  initializer,
+  setTimeout,
+  clearTimeout,
+  logger,
+  log
+) {
   EventEmitter.call(this)
 
   var debugSymbol = '\uD83D\uDC1E'
@@ -75,11 +82,27 @@ function OverpassContext (sessionManager, initializer, logger, log) {
     session.call(namespace, command, payload, timeout, callback)
   }
 
-  this.whenReady = function whenReady (callback) {
+  this.whenReady = function whenReady (callback, timeout) {
     if (context.isReady) {
       callback()
     } else {
-      context.once('ready', callback)
+      var done, timeoutId
+
+      done = function () {
+        clearTimeout(timeoutId)
+        callback()
+      }
+
+      if (timeout) {
+        timeoutId = setTimeout(function () {
+          context.removeListener('ready', done)
+          callback(new Error(
+            'Timed out after ' + timeout + 'ms waiting for context to be ready.'
+          ))
+        }, timeout)
+      }
+
+      context.once('ready', done)
     }
   }
 

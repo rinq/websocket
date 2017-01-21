@@ -96,6 +96,8 @@ function OverpassConnectionManager (
   this.sessionManager = function sessionManager (options) {
     return new OverpassSessionManager(
       connectionManager,
+      setTimeout,
+      clearTimeout,
       logger,
       options && options.log
     )

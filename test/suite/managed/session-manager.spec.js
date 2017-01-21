@@ -16,6 +16,8 @@ function makeSessionManagerSpecs (log) {
 
       subject = new OverpassSessionManager(
         connectionManager,
+        setTimeout,
+        clearTimeout,
         logger,
         log
       )

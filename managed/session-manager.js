@@ -2,7 +2,13 @@ var EventEmitter = require('events').EventEmitter
 
 var OverpassContext = require('./context')
 
-function OverpassSessionManager (connectionManager, logger, log) {
+function OverpassSessionManager (
+  connectionManager,
+  setTimeout,
+  clearTimeout,
+  logger,
+  log
+) {
   EventEmitter.call(this)
 
   var debugSymbol = '\uD83D\uDC1E'
@@ -69,6 +75,8 @@ function OverpassSessionManager (connectionManager, logger, log) {
     return new OverpassContext(
       sessionManager,
       options && options.initialize,
+      setTimeout,
+      clearTimeout,
       logger,
       options && options.log
     )
