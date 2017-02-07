@@ -6,8 +6,9 @@
     "cbor-js": "^0.1.0",
     "overpass-websocket": "ezzatron/overpass-websocket#master",
     "text-encoding": "^0.6.1",
+    "ua-parser-js": "^0.7.12",
     "winston": "^2.2.0",
-    "ws": "^1.1.1"
+    "ws": "^2.0.2"
   },
   "devDependencies": {
     "babel-eslint": "^7.0.0",

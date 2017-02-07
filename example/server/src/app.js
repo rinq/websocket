@@ -5,6 +5,7 @@ import createUnserialize from 'overpass-websocket/serialization/create-unseriali
 import jsonDecode from 'overpass-websocket/serialization/json/decode'
 import jsonEncode from 'overpass-websocket/serialization/json/encode'
 import marshallCommandResponse from 'overpass-websocket/serialization/marshaller/command-response'
+import uaParser from 'ua-parser-js'
 import unmarshallCommandRequest from 'overpass-websocket/serialization/unmarshaller/command-request'
 import {Server as WsServer} from 'ws'
 
@@ -24,11 +25,19 @@ if (!process.env.PORT) {
   throw new Error('PORT must be defined.')
 }
 
+let logLevel
+
+if (process.env.OVERPASS_DEBUG) {
+  logLevel = 'debug'
+} else {
+  logLevel = 'info'
+}
+
 const logger = new winston.Logger({
   transports: [
     new winston.transports.Console({
       handleExceptions: true,
-      formatter: options => {
+      formatter: function formatter (options) {
         let meta
 
         if (options.meta && Object.keys(options.meta).length) {
@@ -42,7 +51,8 @@ const logger = new winston.Logger({
         return time.toISOString() +
           ' [' + options.level.substring(0, 4) + '] ' +
           options.message + meta
-      }
+      },
+      level: logLevel
     })
   ]
 })
@@ -76,8 +86,34 @@ const server = new Server({
   serializations,
   services,
   WsServer,
+  uaParser,
   logger,
+  setInterval,
+  clearInterval,
   port: process.env.PORT
 })
 
-server.start()
+server.start().catch(function (error) {
+  logger.error('Unable to start server:', error.message, error.stack)
+
+  process.exit(1)
+})
+
+function makeShutdown (signal) {
+  return function () {
+    logger.info('Caught %s, shutting down.', signal)
+
+    server.stop()
+    .then(function () {
+      process.exit(0)
+    })
+    .catch(function (error) {
+      logger.error('Unable to stop server gracefully:', error.message, error.stack)
+
+      process.exit(1)
+    })
+  }
+}
+
+process.once('SIGINT', makeShutdown('SIGINT'))
+process.once('SIGTERM', makeShutdown('SIGTERM'))

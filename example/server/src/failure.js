@@ -1,9 +1,11 @@
 export default class Failure extends Error {
-  constructor ({type, user, real}) {
-    super(user)
+  constructor (type, real, user = {}) {
+    if (!user.message) user.message = 'An error occurred.'
+
+    super(user.message)
 
     this.type = type
-    this.user = user
     this.real = real
+    this.user = user
   }
 }

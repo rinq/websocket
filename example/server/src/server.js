@@ -10,70 +10,103 @@ import {
   COMMAND_RESPONSE_ERROR
 } from 'overpass-websocket/core/message-types'
 
-export default class Server {
-  constructor ({port, WsServer, serializations, services, logger}) {
-    this._port = port
-    this._WsServer = WsServer
-    this._serializations = serializations
-    this._services = services
-    this._logger = logger
+export default function Server ({
+  port,
+  WsServer,
+  serializations,
+  services,
+  uaParser,
+  logger,
+  setInterval,
+  clearInterval
+}) {
+  let isStarted = false
+  let socketSeq = 0
+  const sessions = {}
+  const pingIntervalIds = {}
+  const pingIntervalDelay = 15000
+  let websocketServer
 
-    this._socketSeq = 0
+  const handshake = Buffer.alloc(4)
+  handshake.writeUInt8('O'.charCodeAt(0), 0)
+  handshake.writeUInt8('P'.charCodeAt(0), 1)
+  handshake.writeUInt8(2, 2)
+  handshake.writeUInt8(0, 3)
 
-    this._handshake = Buffer.alloc(4)
-    this._handshake.writeUInt8('O'.charCodeAt(0), 0)
-    this._handshake.writeUInt8('P'.charCodeAt(0), 1)
-    this._handshake.writeUInt8(2, 2)
-    this._handshake.writeUInt8(0, 3)
-  }
+  this.start = async function start () {
+    if (isStarted) return
 
-  async start () {
     const serviceStarts = []
 
-    for (let namespace in this._services) {
-      const service = this._services[namespace]
+    for (let namespace in services) {
+      const service = services[namespace]
 
       if (!service.start) continue
 
-      this._logger.info('Waiting for service %s to start.', namespace)
+      logger.info('Waiting for service %s to start.', namespace)
       serviceStarts.push(service.start())
     }
 
     await Promise.all(serviceStarts)
 
-    const server = new this._WsServer({host: '0.0.0.0', port: this._port})
-    this._logger.info('Listening on port %d.', this._port)
-    server.on('connection', this._onConnection())
+    websocketServer = new WsServer({host: '0.0.0.0', port})
+    websocketServer.on('connection', onConnection)
+
+    logger.info('Listening on port %d.', port)
+
+    isStarted = true
   }
 
-  _onConnection () {
-    return socket => {
-      const seq = this._socketSeq++
+  this.stop = async function stop () {
+    if (!isStarted) return
 
-      socket.once('message', this._onFirstMessage({socket, seq}))
-      socket.once('close', this._onClose({seq}))
+    websocketServer.removeListener('connection', onConnection)
+    await new Promise(function (resolve) {
+      websocketServer.close(resolve)
+    })
 
-      this._logger.info('[%d] Socket opened.', seq)
+    const serviceStops = []
+
+    for (let namespace in services) {
+      const service = services[namespace]
+
+      if (!service.stop) continue
+
+      logger.info('Waiting for service %s to stop.', namespace)
+      serviceStops.push(service.stop())
     }
+
+    await Promise.all(serviceStops)
+
+    isStarted = false
   }
 
-  _onFirstMessage ({socket, seq}) {
-    return (message, flags) => {
+  function onConnection (socket) {
+    const seq = socketSeq++
+    const meta = requestMetadata(socket.upgradeReq)
+
+    sessions[seq] = {meta}
+    pingIntervalIds[seq] = setInterval(function () {
+      logger.debug('[%d] [ping]', seq)
+      socket.ping()
+    }, pingIntervalDelay)
+
+    socket.once('message', createOnFirstMessage({socket, seq}))
+    socket.once('close', createOnClose({seq}))
+
+    logger.info(`[%d] [conn] %j`, seq, meta)
+  }
+
+  function createOnFirstMessage ({socket, seq}) {
+    return function onFirstMessage (message, flags) {
       if (!(message instanceof Buffer)) {
-        this._logger.error(
-          '[%d] [hand] [err] Invalid handshake: %s',
-          seq,
-          message
-        )
+        logger.error('[%d] [hand] [err] Invalid handshake: %s', seq, message)
 
         return socket.close()
       }
 
       if (message.length < 5) {
-        this._logger.error(
-          '[%d] [hand] [err] Insufficient handshake data.',
-          seq
-        )
+        logger.error('[%d] [hand] [err] Insufficient handshake data.', seq)
 
         return socket.close()
       }
@@ -81,20 +114,13 @@ export default class Server {
       const prefix = message.toString('ascii', 0, 2)
 
       if (prefix !== 'OP') {
-        this._logger.error(
-          '[%d] [hand] [err] Unexpected handshake prefix:',
-          seq,
-          prefix
-        )
+        logger.error('[%d] [hand] [err] Unexpected handshake prefix:', seq, prefix)
 
         return socket.close()
       }
 
       if (message.readUInt8(2) !== 2 || message.readUInt8(3) !== 0) {
-        this._logger.error(
-          '[%d] [hand] [err] Unsupported handshake version.',
-          seq
-        )
+        logger.error('[%d] [hand] [err] Unsupported handshake version.', seq)
 
         return socket.close()
       }
@@ -102,10 +128,7 @@ export default class Server {
       const mimeTypeLength = message.readUInt8(4)
 
       if (message.length < mimeTypeLength + 5) {
-        this._logger.error(
-          '[%d] [hand] [err] Insufficient handshake MIME type data.',
-          seq
-        )
+        logger.error('[%d] [hand] [err] Insufficient handshake MIME type data.', seq)
 
         return socket.close()
       }
@@ -113,152 +136,144 @@ export default class Server {
       const decoder = new StringDecoder()
       const mimeType = decoder.end(message.slice(5))
 
-      this._logger.info('[%d] [hand] [recv] 2.0 %s', seq, mimeType)
+      logger.info('[%d] [hand] [recv] 2.0 %s', seq, mimeType)
 
-      const serialization = this._serializations[mimeType]
+      const serialization = serializations[mimeType]
 
       if (!serialization) {
-        this._logger.error(
-          '[%d] [hand] [err] Unsupported MIME type:',
-          mimeType
-        )
+        logger.error('[%d] [hand] [err] Unsupported MIME type:', mimeType)
 
         return socket.close()
       }
 
-      const handler = this._onMessage({socket, seq, serialization})
+      const onMessage = createOnMessage({socket, seq, serialization})
+      const onPong = createOnPong(seq)
 
-      socket.on('message', handler)
-      socket.once(
-        'close',
-        () => socket.removeListener('message', handler)
-      )
+      socket.on('message', onMessage)
+      socket.on('pong', onPong)
+      socket.once('close', function () {
+        socket.removeListener('message', onMessage)
+        socket.removeListener('pong', onPong)
+      })
 
-      this._logger.info('[%d] [hand] [send] 2.0', seq)
-      socket.send(this._handshake)
+      logger.info('[%d] [hand] [send] 2.0', seq)
+      socket.send(handshake)
     }
   }
 
-  _onMessage ({socket, seq, serialization}) {
-    return (message, flags) => {
+  function createOnMessage ({socket, seq, serialization}) {
+    return function onMessage (message) {
       try {
         const request = serialization.unserialize(toArrayBuffer(message))
 
         if (request.seq) {
-          this._logger.info(
-            '[%d] [%d] [%d] [recv]',
-            seq,
-            request.session,
-            request.seq,
-            request
-          )
+          logger.info('[%d] [%d] [%d] [recv]', seq, request.session, request.seq, request)
         } else {
-          this._logger.info(
-            '[%d] [%d] [recv]',
-            seq,
-            request.session,
-            request
-          )
+          logger.info('[%d] [%d] [recv]', seq, request.session, request)
         }
 
-        this._dispatch({socket, seq, request, serialization})
+        dispatch({socket, seq, request, serialization})
       } catch (e) {
-        this._logger.info('[%d] [recv]', seq, message)
-        this._logger.error(
-          '[%d] [err] Invalid message encoding: %s',
-          seq,
-          e.message
-        )
+        logger.info('[%d] [recv]', seq, message)
+        logger.error('[%d] [err] Invalid message encoding: %s', seq, e.message)
+
         socket.close()
       }
     }
   }
 
-  async _dispatch ({socket, seq, request, serialization}) {
+  function createOnPong (seq) {
+    return function onPong () {
+      logger.debug('[%d] [pong]', seq)
+    }
+  }
+
+  async function dispatch ({socket, seq, request, serialization}) {
     if (request.type !== COMMAND_REQUEST) return
 
-    const service = this._services[request.namespace]
-
+    const service = services[request.namespace]
     if (!service) return // imitates Overpass limitation
 
     const command = service.commands[request.command]
 
     if (!command) {
-      this._respondWithError({
-        socket,
-        seq,
-        request,
-        serialization,
-        error: new Error(
-          "Undefined command '" + request.command +
-          "' in namespace '" + request.namespace + "'."
-        )
-      })
+      const error = new Error(`Undefined command '${request.command}' in namespace '${request.namespace}'.`)
+      respondWithError({socket, seq, request, serialization, error})
 
       return
     }
 
-    const respond = this._createRespond({socket, seq, request, serialization})
+    const respondFn = createRespond({socket, seq, request, serialization})
     const isResponseRequired = !!request.seq
 
-    try {
-      const response = await command({respond, isResponseRequired, request})
+    let respondCalled = false
+    const respond = function () {
+      respondCalled = true
+      respondFn.apply(null, arguments)
+    }
 
-      if (response) respond(response)
+    const requestPayloadFn = request.payload
+    request.payload = function () {
+      const realPayload = requestPayloadFn.apply(null, arguments)
+
+      if (request.seq) {
+        logger.info('[%d] [%d] [%d] [pyld] %j', seq, request.session, request.seq, realPayload)
+      } else {
+        logger.info('[%d] [%d] [pyld] %j', seq, request.session, realPayload)
+      }
+
+      return realPayload
+    }
+
+    if (!sessions[seq][request.session]) sessions[seq][request.session] = {}
+    const session = sessions[seq][request.session]
+    const meta = sessions[seq].meta
+
+    function log (...args) {
+      const message = args.shift()
+
+      if (request.seq) {
+        logger.info(`[%d] [%d] [%d] ${message}`, seq, request.session, request.seq, ...args)
+      } else {
+        logger.info(`[%d] [%d] ${message}`, seq, request.session, ...args)
+      }
+    }
+
+    try {
+      const response = await command({respond, isResponseRequired, session, meta, request, log})
+
+      if (response) {
+        respond(response)
+      } else if (isResponseRequired && !respondCalled) {
+        respond(null)
+      }
     } catch (error) {
       if (error instanceof Failure) {
-        this._respondWithFailure({
-          socket,
-          seq,
-          request,
-          serialization,
-          failure: error
-        })
+        respondWithFailure({socket, seq, request, serialization, failure: error})
       } else {
-        this._respondWithError({socket, seq, request, serialization, error})
+        respondWithError({socket, seq, request, serialization, error})
       }
     }
   }
 
-  _createRespond ({socket, seq, request, serialization}) {
+  function createRespond ({socket, seq, request, serialization}) {
     if (!request.seq) {
-      return payload => {
-        return this._logger.info(
-          '[%d] [%d] [succ] [unsent]',
-          seq,
-          request.session,
-          payload
-        )
+      return function respond (payload) {
+        return logger.info('[%d] [%d] [succ] [unsent]', seq, request.session, payload)
       }
     }
 
-    return payload => {
-      this._logger.info(
-        '[%d] [%d] [%d] [succ]',
-        seq,
-        request.session,
-        request.seq,
-        payload
-      )
+    return function respond (payload) {
+      logger.info('[%d] [%d] [%d] [succ]', seq, request.session, request.seq, payload)
 
-      this._send({
-        socket,
-        seq,
-        request,
-        serialization,
-        message: {
-          type: COMMAND_RESPONSE_SUCCESS,
-          session: request.session,
-          seq: request.seq,
-          payload: payload
-        }
-      })
+      const message = {type: COMMAND_RESPONSE_SUCCESS, session: request.session, seq: request.seq, payload: payload}
+      send({socket, seq, request, serialization, message})
     }
   }
 
-  _respondWithFailure ({socket, seq, request, serialization, failure}) {
+  function respondWithFailure ({socket, seq, request, serialization, failure}) {
     if (!request.seq) {
-      return this._logger.info(
+      return logger.info(
         '[%d] [%d] [fail] [unsent] [%s] %s',
         seq,
         request.session,
@@ -268,7 +283,7 @@ export default class Server {
       )
     }
 
-    this._logger.info(
+    logger.info(
       '[%d] [%d] [%d] [fail] [%s] %s',
       seq,
       request.session,
@@ -278,69 +293,70 @@ export default class Server {
       failure.real.data
     )
 
-    this._send({
-      socket,
-      seq,
-      request,
-      serialization,
-      message: {
-        type: COMMAND_RESPONSE_FAILURE,
-        session: request.session,
-        seq: request.seq,
-        payload: {
-          type: failure.type,
-          message: failure.user.message,
-          data: failure.user.data
-        }
+    const message = {
+      type: COMMAND_RESPONSE_FAILURE,
+      session: request.session,
+      seq: request.seq,
+      payload: {
+        type: failure.type,
+        message: failure.user.message,
+        data: failure.user.data
       }
-    })
+    }
+    send({socket, seq, request, serialization, message})
   }
 
-  _respondWithError ({socket, seq, request, serialization, error}) {
+  function respondWithError ({socket, seq, request, serialization, error}) {
     if (!request.seq) {
-      return this._logger.error(
-        '[%d] [%d] [erro] [unsent] %s',
-        seq,
-        request.session,
-        error.message
-      )
+      return logger.error('[%d] [%d] [erro] [unsent] %s', seq, request.session, error.message, error.stack)
     }
 
-    this._logger.error(
-      '[%d] [%d] [%d] [erro] %s',
-      seq,
-      request.session,
-      request.seq,
-      error.message
-    )
+    logger.error('[%d] [%d] [%d] [erro] %s', seq, request.session, request.seq, error.message, error.stack)
 
-    this._send({
-      socket,
-      seq,
-      request,
-      serialization,
-      message: {
-        type: COMMAND_RESPONSE_ERROR,
-        session: request.session,
-        seq: request.seq
-      }
-    })
+    const message = {
+      type: COMMAND_RESPONSE_ERROR,
+      session: request.session,
+      seq: request.seq
+    }
+    send({socket, seq, request, serialization, message})
   }
 
-  _send ({socket, seq, request, serialization, message}) {
+  function send ({socket, seq, request, serialization, message}) {
     const data = serialization.serialize(message)
 
-    this._logger.debug(
-      '[%d] [%d] [%d] [send] %s',
-      seq,
-      request.session,
-      request.seq,
-      data
-    )
+    logger.debug('[%d] [%d] [%d] [send] %j', seq, request.session, request.seq, message)
     socket.send(data)
   }
 
-  _onClose ({seq}) {
-    return () => this._logger.info('[%d] Socket closed.', seq)
+  function createOnClose ({seq}) {
+    return function onClose () {
+      if (pingIntervalIds[seq]) clearInterval(pingIntervalIds[seq])
+
+      delete sessions[seq]
+      delete pingIntervalIds[seq]
+
+      logger.info('[%d] Socket closed.', seq)
+    }
+  }
+
+  function requestMetadata (request) {
+    let remoteAddress = []
+
+    if (request.headers['x-forwarded-for']) {
+      remoteAddress = request.headers['x-forwarded-for']
+        .split(',').map(function (string) {
+          return string.trim()
+        })
+    }
+
+    remoteAddress.push(request.connection.remoteAddress)
+
+    let userAgent
+
+    if (request.headers['user-agent']) {
+      userAgent = uaParser(request.headers['user-agent'])
+    }
+
+    return {remoteAddress, userAgent}
   }
 }

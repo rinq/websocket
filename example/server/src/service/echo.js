@@ -1,42 +1,28 @@
 import Failure from '../failure'
 
-export default class EchoService {
-  constructor ({logger}) {
-    this._logger = logger
+export default function EchoService () {
+  this.commands = {success, fail, error, timeout}
 
-    this.commands = {
-      success: this.success.bind(this),
-      fail: this.fail.bind(this),
-      error: this.error.bind(this),
-      timeout: this.timeout.bind(this)
-    }
-  }
-
-  success ({request}) {
+  async function success ({request}) {
     return {echo: request.payload()}
   }
 
-  fail ({request}) {
+  async function fail ({request}) {
     const payload = request.payload()
 
-    throw new Failure({
-      type: 'echo-failure',
-      user: {
-        message: 'You done goofed.',
-        data: {payload}
-      },
-      real: {
-        message: 'Failure requested by client.',
-        data: {payload}
-      }
+    throw new Failure('echo-failure', {
+      message: 'Failure requested by client.',
+      data: {payload}
     })
   }
 
-  error ({request}) {
+  async function error ({request}) {
     throw new Error('You done goofed.')
   }
 
-  timeout ({request}) {
-    return
+  async function timeout ({request}) {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, 60000)
+    })
   }
 }
