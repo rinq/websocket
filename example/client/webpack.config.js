@@ -1,4 +1,10 @@
-var path = require('path')
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const path = require('path')
+const webpack = require('webpack')
+
+const extractSass = new ExtractTextPlugin({
+  filename: 'css/app.css'
+})
 
 module.exports = {
   entry: [
@@ -7,38 +13,66 @@ module.exports = {
     './src/app'
   ],
   resolve: {
-    extensions: ['', '.js', '.jsx', '.scss']
+    extensions: ['.js', '.jsx', '.scss']
   },
   output: {
-    path: 'web',
+    path: path.resolve(__dirname, 'web'),
     filename: 'js/app.js'
   },
+  devtool: 'source-map',
   module: {
-    loaders: [
+    rules: [
       {
+        loader: 'json-loader',
+        test: /\.json$/,
+        enforce: 'pre'
+      },
+      {
+        loader: 'babel-loader',
         test: /\.jsx?$/,
         include: [
-          path.resolve(__dirname, 'src'),
-          path.resolve(__dirname, 'node_modules/overpass-websocket')
+          path.resolve(__dirname, 'src')
         ],
-        loader: 'babel',
-        query: { presets: [ 'latest', 'react' ] }
+        options: {
+          presets: ['latest', 'react']
+        }
       },
       {
         test: /\.scss$/,
-        loader: 'file?name=css/app.css!sass'
+        loader: extractSass.extract({
+          use: [
+            {
+              loader: 'css-loader'
+            },
+            {
+              loader: 'sass-loader',
+              options: {
+                includePaths: ['./src', './node_modules']
+              }
+            }
+          ]
+        })
       }
+    ],
+    noParse: [
+      /node_modules\/localforage\/dist/
     ]
   },
-  sassLoader: {
-    includePaths: ['./node_modules']
-  },
+  plugins: [
+    extractSass,
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify('production')
+      }
+    })
+  ],
   devServer: {
     contentBase: 'web',
+    historyApiFallback: true,
     setup: function (app) {
       app.get('/config.json', function (request, response) {
         response.json({
-          gateway: 'ws://' + encodeURIComponent(request.hostname) + ':8081/'
+          gateway: `ws://${encodeURIComponent(request.hostname)}:8081/`
         })
       })
     }
