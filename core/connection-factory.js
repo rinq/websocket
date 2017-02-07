@@ -8,6 +8,7 @@ var marshalCommandRequest = require('../serialization/marshaller/command-request
 var OverpassConnection = require('./connection')
 var types = require('./message-types')
 var unmarshalCommandResponse = require('../serialization/unmarshaller/command-response')
+var unmarshalNotification = require('../serialization/unmarshaller/notification')
 
 module.exports = function connectionFactory (
   WebSocket,
@@ -27,6 +28,7 @@ module.exports = function connectionFactory (
   unmarshallers[types.COMMAND_RESPONSE_SUCCESS] = unmarshalCommandResponse
   unmarshallers[types.COMMAND_RESPONSE_FAILURE] = unmarshalCommandResponse
   unmarshallers[types.COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
+  unmarshallers[types.NOTIFICATION] = unmarshalNotification
 
   var logger = createLogger(console)
 

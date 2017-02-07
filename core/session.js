@@ -21,6 +21,7 @@ function OverpassSession (
   var debugSymbol = '\uD83D\uDC1E'
   var inSymbol = '\uD83D\uDCEC'
   var outSymbol = '\uD83D\uDCEE'
+  var notificationSymbol = '\uD83D\uDCE2'
 
   var emit = this.emit.bind(this)
 
@@ -125,6 +126,9 @@ function OverpassSession (
       case types.COMMAND_RESPONSE_FAILURE:
       case types.COMMAND_RESPONSE_ERROR:
         return dispatchCommandResponse(message)
+
+      case types.NOTIFICATION:
+        return dispatchNotification(message)
     }
   }
 
@@ -213,6 +217,24 @@ function OverpassSession (
     }
 
     delete calls[message.seq]
+  }
+
+  function dispatchNotification (message) {
+    var payload = message.payload()
+
+    if (log) {
+      logger(
+        [
+          '%c%s %s[recv] notification',
+          'color: teal',
+          notificationSymbol,
+          log.prefix
+        ],
+        [[{payload: payload}]]
+      )
+    }
+
+    emit('notification', message.notificationType, payload)
   }
 
   function doDestroy (error) {

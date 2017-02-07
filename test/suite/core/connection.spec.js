@@ -7,12 +7,14 @@ var jsonDecode = require('../../../serialization/json/decode')
 var jsonEncode = require('../../../serialization/json/encode')
 var marshalCommandRequest = require('../../../serialization/marshaller/command-request')
 var marshalCommandResponse = require('../../../serialization/marshaller/command-response')
+var marshalNotification = require('../../../serialization/marshaller/notification')
 var OverpassConnection = require('../../../core/connection')
 var OverpassSession = require('../../../core/session')
 var serializeMessage = require('../../../serialization/serialize-message')
 var types = require('../../../core/message-types')
 var unmarshalCommandRequest = require('../../../serialization/unmarshaller/command-request')
 var unmarshalCommandResponse = require('../../../serialization/unmarshaller/command-response')
+var unmarshalNotification = require('../../../serialization/unmarshaller/notification')
 var unserializeMessage = require('../../../serialization/unserialize-message')
 
 var marshallers = {}
@@ -22,6 +24,7 @@ marshallers[types.COMMAND_REQUEST] = marshalCommandRequest
 marshallers[types.COMMAND_RESPONSE_SUCCESS] = marshalCommandResponse
 marshallers[types.COMMAND_RESPONSE_FAILURE] = marshalCommandResponse
 marshallers[types.COMMAND_RESPONSE_ERROR] = marshalCommandResponse
+marshallers[types.NOTIFICATION] = marshalNotification
 
 var unmarshallers = {}
 unmarshallers[types.SESSION_CREATE] = null
@@ -30,6 +33,7 @@ unmarshallers[types.COMMAND_REQUEST] = unmarshalCommandRequest
 unmarshallers[types.COMMAND_RESPONSE_SUCCESS] = unmarshalCommandResponse
 unmarshallers[types.COMMAND_RESPONSE_FAILURE] = unmarshalCommandResponse
 unmarshallers[types.COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
+unmarshallers[types.NOTIFICATION] = unmarshalNotification
 
 var socket,
   socketEmitter,
@@ -186,7 +190,7 @@ function makeConnectionSpecs (log) {
         subject.session().destroy()
       })
 
-      it('should dispatch messages to relevant sessions', function (done) {
+      it('should dispatch command responses to relevant sessions', function (done) {
         var sessionA = subject.session()
         var sessionB = subject.session()
         var callADone = false
@@ -225,7 +229,42 @@ function makeConnectionSpecs (log) {
         })})
       })
 
-      it('should handle responses for unexpected sessions', function (done) {
+      it('should dispatch notifications to relevant sessions', function (done) {
+        var sessionA = subject.session()
+        var sessionB = subject.session()
+        var notifyADone = false
+        var notifyBDone = false
+
+        function checkIfDone () {
+          if (notifyADone && notifyBDone) done()
+        }
+
+        sessionA.once('notification', function (type) {
+          expect(type).to.equal('type-a')
+
+          notifyADone = true
+          checkIfDone()
+        })
+        sessionB.once('notification', function (type) {
+          expect(type).to.equal('type-b')
+
+          notifyBDone = true
+          checkIfDone()
+        })
+
+        socketEmitter.emit('message', {data: serialize({
+          type: types.NOTIFICATION,
+          session: 2,
+          notificationType: 'type-b'
+        })})
+        socketEmitter.emit('message', {data: serialize({
+          type: types.NOTIFICATION,
+          session: 1,
+          notificationType: 'type-a'
+        })})
+      })
+
+      it('should handle messages for unexpected sessions', function (done) {
         subject.once('close', function (error) {
           expect(error).to.be.an.error
           expect(error.message).to.match(/unexpected session/i)

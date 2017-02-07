@@ -8,9 +8,11 @@ var jsonDecode = require('../../serialization/json/decode')
 var jsonEncode = require('../../serialization/json/encode')
 var marshalCommandRequest = require('../../serialization/marshaller/command-request')
 var marshalCommandResponse = require('../../serialization/marshaller/command-response')
+var marshalNotification = require('../../serialization/marshaller/notification')
 var types = require('../../core/message-types')
 var unmarshalCommandRequest = require('../../serialization/unmarshaller/command-request')
 var unmarshalCommandResponse = require('../../serialization/unmarshaller/command-response')
+var unmarshalNotification = require('../../serialization/unmarshaller/notification')
 
 var marshallers = {}
 marshallers[types.SESSION_CREATE] = null
@@ -19,6 +21,7 @@ marshallers[types.COMMAND_REQUEST] = marshalCommandRequest
 marshallers[types.COMMAND_RESPONSE_SUCCESS] = marshalCommandResponse
 marshallers[types.COMMAND_RESPONSE_FAILURE] = marshalCommandResponse
 marshallers[types.COMMAND_RESPONSE_ERROR] = marshalCommandResponse
+marshallers[types.NOTIFICATION] = marshalNotification
 
 var unmarshallers = {}
 unmarshallers[types.SESSION_CREATE] = null
@@ -27,6 +30,7 @@ unmarshallers[types.COMMAND_REQUEST] = unmarshalCommandRequest
 unmarshallers[types.COMMAND_RESPONSE_SUCCESS] = unmarshalCommandResponse
 unmarshallers[types.COMMAND_RESPONSE_FAILURE] = unmarshalCommandResponse
 unmarshallers[types.COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
+unmarshallers[types.NOTIFICATION] = unmarshalNotification
 
 function makeSuccessSpec (serialize, unserialize) {
   return function successSpec (message) {
@@ -157,6 +161,19 @@ function messageSpecs (serialize, unserialize) {
         seq: true
       })
     )
+
+    it('should support notifications', successSpec({
+      type: types.NOTIFICATION,
+      session: 111,
+      notificationType: 'notification-type',
+      payload: 'payload'
+    }))
+
+    it('should fail when unserializing notifications with non-string notification types', failureSpec(/invalid.*notificationType/i, {
+      type: types.NOTIFICATION,
+      session: 111,
+      notificationType: true
+    }))
 
     it('should fail when serializing unsupported message types', function () {
       var message = {

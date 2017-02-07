@@ -270,6 +270,25 @@ function makeSessionSpecs (log) {
       timeoutFn()
     })
 
+    it('should support notifications', function (done) {
+      subject.once('notification', function (type, payload) {
+        expect(type).to.equal('payload-type')
+        expect(payload).to.equal('payload')
+
+        if (log) expect(logger).to.have.been.called
+
+        done()
+      })
+
+      receiver({
+        type: types.NOTIFICATION,
+        notificationType: 'payload-type',
+        payload: function () {
+          return 'payload'
+        }
+      })
+    })
+
     it('should ignore command responses that cannot be correlated', function () {
       receiver({
         type: types.COMMAND_RESPONSE_ERROR,

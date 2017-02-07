@@ -229,6 +229,7 @@ single *Overpass* connection:
 - [send()](#session.send)
 - [call()](#session.call)
 - [destroy()](#session.destroy)
+- [*notification* event](#session.event.notification)
 - [*destroy* event](#session.event.destroy)
 
 <a name="session.send" />
@@ -284,6 +285,19 @@ value sent by the server, including any values that can be unserialized from
 Destroys the session.
 
 Once a session is destroyed, it cannot be re-used.
+
+<a name="session.event.notification" />
+
+---
+
+> `session.on(` [**`'notification'`**](#session.event.notification) `, function (type, payload) {})`
+
+This event is emitted when a notification is received.
+
+The handler for this event accepts the notification's `type` string as the first
+argument, and its `payload` value as the second argument. The `payload` value
+can be any plain JavaScript value sent by the server, including any values that
+can be unserialized from [JSON].
 
 <a name="session.event.destroy" />
 
