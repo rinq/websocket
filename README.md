@@ -58,6 +58,13 @@ context is "ready":
 ```js
 var context = sessionManager.context({
   initialize: function (done, session) {
+    // listen for notifications
+    session.on('notification', onNotification)
+    session.once('destroy', function () {
+      session.removeListener('notification', onNotification)
+    })
+
+    // perform an authentication request
     session.call('auth.1', 'token', 'U53R-70K3N', 10000, done)
   }
 })
@@ -522,9 +529,23 @@ context to emit an `error` event. An `error` event will also be emitted if the
 will not proceed to the "ready" state, unless the `done` callback is called
 without an error argument.
 
-A common use case for context initialization is authentication. For example,
-this initialization function demonstrates authenticating via an *Overpass*
-service:
+Context initialization can be used to hook up [*notification* event] listeners.
+Remember to clean up listeners as appropriate:
+
+```js
+var context = sessionManager.context({
+  initialize: function (done, session) {
+    session.on('notification', onNotification)
+    session.once('destroy', function () {
+      session.removeListener('notification', onNotification)
+    })
+  }
+})
+```
+
+Another common use case for context initialization is authentication. For
+example, this initialization function demonstrates authenticating via an
+*Overpass* service:
 
 ```js
 var context = sessionManager.context({
@@ -691,6 +712,7 @@ If logging options are omitted entirely, no logging will take place.
 
 <!-- References -->
 
+[*notification* event]: #session.event.notification
 [cbor-js]: https://github.com/paroga/cbor-js
 [CBOR]: https://tools.ietf.org/html/rfc7049
 [connection manager]: #connectionmanager
