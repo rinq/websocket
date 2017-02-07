@@ -10,7 +10,7 @@ open-coverage:
 	open coverage/index.html
 
 lint: node_modules
-	node_modules/.bin/standard --fix '**/*.js'
+	node_modules/.bin/standard --fix
 	node_modules/.bin/eslint .
 
 serve-example-server:

@@ -31,7 +31,7 @@ const OverpassSidebar = connect(
     null,
     function mapDispatchToProps (dispatch) {
       return {
-        closeNavigation: () => dispatch(actions.closeNavigation()),
+        closeNavigation: () => dispatch(actions.closeNavigation())
       }
     }
 )(sidebar)

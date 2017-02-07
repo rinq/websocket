@@ -10,7 +10,7 @@
     "chai": "^3.5.0",
     "eslint": "^3.8.1",
     "mocha": "^3.1.2",
-    "nyc": "^8.3.1",
+    "nyc": "^10.1.2",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "standard": "^8.3.0"
@@ -24,6 +24,7 @@
     "ignore": [
       "example/client/node_modules/**",
       "example/client/web/**",
+      "example/server/node_modules/**",
       "web/**"
     ]
   },

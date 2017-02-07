@@ -16,15 +16,15 @@ const menu = props => {
     exampleCall
   } = props
   let callASuccess,
-      callAFailure,
-      callAError,
-      callAUndefined,
-      callATimeout,
-      callBSuccess,
-      callBFailure,
-      callBError,
-      callBUndefined,
-      callBTimeout
+    callAFailure,
+    callAError,
+    callAUndefined,
+    callATimeout,
+    callBSuccess,
+    callBFailure,
+    callBError,
+    callBUndefined,
+    callBTimeout
 
   if (isAConnected) {
     callASuccess = () => {
@@ -80,7 +80,7 @@ const menu = props => {
     }
   }
 
-  return <Menu primary={true}>
+  return <Menu primary>
     <Anchor disabled={!isAConnected} onClick={callASuccess}>A: Success</Anchor>
     <Anchor disabled={!isAConnected} onClick={callAFailure}>A: Failure</Anchor>
     <Anchor disabled={!isAConnected} onClick={callAError}>A: Error</Anchor>

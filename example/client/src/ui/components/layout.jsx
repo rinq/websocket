@@ -3,9 +3,7 @@ import {connect} from 'react-redux'
 
 import App from 'grommet/components/App'
 import Article from 'grommet/components/Article'
-import Button from 'grommet/components/Button'
 import Cluster from 'grommet/components/icons/base/Cluster'
-import Connect from 'grommet/components/icons/base/Connect'
 import Header from 'grommet/components/Header'
 import Section from 'grommet/components/Section'
 import Split from 'grommet/components/Split'
@@ -17,7 +15,6 @@ import OverpassSidebar from '../components/sidebar'
 
 const layout = (props) => {
   const {title, content, isNavigationOpen, openNavigation, updateLayout} = props
-  let colorIndex
 
   if (isNavigationOpen) {
     return <App centered={false}>

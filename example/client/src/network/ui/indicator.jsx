@@ -3,8 +3,6 @@ import {connect} from 'react-redux'
 
 import Connect from 'grommet/components/icons/base/Connect'
 
-import * as actions from '../actions'
-
 const indicator = (props) => {
   const {isConnected, isError, isOnline} = props
   let colorIndex
