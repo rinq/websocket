@@ -6,6 +6,7 @@ import App from 'grommet/components/App'
 import Article from 'grommet/components/Article'
 import Cluster from 'grommet/components/icons/base/Cluster'
 import Header from 'grommet/components/Header'
+import Heading from 'grommet/components/Heading'
 import Section from 'grommet/components/Section'
 import Split from 'grommet/components/Split'
 import Title from 'grommet/components/Title'
@@ -16,7 +17,7 @@ import {isNavigationOpen} from '../navigation/selectors'
 import {openNavigation, updateLayout} from '../navigation/actions'
 
 export function OverpassLayout (props) {
-  const {title, content, isNavigationOpen, openNavigation, updateLayout} = props
+  const {title, children, isNavigationOpen, openNavigation, updateLayout} = props
 
   if (isNavigationOpen) {
     return <App centered={false}>
@@ -24,13 +25,10 @@ export function OverpassLayout (props) {
         <OverpassSidebar />
 
         <Article>
-          <Header justify='between' pad={{horizontal: 'medium'}}>
-            <Title>{title}</Title>
-            <NetworkIndicator />
-          </Header>
-
           <Section pad={{horizontal: 'medium'}}>
-            {content}
+            <Heading tag='h1' margin='medium'>{title}</Heading>
+
+            {children}
           </Section>
         </Article>
       </Split>
@@ -42,14 +40,16 @@ export function OverpassLayout (props) {
       <Header justify='between' pad={{horizontal: 'medium'}}>
         <Title responsive={false} onClick={openNavigation}>
           <Cluster colorIndex='brand' />
-          {title}
+          Overpass
         </Title>
 
         <NetworkIndicator />
       </Header>
 
       <Section pad={{horizontal: 'medium'}}>
-        {content}
+        <Heading tag='h1' margin='medium'>{title}</Heading>
+
+        {children}
       </Section>
     </Article>
   </App>
