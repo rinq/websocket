@@ -1,9 +1,19 @@
 export const OVERPASS_CONNECT = 'OVERPASS_CONNECT'
-export function overpassConnect (name) {
-  return {type: OVERPASS_CONNECT, payload: {name}}
+export function overpassConnect () {
+  return {type: OVERPASS_CONNECT}
 }
 
 export const OVERPASS_DISCONNECT = 'OVERPASS_DISCONNECT'
-export function overpassDisconnect (name, error) {
-  return {type: OVERPASS_DISCONNECT, payload: {name, error}}
+export function overpassDisconnect (error) {
+  return {type: OVERPASS_DISCONNECT, payload: {error: {message: error.message, stack: error.stack}}}
+}
+
+export const OVERPASS_CONTEXT_READY = 'OVERPASS_CONTEXT_READY'
+export function overpassContextReady (contextId) {
+  return {type: OVERPASS_CONTEXT_READY, payload: {contextId}}
+}
+
+export const OVERPASS_CONTEXT_ERROR = 'OVERPASS_CONTEXT_ERROR'
+export function overpassContextError (contextId, error) {
+  return {type: OVERPASS_CONTEXT_ERROR, payload: {contextId, error: {message: error.message, stack: error.stack}}}
 }

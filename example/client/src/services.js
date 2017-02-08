@@ -1,6 +1,7 @@
 import * as CBOR from 'cbor-js'
 import * as overpass from 'overpass-websocket/managed'
 import fetch from 'isomorphic-fetch'
+import bluebird from 'bluebird'
 
 import ConfigurationReader from './configuration/reader'
 
@@ -25,14 +26,14 @@ const sessionManager = connectionManager.sessionManager({
   }
 })
 
-const contextA = sessionManager.context({
+const contextA = bluebird.promisifyAll(sessionManager.context({
   log: {
     debug,
     prefix: '[context-a] '
   }
-})
+}))
 
-const contextB = sessionManager.context({
+const contextB = bluebird.promisifyAll(sessionManager.context({
   log: {
     debug,
     prefix: '[context-b] '
@@ -50,12 +51,14 @@ const contextB = sessionManager.context({
       }
     )
   }
-})
+}))
 
 export {
   configurationReader,
   connectionManager,
   contextA,
   contextB,
-  sessionManager
+  sessionManager,
+  navigator,
+  window
 }

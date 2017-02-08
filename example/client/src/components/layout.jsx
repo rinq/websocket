@@ -1,4 +1,5 @@
 import React from 'react'
+import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 
 import App from 'grommet/components/App'
@@ -9,11 +10,12 @@ import Section from 'grommet/components/Section'
 import Split from 'grommet/components/Split'
 import Title from 'grommet/components/Title'
 
-import * as actions from '../actions'
-import NetworkIndicator from '../../network/ui/indicator'
+import NetworkIndicator from '../network/components/indicator'
 import OverpassSidebar from '../components/sidebar'
+import {isNavigationOpen} from '../navigation/selectors'
+import {openNavigation, updateLayout} from '../navigation/actions'
 
-const layout = (props) => {
+export function OverpassLayout (props) {
   const {title, content, isNavigationOpen, openNavigation, updateLayout} = props
 
   if (isNavigationOpen) {
@@ -53,18 +55,13 @@ const layout = (props) => {
   </App>
 }
 
-const Layout = connect(
+export default connect(
     function mapStateToProps (state) {
       return {
-        isNavigationOpen: state.ui.isNavigationOpen
+        isNavigationOpen: isNavigationOpen(state)
       }
     },
     function mapDispatchToProps (dispatch) {
-      return {
-        openNavigation: state => dispatch(actions.openNavigation()),
-        updateLayout: state => dispatch(actions.updateLayout(state))
-      }
+      return bindActionCreators({openNavigation, updateLayout}, dispatch)
     }
-)(layout)
-
-export default Layout
+)(OverpassLayout)

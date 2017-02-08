@@ -325,7 +325,13 @@ export default function Server ({
     const data = serialization.serialize(message)
 
     logger.debug('[%d] [%d] [%d] [send] %j', seq, request.session, request.seq, message)
-    socket.send(data)
+
+    try {
+      socket.send(data)
+    } catch (error) {
+      logger.debug('[%d] [%d] [%d] [send] [erro]', seq, request.session, request.seq, error.message, error.stack)
+      socket.close()
+    }
   }
 
   function createOnClose ({seq}) {

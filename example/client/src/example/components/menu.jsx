@@ -1,17 +1,20 @@
 import React from 'react'
+import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 
 import Anchor from 'grommet/components/Anchor'
 import Menu from 'grommet/components/Menu'
 
-import * as actions from '../actions'
-import {closeNavigation} from '../../ui/actions'
+import {closeNavigation} from '../../navigation/actions'
+import {exampleCall} from '../thunks'
+import {getLayout} from '../../navigation/selectors'
+import {isOverpassReady} from '../../overpass/selectors'
 
-const menu = props => {
+export function ExampleMenu (props) {
   const {
     layout,
-    isAConnected,
-    isBConnected,
+    isAReady,
+    isBReady,
     closeNavigation,
     exampleCall
   } = props
@@ -26,7 +29,7 @@ const menu = props => {
     callBUndefined,
     callBTimeout
 
-  if (isAConnected) {
+  if (isAReady) {
     callASuccess = () => {
       if (layout === 'single') closeNavigation()
       exampleCall('a', 'success')
@@ -53,7 +56,7 @@ const menu = props => {
     }
   }
 
-  if (isBConnected) {
+  if (isBReady) {
     callBSuccess = () => {
       if (layout === 'single') closeNavigation()
       exampleCall('b', 'success')
@@ -81,36 +84,29 @@ const menu = props => {
   }
 
   return <Menu primary>
-    <Anchor disabled={!isAConnected} onClick={callASuccess}>A: Success</Anchor>
-    <Anchor disabled={!isAConnected} onClick={callAFailure}>A: Failure</Anchor>
-    <Anchor disabled={!isAConnected} onClick={callAError}>A: Error</Anchor>
-    <Anchor disabled={!isAConnected} onClick={callAUndefined}>A: Undefined</Anchor>
-    <Anchor disabled={!isAConnected} onClick={callATimeout}>A: Timeout</Anchor>
+    <Anchor disabled={!isAReady} onClick={callASuccess}>A: Success</Anchor>
+    <Anchor disabled={!isAReady} onClick={callAFailure}>A: Failure</Anchor>
+    <Anchor disabled={!isAReady} onClick={callAError}>A: Error</Anchor>
+    <Anchor disabled={!isAReady} onClick={callAUndefined}>A: Undefined</Anchor>
+    <Anchor disabled={!isAReady} onClick={callATimeout}>A: Timeout</Anchor>
 
-    <Anchor disabled={!isBConnected} onClick={callBSuccess}>B: Success</Anchor>
-    <Anchor disabled={!isBConnected} onClick={callBFailure}>B: Failure</Anchor>
-    <Anchor disabled={!isBConnected} onClick={callBError}>B: Error</Anchor>
-    <Anchor disabled={!isBConnected} onClick={callBUndefined}>B: Undefined</Anchor>
-    <Anchor disabled={!isBConnected} onClick={callBTimeout}>B: Timeout</Anchor>
+    <Anchor disabled={!isBReady} onClick={callBSuccess}>B: Success</Anchor>
+    <Anchor disabled={!isBReady} onClick={callBFailure}>B: Failure</Anchor>
+    <Anchor disabled={!isBReady} onClick={callBError}>B: Error</Anchor>
+    <Anchor disabled={!isBReady} onClick={callBUndefined}>B: Undefined</Anchor>
+    <Anchor disabled={!isBReady} onClick={callBTimeout}>B: Timeout</Anchor>
   </Menu>
 }
 
-const ExampleMenu = connect(
+export default connect(
     function mapStateToProps (state) {
       return {
-        layout: state.ui.layout,
-        isAConnected: state.overpass.a.isConnected,
-        isBConnected: state.overpass.b.isConnected
+        layout: getLayout(state),
+        isAReady: isOverpassReady(state, {contextId: 'a'}),
+        isBReady: isOverpassReady(state, {contextId: 'b'})
       }
     },
     function mapDispatchToProps (dispatch) {
-      return {
-        closeNavigation: () => dispatch(closeNavigation()),
-        exampleCall: (context, command) => {
-          dispatch(actions.exampleCall(context, command))
-        }
-      }
+      return bindActionCreators({closeNavigation, exampleCall}, dispatch)
     }
-)(menu)
-
-export default ExampleMenu
+)(ExampleMenu)

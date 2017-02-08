@@ -1,8 +1,15 @@
-import {combineReducers} from 'redux'
+import {combineReducers} from 'redux-immutable'
+import {routerReducer as routing} from 'react-router-redux'
 
 import example from './example/reducer'
+import navigation from './navigation/reducer'
 import network from './network/reducer'
 import overpass from './overpass/reducer'
-import ui from './ui/reducer'
 
-export default combineReducers({example, network, overpass, ui})
+export default combineReducers({
+  example,
+  navigation,
+  network,
+  overpass,
+  routing
+})

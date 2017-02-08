@@ -1,4 +1,5 @@
 import React from 'react'
+import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 
 import Button from 'grommet/components/Button'
@@ -8,10 +9,10 @@ import Header from 'grommet/components/Header'
 import Sidebar from 'grommet/components/Sidebar'
 import Title from 'grommet/components/Title'
 
-import * as actions from '../actions'
-import ExampleMenu from '../../example/ui/menu'
+import ExampleMenu from '../example/components/menu'
+import {closeNavigation} from '../navigation/actions'
 
-const sidebar = props => {
+export function OverpassSidebar (props) {
   const {closeNavigation} = props
 
   return <Sidebar colorIndex='brand'>
@@ -27,13 +28,9 @@ const sidebar = props => {
   </Sidebar>
 }
 
-const OverpassSidebar = connect(
+export default connect(
     null,
     function mapDispatchToProps (dispatch) {
-      return {
-        closeNavigation: () => dispatch(actions.closeNavigation())
-      }
+      return bindActionCreators({closeNavigation}, dispatch)
     }
-)(sidebar)
-
-export default OverpassSidebar
+)(OverpassSidebar)

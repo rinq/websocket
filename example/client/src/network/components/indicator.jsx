@@ -3,7 +3,10 @@ import {connect} from 'react-redux'
 
 import Connect from 'grommet/components/icons/base/Connect'
 
-const indicator = (props) => {
+import {isNetworkOnline} from '../selectors'
+import {isOverpassConnected, isOverpassError} from '../../overpass/selectors'
+
+export function NetworkIndicator (props) {
   const {isConnected, isError, isOnline} = props
   let colorIndex
 
@@ -20,14 +23,12 @@ const indicator = (props) => {
   return <Connect colorIndex={colorIndex} />
 }
 
-const NetworkIndicator = connect(
+export default connect(
     function mapStateToProps (state) {
       return {
-        isConnected: state.overpass.a.isConnected,
-        isError: state.overpass.a.isError,
-        isOnline: state.network.isOnline
+        isConnected: isOverpassConnected(state),
+        isError: isOverpassError(state),
+        isOnline: isNetworkOnline(state)
       }
     }
-)(indicator)
-
-export default NetworkIndicator
+)(NetworkIndicator)

@@ -1,19 +1,14 @@
-// import createLogger from 'redux-logger'
-import createSaga from 'redux-saga'
-import {createStore, applyMiddleware} from 'redux'
+import thunk from 'redux-thunk'
+import {compose, createStore, applyMiddleware} from 'redux'
 import {render} from 'react-dom'
 
 import * as services from './services'
-import createRootSaga from './sagas'
-import createUi from './ui/create'
+import createUi from './create-ui'
 import reducer from './reducer'
 
-const saga = createSaga()
-// const logger = createLogger({collapsed: true})
-// const store = createStore(reducer, applyMiddleware(saga, logger))
-const store = createStore(reducer, applyMiddleware(saga))
+const thunkWithServices = thunk.withExtraArgument(services)
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
+const enhancer = composeEnhancers(applyMiddleware(thunkWithServices))
+const store = createStore(reducer, enhancer)
 
-const rootSaga = createRootSaga(services)
-saga.run(rootSaga)
-
-render(createUi(store), document.getElementById('app'))
+render(createUi(store, services), document.getElementById('app'))

@@ -1,27 +1,30 @@
+import {Map} from 'immutable'
+
 import * as actions from './actions'
 
-const init = {
-  a: {isConnected: false, isError: false},
-  b: {isConnected: false, isError: false}
-}
+const init = Map({isConnected: false, isError: false, contexts: Map({})})
 
 export default function reducer (state = init, action) {
-  let copy
-
   switch (action.type) {
     case actions.OVERPASS_CONNECT:
-      copy = Object.assign({}, state)
-      copy[action.payload.name].isConnected = true
-      copy[action.payload.name].isError = false
-
-      return copy
+      return state.merge({isConnected: true, isError: false})
 
     case actions.OVERPASS_DISCONNECT:
-      copy = Object.assign({}, state)
-      copy[action.payload.name].isConnected = false
-      copy[action.payload.name].isError = !!action.payload.error
+      return state.merge({isConnected: false, isError: !!action.payload})
 
-      return copy
+    case actions.OVERPASS_CONTEXT_READY:
+      if (state.hasIn(['contexts', action.payload.contextId])) {
+        return state.setIn(['contexts', action.payload.contextId, 'isReady'], true)
+      }
+
+      return state.setIn(['contexts', action.payload.contextId], Map({isReady: true, isError: false}))
+
+    case actions.OVERPASS_CONTEXT_ERROR:
+      if (state.hasIn(['contexts', action.payload.contextId])) {
+        return state.setIn(['contexts', action.payload.contextId, 'isReady'], false)
+      }
+
+      return state.setIn(['contexts', action.payload.contextId], Map({isReady: false, isError: true}))
   }
 
   return state
