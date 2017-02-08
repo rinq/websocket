@@ -1,20 +1,39 @@
 import React from 'react'
 import {connect} from 'react-redux'
 
-import Paragraph from 'grommet/components/Paragraph'
+import Table from 'grommet/components/Table'
+import TableRow from 'grommet/components/TableRow'
 
 import {overpassNotification} from '../../overpass/selectors'
 
 export function ExampleNotification (props) {
   const {notification} = props
+  let row
 
-  if (!notification) return <Paragraph>(none)</Paragraph>
+  if (notification) {
+    const {type, payload} = notification
 
-  console.log(notification)
+    row = <TableRow>
+      <td>{type}</td>
+      <td>{JSON.stringify(payload)}</td>
+    </TableRow>
+  } else {
+    row = <TableRow>
+      <td><em>(none)</em></td>
+      <td><em>(none)</em></td>
+    </TableRow>
+  }
 
-  const {type, payload} = notification
+  return <Table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Payload</th>
+      </tr>
+    </thead>
 
-  return <Paragraph>{type}: {JSON.stringify(payload)}</Paragraph>
+    <tbody>{row}</tbody>
+  </Table>
 }
 
 export default connect(
