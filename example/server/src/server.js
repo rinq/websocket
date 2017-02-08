@@ -1,3 +1,4 @@
+import {EventEmitter} from 'events'
 import {StringDecoder} from 'string_decoder'
 
 import Failure from './failure'
@@ -7,7 +8,9 @@ import {
   COMMAND_REQUEST,
   COMMAND_RESPONSE_SUCCESS,
   COMMAND_RESPONSE_FAILURE,
-  COMMAND_RESPONSE_ERROR
+  COMMAND_RESPONSE_ERROR,
+  SESSION_CREATE,
+  NOTIFICATION
 } from 'overpass-websocket/core/message-types'
 
 export default function Server ({
@@ -20,12 +23,18 @@ export default function Server ({
   setInterval,
   clearInterval
 }) {
+  EventEmitter.call(this)
+
+  const server = this
   let isStarted = false
   let socketSeq = 0
   const sessions = {}
+  const sessionMetas = {}
   const pingIntervalIds = {}
   const pingIntervalDelay = 15000
   let websocketServer
+
+  const emit = this.emit.bind(this)
 
   const handshake = Buffer.alloc(4)
   handshake.writeUInt8('O'.charCodeAt(0), 0)
@@ -44,7 +53,7 @@ export default function Server ({
       if (!service.start) continue
 
       logger.info('Waiting for service %s to start.', namespace)
-      serviceStarts.push(service.start())
+      serviceStarts.push(service.start(server))
     }
 
     await Promise.all(serviceStarts)
@@ -73,7 +82,7 @@ export default function Server ({
       if (!service.stop) continue
 
       logger.info('Waiting for service %s to stop.', namespace)
-      serviceStops.push(service.stop())
+      serviceStops.push(service.stop(server))
     }
 
     await Promise.all(serviceStops)
@@ -85,7 +94,8 @@ export default function Server ({
     const seq = socketSeq++
     const meta = requestMetadata(socket.upgradeReq)
 
-    sessions[seq] = {meta}
+    sessions[seq] = {}
+    sessionMetas[seq] = meta
     pingIntervalIds[seq] = setInterval(function () {
       logger.debug('[%d] [ping]', seq)
       socket.ping()
@@ -189,6 +199,18 @@ export default function Server ({
   }
 
   async function dispatch ({socket, seq, request, serialization}) {
+    if (request.type === SESSION_CREATE) {
+      await dispatchSessionCreate({socket, seq, request, serialization})
+    } else if (request.type === COMMAND_REQUEST) {
+      await dispatchCommandRequest({socket, seq, request, serialization})
+    }
+  }
+
+  async function dispatchSessionCreate ({socket, seq, request, serialization}) {
+    createSession({socket, seq, request, serialization})
+  }
+
+  async function dispatchCommandRequest ({socket, seq, request, serialization}) {
     if (request.type !== COMMAND_REQUEST) return
 
     const service = services[request.namespace]
@@ -225,9 +247,10 @@ export default function Server ({
       return realPayload
     }
 
-    if (!sessions[seq][request.session]) sessions[seq][request.session] = {}
+    createSession({socket, seq, request, serialization})
+
     const session = sessions[seq][request.session]
-    const meta = sessions[seq].meta
+    const meta = sessionMetas[seq]
 
     function log (...args) {
       const message = args.shift()
@@ -338,7 +361,12 @@ export default function Server ({
     return function onClose () {
       if (pingIntervalIds[seq]) clearInterval(pingIntervalIds[seq])
 
+      for (let sessionNum in sessions[seq]) {
+        sessions[seq][sessionNum].emit('destroy')
+      }
+
       delete sessions[seq]
+      delete sessionMetas[seq]
       delete pingIntervalIds[seq]
 
       logger.info('[%d] Socket closed.', seq)
@@ -365,4 +393,33 @@ export default function Server ({
 
     return {remoteAddress, userAgent}
   }
+
+  function createSession ({socket, seq, request, serialization}) {
+    if (sessions[seq][request.session]) return
+
+    const session = new EventEmitter()
+    sessions[seq][request.session] = session
+    session.id = `${seq}-${request.session}`
+
+    session.notify = function notify (notificationType, payload) {
+      const message = {
+        type: NOTIFICATION,
+        session: request.session,
+        notificationType,
+        payload
+      }
+
+      logger.info('[%d] [%d] [noti] %s %j', seq, request.session, notificationType, payload)
+      send({socket, seq, request, serialization, message})
+    }
+
+    emit('session', session)
+
+    return session
+  }
 }
+
+Server.prototype = Object.create(EventEmitter.prototype)
+Server.prototype.name = 'Server'
+
+module.exports = Server

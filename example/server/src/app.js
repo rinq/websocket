@@ -5,6 +5,7 @@ import createUnserialize from 'overpass-websocket/serialization/create-unseriali
 import jsonDecode from 'overpass-websocket/serialization/json/decode'
 import jsonEncode from 'overpass-websocket/serialization/json/encode'
 import marshallCommandResponse from 'overpass-websocket/serialization/marshaller/command-response'
+import marshallNotification from 'overpass-websocket/serialization/marshaller/notification'
 import uaParser from 'ua-parser-js'
 import unmarshallCommandRequest from 'overpass-websocket/serialization/unmarshaller/command-request'
 import {Server as WsServer} from 'ws'
@@ -15,7 +16,8 @@ import {
   COMMAND_REQUEST,
   COMMAND_RESPONSE_SUCCESS,
   COMMAND_RESPONSE_FAILURE,
-  COMMAND_RESPONSE_ERROR
+  COMMAND_RESPONSE_ERROR,
+  NOTIFICATION
 } from 'overpass-websocket/core/message-types'
 
 import EchoService from './service/echo'
@@ -61,6 +63,7 @@ const marshallers = {}
 marshallers[COMMAND_RESPONSE_SUCCESS] = marshallCommandResponse
 marshallers[COMMAND_RESPONSE_FAILURE] = marshallCommandResponse
 marshallers[COMMAND_RESPONSE_ERROR] = marshallCommandResponse
+marshallers[NOTIFICATION] = marshallNotification
 
 const unmarshallers = {}
 unmarshallers[SESSION_CREATE] = null
@@ -79,7 +82,7 @@ const serializations = {
 }
 
 const services = {
-  'echo.1': new EchoService({logger})
+  'echo.1': new EchoService({logger, setInterval, clearInterval})
 }
 
 const server = new Server({

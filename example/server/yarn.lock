@@ -1166,7 +1166,7 @@ os-tmpdir@^1.0.1:
 
 overpass-websocket@ezzatron/overpass-websocket#master:
   version "0.0.0"
-  resolved "https://codeload.github.com/ezzatron/overpass-websocket/tar.gz/c5c47ce3573861bbbb6a15ede043f49df63b00e7"
+  resolved "https://codeload.github.com/ezzatron/overpass-websocket/tar.gz/a534a954e25de039857435f9161cc2ba68fc9c1a"
 
 path-is-absolute@^1.0.0:
   version "1.0.1"
