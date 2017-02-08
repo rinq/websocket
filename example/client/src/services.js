@@ -26,14 +26,14 @@ const sessionManager = connectionManager.sessionManager({
   }
 })
 
-const contextA = bluebird.promisifyAll(sessionManager.context({
+const simpleContext = bluebird.promisifyAll(sessionManager.context({
   log: {
     debug,
     prefix: '[context-a] '
   }
 }))
 
-const contextB = bluebird.promisifyAll(sessionManager.context({
+const authenticatedContext = bluebird.promisifyAll(sessionManager.context({
   log: {
     debug,
     prefix: '[context-b] '
@@ -53,11 +53,57 @@ const contextB = bluebird.promisifyAll(sessionManager.context({
   }
 }))
 
+const contexts = [
+  {
+    label: 'Simple',
+    id: 'simple',
+    context: simpleContext
+  },
+  {
+    label: 'Authenticated',
+    id: 'authenticated',
+    context: authenticatedContext
+  }
+]
+
+const commands = [
+  {
+    label: 'Success',
+    ns: 'echo.1',
+    command: 'success',
+    payload: null
+  },
+  {
+    label: 'Failure',
+    ns: 'echo.1',
+    command: 'fail',
+    payload: null
+  },
+  {
+    label: 'Error',
+    ns: 'echo.1',
+    command: 'error',
+    payload: null
+  },
+  {
+    label: 'Undefined',
+    ns: 'echo.1',
+    command: 'undefined',
+    payload: null
+  },
+  {
+    label: 'Timeout',
+    ns: 'echo.1',
+    command: 'timeout',
+    payload: null
+  }
+]
+
 export {
   configurationReader,
   connectionManager,
-  contextA,
-  contextB,
+  contexts,
+  commands,
   sessionManager,
   navigator,
   window

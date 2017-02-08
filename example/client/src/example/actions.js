@@ -1,14 +1,14 @@
 export const EXAMPLE_SENT = 'EXAMPLE_SENT'
-export function exampleSent (context, seq, command) {
-  return {type: EXAMPLE_SENT, payload: {context, seq, command}}
+export function exampleSent (contextId, seq, ns, command) {
+  return {type: EXAMPLE_SENT, payload: {contextId, seq, ns, command}}
 }
 
 export const EXAMPLE_SUCCESS = 'EXAMPLE_SUCCESS'
-export function exampleSuccess (seq) {
-  return {type: EXAMPLE_SUCCESS, payload: {seq}}
+export function exampleSuccess (seq, payload) {
+  return {type: EXAMPLE_SUCCESS, payload: {seq, payload}}
 }
 
 export const EXAMPLE_FAILURE = 'EXAMPLE_FAILURE'
-export function exampleFailure (seq, error) {
-  return {type: EXAMPLE_FAILURE, payload: {seq, error}}
+export function exampleFailure (seq, payload) {
+  return {type: EXAMPLE_FAILURE, payload: {seq, payload}}
 }

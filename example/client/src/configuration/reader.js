@@ -1,33 +1,39 @@
 import {EventEmitter} from 'events'
 
-export default class ConfigurationReader extends EventEmitter {
-  constructor ({fetch, log}) {
-    super()
+export default function ConfigurationReader ({fetch, log}) {
+  EventEmitter.call(this)
+  const emit = this.emit.bind(this)
 
-    this._fetch = fetch
-    this.log = log
-  }
+  this.read = function read () {
+    if (log) log('Reading configuration.')
 
-  read () {
-    if (this.log) this.log('Reading configuration.')
-
-    return this._fetch('config.json')
-    .then(response => response.json())
-    .then(configuration => {
-      this._validate(configuration)
-      if (this.log) this.log('Read configuration:', configuration)
-      this.emit('configuration', configuration)
+    return fetch('config.json')
+    .then(function (response) {
+      return response.json()
+    })
+    .then(function (configuration) {
+      validate(configuration)
+      if (log) log('Read configuration:', configuration)
+      emit('configuration', configuration)
 
       return configuration
     })
-    .catch(error => this.emit('error', error))
+    .catch(function (error) {
+      emit('error', error)
+    })
   }
 
-  _validate (configuration) {
+  function validate (configuration) {
     if (typeof configuration.gateway === 'string') return
 
     const message = 'Invalid configuration: ' + JSON.stringify(configuration)
-    if (this.log) this.log(message)
+    if (log) log(message)
+
     throw new Error(message)
   }
 }
+
+ConfigurationReader.prototype = Object.create(EventEmitter.prototype)
+ConfigurationReader.prototype.name = 'ConfigurationReader'
+
+module.exports = ConfigurationReader

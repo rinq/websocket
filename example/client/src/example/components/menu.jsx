@@ -3,107 +3,56 @@ import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 
 import Anchor from 'grommet/components/Anchor'
+import Header from 'grommet/components/Header'
+import Heading from 'grommet/components/Heading'
 import Menu from 'grommet/components/Menu'
 
 import {closeNavigation} from '../../navigation/actions'
+import {contexts, commands} from '../../services'
 import {exampleCall} from '../thunks'
 import {getLayout} from '../../navigation/selectors'
-import {isOverpassReady} from '../../overpass/selectors'
+import {overpassContexts} from '../../overpass/selectors'
 
 export function ExampleMenu (props) {
   const {
     layout,
-    isAReady,
-    isBReady,
+    contextState,
     closeNavigation,
     exampleCall
   } = props
-  let callASuccess,
-    callAFailure,
-    callAError,
-    callAUndefined,
-    callATimeout,
-    callBSuccess,
-    callBFailure,
-    callBError,
-    callBUndefined,
-    callBTimeout
+  let menuItems = []
 
-  if (isAReady) {
-    callASuccess = () => {
-      if (layout === 'single') closeNavigation()
-      exampleCall('a', 'success')
-    }
+  contexts.map(function (context) {
+    const isReady = contextState.getIn([context.id, 'isReady'])
 
-    callAFailure = () => {
-      if (layout === 'single') closeNavigation()
-      exampleCall('a', 'fail')
-    }
+    const menuHeader = <Header key={`context.${context.id}`} pad={{horizontal: 'medium'}}>
+      <Heading tag='h4' margin='none' strong>{context.label}</Heading>
+    </Header>
+    menuItems.push(menuHeader)
 
-    callAError = () => {
-      if (layout === 'single') closeNavigation()
-      exampleCall('a', 'error')
-    }
+    let i = 0
 
-    callAUndefined = () => {
-      if (layout === 'single') closeNavigation()
-      exampleCall('a', 'undefined')
-    }
+    commands.map(function (command) {
+      const handler = isReady && function () {
+        if (layout === 'single') closeNavigation()
+        exampleCall(context.id, command.ns, command.command, command.payload)
+      }
 
-    callATimeout = () => {
-      if (layout === 'single') closeNavigation()
-      exampleCall('a', 'timeout')
-    }
-  }
+      const menuItem = <Anchor key={`command.${context.id}.${i++}`} disabled={!isReady} onClick={handler}>
+        {command.label}
+      </Anchor>
+      menuItems.push(menuItem)
+    })
+  })
 
-  if (isBReady) {
-    callBSuccess = () => {
-      if (layout === 'single') closeNavigation()
-      exampleCall('b', 'success')
-    }
-
-    callBFailure = () => {
-      if (layout === 'single') closeNavigation()
-      exampleCall('b', 'fail')
-    }
-
-    callBError = () => {
-      if (layout === 'single') closeNavigation()
-      exampleCall('b', 'error')
-    }
-
-    callBUndefined = () => {
-      if (layout === 'single') closeNavigation()
-      exampleCall('b', 'undefined')
-    }
-
-    callBTimeout = () => {
-      if (layout === 'single') closeNavigation()
-      exampleCall('b', 'timeout')
-    }
-  }
-
-  return <Menu primary>
-    <Anchor disabled={!isAReady} onClick={callASuccess}>A: Success</Anchor>
-    <Anchor disabled={!isAReady} onClick={callAFailure}>A: Failure</Anchor>
-    <Anchor disabled={!isAReady} onClick={callAError}>A: Error</Anchor>
-    <Anchor disabled={!isAReady} onClick={callAUndefined}>A: Undefined</Anchor>
-    <Anchor disabled={!isAReady} onClick={callATimeout}>A: Timeout</Anchor>
-
-    <Anchor disabled={!isBReady} onClick={callBSuccess}>B: Success</Anchor>
-    <Anchor disabled={!isBReady} onClick={callBFailure}>B: Failure</Anchor>
-    <Anchor disabled={!isBReady} onClick={callBError}>B: Error</Anchor>
-    <Anchor disabled={!isBReady} onClick={callBUndefined}>B: Undefined</Anchor>
-    <Anchor disabled={!isBReady} onClick={callBTimeout}>B: Timeout</Anchor>
-  </Menu>
+  return <Menu primary size='small'>{menuItems}</Menu>
 }
 
 export default connect(
     function mapStateToProps (state) {
       return {
         layout: getLayout(state),
-        isAReady: isOverpassReady(state, {contextId: 'a'}),
-        isBReady: isOverpassReady(state, {contextId: 'b'})
+        contextState: overpassContexts(state)
       }
     },
     function mapDispatchToProps (dispatch) {

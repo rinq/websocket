@@ -24,19 +24,29 @@ export function ExampleLog (props) {
       statusComponent = <Close colorIndex='critical' />
     }
 
+    let renderedPayload
+
+    if (call.has('payload')) {
+      renderedPayload = JSON.stringify(call.get('payload'))
+    }
+
     return <TableRow key={seq}>
+      <td>{call.get('contextId')}</td>
+      <td>{call.get('ns')}</td>
       <td>{call.get('command')}</td>
       <td>{statusComponent}</td>
-      <td>{call.get('error')}</td>
+      <td>{renderedPayload}</td>
     </TableRow>
   })
 
   return <Table>
     <thead>
       <tr>
+        <th>Context</th>
+        <th>Namespace</th>
         <th>Command</th>
         <th>Result</th>
-        <th>Message</th>
+        <th>Payload</th>
       </tr>
     </thead>
 

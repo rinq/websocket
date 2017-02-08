@@ -9,8 +9,8 @@ import Header from 'grommet/components/Header'
 import Sidebar from 'grommet/components/Sidebar'
 import Title from 'grommet/components/Title'
 
-import ExampleMenu from '../example/components/menu'
-import {closeNavigation} from '../navigation/actions'
+import ExampleMenu from '../../example/components/menu'
+import {closeNavigation} from '../actions'
 
 export function OverpassSidebar (props) {
   const {closeNavigation} = props

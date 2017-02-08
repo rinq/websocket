@@ -1,9 +1,7 @@
 import {bindActionCreators} from 'redux'
 
-import {contextA, contextB} from '../services'
+import {contexts} from '../services'
 import {overpassConnect, overpassDisconnect, overpassContextReady, overpassContextError} from './actions'
-
-const contexts = {a: contextA, b: contextB}
 
 export function initializeOverpass () {
   return function (
@@ -21,17 +19,15 @@ export function initializeOverpass () {
       sessionManager.on('session', connect)
       sessionManager.on('error', disconnect)
 
-      for (let contextId in contexts) {
-        const context = contexts[contextId]
-
-        context.on('ready', function () {
-          dispatch(overpassContextReady(contextId))
+      for (let context of contexts) {
+        context.context.on('ready', function () {
+          dispatch(overpassContextReady(context.id))
         })
-        context.on('error', function (error) {
-          dispatch(overpassContextError(contextId, error))
+        context.context.on('error', function (error) {
+          dispatch(overpassContextError(context.id, error))
         })
 
-        context.start()
+        context.context.start()
       }
     })
     .catch(disconnect)

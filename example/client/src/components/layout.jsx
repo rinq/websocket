@@ -11,7 +11,7 @@ import Split from 'grommet/components/Split'
 import Title from 'grommet/components/Title'
 
 import NetworkIndicator from '../network/components/indicator'
-import OverpassSidebar from '../components/sidebar'
+import OverpassSidebar from '../navigation/components/sidebar'
 import {isNavigationOpen} from '../navigation/selectors'
 import {openNavigation, updateLayout} from '../navigation/actions'
 
