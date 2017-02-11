@@ -7,6 +7,10 @@ module.exports = function unserializeMessage (
   unmarshallers,
   unserialize
 ) {
+  var header    // the unserialized header
+  var headerEnd // the exclusive end index of the header
+  var message   // the unmarshalled message
+
   if (!(buffer instanceof ArrayBuffer)) {
     throw new Error('Invalid Overpass message data.')
   }
@@ -15,13 +19,13 @@ module.exports = function unserializeMessage (
     throw new Error('Insufficient Overpass message data.')
   }
 
-  var headerEnd = (new DataView(buffer)).getUint16(0) + 2
+  headerEnd = (new DataView(buffer)).getUint16(0) + 2
 
   if (buffer.byteLength < headerEnd) {
     throw new Error('Insufficient Overpass message data.')
   }
 
-  var header = unserialize(bufferSlice(buffer, 2, headerEnd))
+  header = unserialize(bufferSlice(buffer, 2, headerEnd))
 
   if (!Array.isArray(header)) {
     throw new Error('Invalid Overpass message header.')
@@ -31,7 +35,7 @@ module.exports = function unserializeMessage (
     throw new Error('Invalid Overpass message header (type).')
   }
 
-  var message = unmarshal(header, selectByType(header[0], unmarshallers))
+  message = unmarshal(header, selectByType(header[0], unmarshallers))
 
   if (buffer.byteLength > headerEnd) {
     message.payload = function () {

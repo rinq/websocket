@@ -13,13 +13,17 @@ function OverpassConnection (
   logger,
   log
 ) {
+  var debugSymbol // the Unicode symbol used when logging debug information
+  var emit        // a convenience for this.emit, bound to this
+  var sessions    // a map of session ID to session
+  var sessionSeq  // the most recent session ID, which are sequential integers
+
   EventEmitter.call(this)
+  emit = this.emit.bind(this)
 
-  var sessionSeq = 0
-  var sessions = {}
-  var debugSymbol = '\uD83D\uDC1E'
-
-  var emit = this.emit.bind(this)
+  sessionSeq = 0
+  sessions = {}
+  debugSymbol = '\uD83D\uDC1E'
 
   socket.addEventListener('open', onOpen)
   socket.addEventListener('error', onError)
@@ -27,18 +31,21 @@ function OverpassConnection (
   socket.addEventListener('message', onFirstMessage)
 
   this.session = function session (options) {
-    var id = ++sessionSeq
-    send({type: types.SESSION_CREATE, session: id})
+    var sessionId
+    var session
 
-    sessions[id] = {}
+    sessionId = ++sessionSeq
+    send({type: types.SESSION_CREATE, session: sessionId})
+
+    sessions[sessionId] = {}
 
     function receive (receiver, destroyer) {
-      sessions[id].receiver = receiver
-      sessions[id].destroyer = destroyer
+      sessions[sessionId].receiver = receiver
+      sessions[sessionId].destroyer = destroyer
     }
 
-    var session = new OverpassSession(
-      id,
+    session = new OverpassSession(
+      sessionId,
       send,
       receive,
       setTimeout,
@@ -48,10 +55,10 @@ function OverpassConnection (
     )
 
     session.once('destroy', function () {
-      delete sessions[id]
+      delete sessions[sessionId]
     })
 
-    sessions[id].session = session
+    sessions[sessionId].session = session
 
     return session
   }
@@ -126,6 +133,8 @@ function OverpassConnection (
   }
 
   function onClose (event) {
+    var error
+
     if (log && log.debug) {
       logger(
         [
@@ -139,7 +148,7 @@ function OverpassConnection (
       )
     }
 
-    var error = new Error('Connection closed: ' + event.reason)
+    error = new Error('Connection closed: ' + event.reason)
 
     shutdown(error)
     emit('close', error)
@@ -150,6 +159,9 @@ function OverpassConnection (
   }
 
   function validateHandshake (data) {
+    var prefix // the supplied handshake prefix as a string
+    var view   // a view into the handshake buffer
+
     if (!(data instanceof ArrayBuffer)) {
       throw new Error('Invalid handshake: ' + data)
     }
@@ -158,8 +170,8 @@ function OverpassConnection (
       throw new Error('Invalid handshake length: ' + data.byteLength)
     }
 
-    var view = new Uint8Array(data)
-    var prefix = String.fromCharCode(view[0], view[1])
+    view = new Uint8Array(data)
+    prefix = String.fromCharCode(view[0], view[1])
 
     if (prefix !== 'OP') {
       throw new Error('Unexpected handshake prefix: ' + JSON.stringify(prefix))
@@ -171,7 +183,9 @@ function OverpassConnection (
   }
 
   function dispatch (message) {
-    var session = sessions[message.session]
+    var session
+
+    session = sessions[message.session]
     if (session) return session.receiver(message)
 
     closeError(new Error('Unexpected session: ' + message.session + '.'))
@@ -197,14 +211,16 @@ function OverpassConnection (
   }
 
   function shutdown (error) {
+    var sessionId
+
     socket.removeEventListener('open', onOpen)
     socket.removeEventListener('error', onError)
     socket.removeEventListener('close', onClose)
     socket.removeEventListener('message', onFirstMessage)
     socket.removeEventListener('message', onMessage)
 
-    for (var seq in sessions) {
-      sessions[seq].destroyer(error)
+    for (sessionId in sessions) {
+      sessions[sessionId].destroyer(error)
     }
 
     sessions = {}
@@ -212,6 +228,6 @@ function OverpassConnection (
 }
 
 OverpassConnection.prototype = Object.create(EventEmitter.prototype)
-OverpassConnection.prototype.name = 'OverpassConnection'
+OverpassConnection.prototype.constructor = OverpassConnection
 
 module.exports = OverpassConnection

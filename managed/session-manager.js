@@ -9,13 +9,18 @@ function OverpassSessionManager (
   logger,
   log
 ) {
+  var connection     // the underlying connection
+  var debugSymbol    // the Unicode symbol used when logging debug information
+  var emit           // a convenience for this.emit, bound to this
+  var sessionManager // a convenience for this
+
   EventEmitter.call(this)
+  emit = this.emit.bind(this)
 
-  var debugSymbol = '\uD83D\uDC1E'
-  var connection = null
+  sessionManager = this
 
-  var sessionManager = this
-  var emit = this.emit.bind(this)
+  debugSymbol = '\uD83D\uDC1E'
+  connection = null
 
   this.isStarted = false
   this.session = null
@@ -178,6 +183,6 @@ function OverpassSessionManager (
 }
 
 OverpassSessionManager.prototype = Object.create(EventEmitter.prototype)
-OverpassSessionManager.prototype.name = 'OverpassSessionManager'
+OverpassSessionManager.prototype.constructor = OverpassSessionManager
 
 module.exports = OverpassSessionManager

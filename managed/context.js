@@ -8,13 +8,18 @@ function OverpassContext (
   logger,
   log
 ) {
+  var context     // a convenience for this
+  var debugSymbol // the Unicode symbol used when logging debug information
+  var emit        // a convenience for this.emit, bound to this
+  var session     // the underlying session
+
   EventEmitter.call(this)
+  emit = this.emit.bind(this)
 
-  var debugSymbol = '\uD83D\uDC1E'
-  var session = null
+  debugSymbol = '\uD83D\uDC1E'
+  session = null
 
-  var context = this
-  var emit = this.emit.bind(this)
+  context = this
 
   this.isStarted = false
   this.isReady = false
@@ -83,16 +88,16 @@ function OverpassContext (
   }
 
   this.whenReady = function whenReady (callback, timeout) {
+    var timeoutId
+
+    function done () {
+      clearTimeout(timeoutId)
+      callback()
+    }
+
     if (context.isReady) {
       callback()
     } else {
-      var done, timeoutId
-
-      done = function () {
-        clearTimeout(timeoutId)
-        callback()
-      }
-
       if (timeout) {
         timeoutId = setTimeout(function () {
           context.removeListener('ready', done)
@@ -216,6 +221,6 @@ function OverpassContext (
 }
 
 OverpassContext.prototype = Object.create(EventEmitter.prototype)
-OverpassContext.prototype.name = 'OverpassContext'
+OverpassContext.prototype.constructor = OverpassContext
 
 module.exports = OverpassContext

@@ -1,3 +1,3 @@
 module.exports = function isFailureType (type, error) {
-  return error.isFailure && error.type === type
+  return error.isOverpassFailure && error.type === type
 }

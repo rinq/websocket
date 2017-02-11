@@ -4,7 +4,7 @@ var OverpassFailure = require('./failure/failure')
 var types = require('./message-types')
 
 function OverpassSession (
-  id,
+  sessionId,
   connectionSend,
   connectionReceive,
   setTimeout,
@@ -12,18 +12,26 @@ function OverpassSession (
   logger,
   log
 ) {
+  var calls              // a map of call ID to call
+  var callSeq            // the most recent call ID, which are sequential integers
+  var debugSymbol        // the Unicode symbol used when logging debug information
+  var destroyError       // the error that caused the session to be destroyed
+  var emit               // a convenience for this.emit, bound to this
+  var inSymbol           // the Unicode symbol used when logging incoming messages
+  var notificationSymbol // the Unicode symbol used when logging notifications
+  var outSymbol          // the Unicode symbol used when logging outgoing messages
+
   EventEmitter.call(this)
+  emit = this.emit.bind(this)
 
-  var destroyError = null
-  var callSeq = 0
-  var calls = {}
+  destroyError = null
+  callSeq = 0
+  calls = {}
 
-  var debugSymbol = '\uD83D\uDC1E'
-  var inSymbol = '\uD83D\uDCEC'
-  var outSymbol = '\uD83D\uDCEE'
-  var notificationSymbol = '\uD83D\uDCE2'
-
-  var emit = this.emit.bind(this)
+  debugSymbol = '\uD83D\uDC1E'
+  inSymbol = '\uD83D\uDCEC'
+  outSymbol = '\uD83D\uDCEE'
+  notificationSymbol = '\uD83D\uDCE2'
 
   connectionReceive(dispatch, doDestroy)
 
@@ -46,7 +54,7 @@ function OverpassSession (
 
     connectionSend({
       type: types.COMMAND_REQUEST,
-      session: id,
+      session: sessionId,
       namespace: namespace,
       command: command,
       payload: payload
@@ -54,18 +62,20 @@ function OverpassSession (
   }
 
   this.call = function call (namespace, command, payload, timeout, callback) {
+    var callId
+
     if (destroyError) {
       callback(destroyError)
 
       return
     }
 
-    var seq = ++callSeq
-    calls[seq] = {
+    callId = ++callSeq
+    calls[callId] = {
       callback: callback,
       timeout: setTimeout(
         function () {
-          delete calls[seq]
+          delete calls[callId]
           callback(new Error(
             "Call to '" + command + "' in namespace '" + namespace +
             "' timed out after " + timeout + 'ms.'
@@ -82,7 +92,7 @@ function OverpassSession (
           'color: blue',
           outSymbol,
           log.prefix,
-          seq,
+          callId,
           namespace,
           command
         ],
@@ -92,11 +102,11 @@ function OverpassSession (
 
     connectionSend({
       type: types.COMMAND_REQUEST,
-      session: id,
+      session: sessionId,
       namespace: namespace,
       command: command,
       payload: payload,
-      seq: seq,
+      seq: callId,
       timeout: timeout
     })
   }
@@ -113,7 +123,7 @@ function OverpassSession (
       )
     }
 
-    connectionSend({type: types.SESSION_DESTROY, session: id})
+    connectionSend({type: types.SESSION_DESTROY, session: sessionId})
     doDestroy()
   }
 
@@ -148,10 +158,14 @@ function OverpassSession (
   }
 
   function dispatchCommandResponse (message) {
-    var call = calls[message.seq]
-    if (!call) return
+    var call         // the call matching the supplied call ID
+    var color        // the color to use when logging
+    var logSecondary // ancillary logging information
+    var payload      // the incoming message payload
+    var type         // the incoming command response type
 
-    var payload
+    call = calls[message.seq]
+    if (!call) return
 
     switch (message.type) {
       case types.COMMAND_RESPONSE_SUCCESS:
@@ -162,8 +176,6 @@ function OverpassSession (
     }
 
     if (log) {
-      var type, color, logSecondary
-
       switch (message.type) {
         case types.COMMAND_RESPONSE_SUCCESS:
           type = 'success'
@@ -220,7 +232,9 @@ function OverpassSession (
   }
 
   function dispatchNotification (message) {
-    var payload = message.payload()
+    var payload
+
+    payload = message.payload()
 
     if (log) {
       logger(
@@ -238,10 +252,13 @@ function OverpassSession (
   }
 
   function doDestroy (error) {
+    var call
+    var callId
+
     destroyError = error || new Error('Session destroyed locally.')
 
-    for (var seq in calls) {
-      var call = calls[seq]
+    for (callId in calls) {
+      call = calls[callId]
 
       clearTimeout(call.timeout)
       call.callback(destroyError)
@@ -253,6 +270,6 @@ function OverpassSession (
 }
 
 OverpassSession.prototype = Object.create(EventEmitter.prototype)
-OverpassSession.prototype.name = 'OverpassSession'
+OverpassSession.prototype.constructor = OverpassSession
 
 module.exports = OverpassSession

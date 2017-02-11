@@ -1,9 +1,13 @@
 module.exports = function utf8Encode (string) {
-  var i
-  var bytes = []
+  var bytes    // an array of UTF-8 bytes built from the supplied string
+  var charCode // holds the current character code
+  var encoded  // a view into the result buffer
+  var i        // used for iteration
+
+  bytes = []
 
   for (i = 0; i < string.length; ++i) {
-    var charCode = string.charCodeAt(i)
+    charCode = string.charCodeAt(i)
 
     if (charCode < 0x80) {
       bytes.push(charCode)
@@ -26,7 +30,7 @@ module.exports = function utf8Encode (string) {
     }
   }
 
-  var encoded = new Uint8Array(bytes.length)
+  encoded = new Uint8Array(bytes.length)
   encoded.set(bytes)
 
   return encoded.buffer

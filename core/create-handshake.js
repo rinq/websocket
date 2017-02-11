@@ -2,9 +2,12 @@ var bufferJoin = require('./buffer/join')
 var encodeUtf8 = require('./utf8/encode')
 
 module.exports = function createHandshake (major, minor, mimeType) {
-  var mimeTypeBytes = encodeUtf8(mimeType)
+  var header        // a view into the header buffer
+  var mimeTypeBytes // the mime type, encoded as UTF-8 bytes
 
-  var header = new Uint8Array(5)
+  mimeTypeBytes = encodeUtf8(mimeType)
+
+  header = new Uint8Array(5)
   header.set([
     'O'.charCodeAt(0),
     'P'.charCodeAt(0),

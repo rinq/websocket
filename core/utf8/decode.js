@@ -1,10 +1,15 @@
 module.exports = function utf8Decode (buffer) {
-  var view = new Uint8Array(buffer)
-  var charCodes = []
-  var offset = 0
+  var charCodes // an array of character codes built from the UTF-8 data
+  var offset    // the current index into the buffer view
+  var value     // holds the current byte
+  var view      // a view into the supplied buffer
+
+  view = new Uint8Array(buffer)
+  charCodes = []
+  offset = 0
 
   while (offset < view.byteLength) {
-    var value = view[offset++]
+    value = view[offset++]
 
     if (value & 0x80) {
       if (value < 0xe0) {

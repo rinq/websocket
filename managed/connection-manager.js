@@ -13,15 +13,22 @@ function OverpassConnectionManager (
   logger,
   log
 ) {
+  var closeCount         // tracks the number of times the underlying connection has closed
+  var connection         // the underlying connection
+  var connectionManager  // a convenience for this
+  var debugSymbol        // the Unicode symbol used when logging debug information
+  var emit               // a convenience for this.emit, bound to this
+  var reconnectTimeoutId // the ID of the reconnect timeout
+
   EventEmitter.call(this)
+  emit = this.emit.bind(this)
 
-  var debugSymbol = '\uD83D\uDC1E'
-  var closeCount = 0
-  var reconnectTimeout = null
-  var connection = null
+  debugSymbol = '\uD83D\uDC1E'
+  closeCount = 0
+  reconnectTimeoutId = null
+  connection = null
 
-  var connectionManager = this
-  var emit = this.emit.bind(this)
+  connectionManager = this
 
   this.url = url
   this.isStarted = false
@@ -68,7 +75,7 @@ function OverpassConnectionManager (
     connectionManager.isStarted = false
     connectionManager.connection = null
 
-    if (reconnectTimeout) {
+    if (reconnectTimeoutId) {
       if (log && log.debug) {
         logger(
           [
@@ -80,8 +87,8 @@ function OverpassConnectionManager (
         )
       }
 
-      clearTimeout(reconnectTimeout)
-      reconnectTimeout = null
+      clearTimeout(reconnectTimeoutId)
+      reconnectTimeoutId = null
     }
 
     networkStatus.removeListener('online', onOnline)
@@ -136,6 +143,8 @@ function OverpassConnectionManager (
   }
 
   function onClose (error) {
+    var delay // the number of milliseconds before the next reconnect attempt
+
     if (log && log.debug) {
       logger(
         [
@@ -155,7 +164,7 @@ function OverpassConnectionManager (
 
     if (!networkStatus.isOnline) return
 
-    var delay = delayFn(++closeCount)
+    delay = delayFn(++closeCount)
 
     if (log && log.debug) {
       logger(
@@ -169,11 +178,13 @@ function OverpassConnectionManager (
       )
     }
 
-    reconnectTimeout = setTimeout(reconnect, delay)
+    reconnectTimeoutId = setTimeout(reconnect, delay)
   }
 
   function connect () {
-    var options = {CBOR: CBOR}
+    var options
+
+    options = {CBOR: CBOR}
 
     if (log) {
       if (log.debug) {
@@ -209,12 +220,12 @@ function OverpassConnectionManager (
       )
     }
 
-    reconnectTimeout = null
+    reconnectTimeoutId = null
     if (networkStatus.isOnline) connect()
   }
 }
 
 OverpassConnectionManager.prototype = Object.create(EventEmitter.prototype)
-OverpassConnectionManager.prototype.name = 'OverpassConnectionManager'
+OverpassConnectionManager.prototype.constructor = OverpassConnectionManager
 
 module.exports = OverpassConnectionManager

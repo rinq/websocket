@@ -11,8 +11,11 @@ module.exports = function connectionManagerFactory (
   clearTimeout,
   console
 ) {
-  var networkStatus = new NetworkStatus(navigator, window, setTimeout)
-  var logger = createLogger(console)
+  var logger        // a logger that uses the injected console object
+  var networkStatus // a network status instance that uses the injected dependencies
+
+  networkStatus = new NetworkStatus(navigator, window, setTimeout)
+  logger = createLogger(console)
 
   return function connectionManager (options) {
     return new OverpassConnectionManager(
