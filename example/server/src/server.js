@@ -5,10 +5,10 @@ import Failure from './failure'
 import {toArrayBuffer} from './buffer'
 
 import {
-  COMMAND_REQUEST,
-  COMMAND_RESPONSE_SUCCESS,
-  COMMAND_RESPONSE_FAILURE,
-  COMMAND_RESPONSE_ERROR,
+  CALL,
+  CALL_SUCCESS,
+  CALL_FAILURE,
+  CALL_ERROR,
   SESSION_CREATE,
   NOTIFICATION
 } from 'overpass-websocket/core/message-types'
@@ -201,7 +201,7 @@ export default function Server ({
   async function dispatch ({socket, seq, request, serialization}) {
     if (request.type === SESSION_CREATE) {
       await dispatchSessionCreate({socket, seq, request, serialization})
-    } else if (request.type === COMMAND_REQUEST) {
+    } else if (request.type === CALL) {
       await dispatchCommandRequest({socket, seq, request, serialization})
     }
   }
@@ -211,7 +211,7 @@ export default function Server ({
   }
 
   async function dispatchCommandRequest ({socket, seq, request, serialization}) {
-    if (request.type !== COMMAND_REQUEST) return
+    if (request.type !== CALL) return
 
     const service = services[request.namespace]
     if (!service) return // imitates Overpass limitation
@@ -289,7 +289,7 @@ export default function Server ({
     return function respond (payload) {
       logger.info('[%d] [%d] [%d] [succ]', seq, request.session, request.seq, payload)
 
-      const message = {type: COMMAND_RESPONSE_SUCCESS, session: request.session, seq: request.seq, payload: payload}
+      const message = {type: CALL_SUCCESS, session: request.session, seq: request.seq, payload: payload}
       send({socket, seq, request, serialization, message})
     }
   }
@@ -317,7 +317,7 @@ export default function Server ({
     )
 
     const message = {
-      type: COMMAND_RESPONSE_FAILURE,
+      type: CALL_FAILURE,
       session: request.session,
       seq: request.seq,
       payload: {
@@ -337,7 +337,7 @@ export default function Server ({
     logger.error('[%d] [%d] [%d] [erro] %s', seq, request.session, request.seq, error.message, error.stack)
 
     const message = {
-      type: COMMAND_RESPONSE_ERROR,
+      type: CALL_ERROR,
       session: request.session,
       seq: request.seq
     }

@@ -7,8 +7,8 @@ var OverpassSession = require('../../../core/session')
 var types = require('../../../core/message-types')
 
 var id,
-  connectionSend,
-  connectionReceive,
+  send,
+  receive,
   setTimeout,
   clearTimeout,
   logger,
@@ -23,8 +23,8 @@ function makeSessionSpecs (log) {
   return function sessionSpecs () {
     beforeEach(function () {
       id = 234
-      connectionSend = spy()
-      connectionReceive = function connectionReceive (r, d) {
+      send = spy()
+      receive = function receive (r, d) {
         receiver = r
         destroyer = d
       }
@@ -45,8 +45,8 @@ function makeSessionSpecs (log) {
 
       subject = new OverpassSession(
         id,
-        connectionSend,
-        connectionReceive,
+        send,
+        receive,
         setTimeout,
         clearTimeout,
         logger,
@@ -64,14 +64,14 @@ function makeSessionSpecs (log) {
       expect(destroyer.name).to.equal('doDestroy')
     })
 
-    it('should support sending of command requests', function () {
+    it('should support executing commands', function () {
       var namespace = 'ns-a'
       var command = 'cmd-a'
       var requestPayload = 'request-payload'
-      subject.send(namespace, command, requestPayload)
+      subject.execute(namespace, command, requestPayload)
 
-      expect(connectionSend).to.have.been.calledWith({
-        type: types.COMMAND_REQUEST,
+      expect(send).to.have.been.calledWith({
+        type: types.EXECUTE,
         session: id,
         namespace: namespace,
         command: command,
@@ -83,20 +83,28 @@ function makeSessionSpecs (log) {
       if (log) expect(logger).to.have.been.called
     })
 
-    it('should support correlated command requests that succeed', function (done) {
+    it('should disallow calls with infinite timeout and a handler', function () {
+      var callback = function () {
+        subject.call('ns-a', 'cmd-a', null, -1, function () {})
+      }
+
+      expect(callback).to.throw()
+    })
+
+    it('should support successful calls using a handler', function (done) {
       var namespace = 'ns-a'
       var command = 'cmd-a'
       var requestPayload = 'request-payload'
       var timeout = 111
 
-      var responseType = types.COMMAND_RESPONSE_SUCCESS
+      var responseType = types.CALL_SUCCESS
       var responsePayload = 'response-payload'
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
         expect(error).to.not.be.ok
         expect(response).to.equal(responsePayload)
-        expect(connectionSend).to.have.been.calledWith({
-          type: types.COMMAND_REQUEST,
+        expect(send).to.have.been.calledWith({
+          type: types.CALL,
           session: id,
           namespace: namespace,
           command: command,
@@ -122,30 +130,64 @@ function makeSessionSpecs (log) {
       })
     })
 
-    it('should support correlated command requests that fail', function (done) {
+    it('should support successful calls using response events', function (done) {
       var namespace = 'ns-a'
       var command = 'cmd-a'
       var requestPayload = 'request-payload'
       var timeout = 111
 
-      var responseType = types.COMMAND_RESPONSE_FAILURE
+      var responseType = types.CALL_ASYNC_SUCCESS
+      var responsePayload = 'response-payload'
+
+      subject.on('response', function (error, response, ns, cmd) {
+        expect(error).to.not.be.ok
+        expect(response).to.equal(responsePayload)
+        expect(ns).to.equal(namespace)
+        expect(cmd).to.equal(command)
+        expect(send).to.have.been.calledWith({
+          type: types.CALL_ASYNC,
+          session: id,
+          namespace: namespace,
+          command: command,
+          payload: requestPayload,
+          timeout: timeout
+        })
+
+        if (log) expect(logger).to.have.been.called
+
+        done()
+      })
+
+      subject.call(namespace, command, requestPayload, timeout)
+      receiver({
+        type: responseType,
+        namespace: namespace,
+        command: command,
+        payload: function () {
+          return responsePayload
+        }
+      })
+    })
+
+    it('should support calls that fail using a handler', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var requestPayload = 'request-payload'
+      var timeout = 111
+
+      var responseType = types.CALL_FAILURE
       var failureType = 'type-a'
       var failureMessage = 'Failure message.'
-      var failureData = {a: 'b', c: 'd'}
-      var responsePayload = {
-        type: failureType,
-        message: failureMessage,
-        data: failureData
-      }
+      var responsePayload = {a: 'b', c: 'd'}
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
         expect(error).to.be.an.instanceof(OverpassFailure)
         expect(isFailureType(failureType, error)).to.be.true
         expect(error.message).to.equal(failureMessage)
-        expect(error.data).to.equal(failureData)
+        expect(error.data).to.equal(responsePayload)
         expect(response).to.not.be.ok
-        expect(connectionSend).to.have.been.calledWith({
-          type: types.COMMAND_REQUEST,
+        expect(send).to.have.been.calledWith({
+          type: types.CALL,
           session: id,
           namespace: namespace,
           command: command,
@@ -165,26 +207,74 @@ function makeSessionSpecs (log) {
       receiver({
         type: responseType,
         seq: 1,
+        failureType: failureType,
+        failureMessage: failureMessage,
         payload: function () {
           return responsePayload
         }
       })
     })
 
-    it('should support correlated command requests that result in an error', function (done) {
+    it('should support calls that fail using response events', function (done) {
       var namespace = 'ns-a'
       var command = 'cmd-a'
       var requestPayload = 'request-payload'
       var timeout = 111
 
-      var responseType = types.COMMAND_RESPONSE_ERROR
+      var responseType = types.CALL_ASYNC_FAILURE
+      var failureType = 'type-a'
+      var failureMessage = 'Failure message.'
+      var responsePayload = {a: 'b', c: 'd'}
+
+      subject.on('response', function (error, response, ns, cmd) {
+        expect(error).to.be.an.instanceof(OverpassFailure)
+        expect(isFailureType(failureType, error)).to.be.true
+        expect(error.message).to.equal(failureMessage)
+        expect(error.data).to.equal(responsePayload)
+        expect(response).to.not.be.ok
+        expect(ns).to.equal(namespace)
+        expect(cmd).to.equal(command)
+        expect(send).to.have.been.calledWith({
+          type: types.CALL_ASYNC,
+          session: id,
+          namespace: namespace,
+          command: command,
+          payload: requestPayload,
+          timeout: timeout
+        })
+
+        if (log) expect(logger).to.have.been.called
+
+        done()
+      })
+
+      subject.call(namespace, command, requestPayload, timeout)
+      receiver({
+        type: responseType,
+        namespace: namespace,
+        command: command,
+        failureType: failureType,
+        failureMessage: failureMessage,
+        payload: function () {
+          return responsePayload
+        }
+      })
+    })
+
+    it('should support calls that result in an error using a handler', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var requestPayload = 'request-payload'
+      var timeout = 111
+
+      var responseType = types.CALL_ERROR
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
         expect(error).to.be.an.error
         expect(error.message).to.match(/server error/i)
         expect(response).to.not.be.ok
-        expect(connectionSend).to.have.been.calledWith({
-          type: types.COMMAND_REQUEST,
+        expect(send).to.have.been.calledWith({
+          type: types.CALL,
           session: id,
           namespace: namespace,
           command: command,
@@ -207,6 +297,42 @@ function makeSessionSpecs (log) {
       })
     })
 
+    it('should support calls that result in an error using response events', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var requestPayload = 'request-payload'
+      var timeout = 111
+
+      var responseType = types.CALL_ASYNC_ERROR
+
+      subject.on('response', function (error, response, ns, cmd) {
+        expect(error).to.be.an.error
+        expect(error.message).to.match(/server error/i)
+        expect(response).to.not.be.ok
+        expect(ns).to.equal(namespace)
+        expect(cmd).to.equal(command)
+        expect(send).to.have.been.calledWith({
+          type: types.CALL_ASYNC,
+          session: id,
+          namespace: namespace,
+          command: command,
+          payload: requestPayload,
+          timeout: timeout
+        })
+
+        if (log) expect(logger).to.have.been.called
+
+        done()
+      })
+
+      subject.call(namespace, command, requestPayload, timeout)
+      receiver({
+        type: responseType,
+        namespace: namespace,
+        command: command
+      })
+    })
+
     it('should handle being destroyed when there are active calls', function (done) {
       var namespace = 'ns-a'
       var command = 'cmd-a'
@@ -217,8 +343,8 @@ function makeSessionSpecs (log) {
         expect(error).to.be.an.error
         expect(error.message).to.match(/session destroyed remotely/i)
         expect(response).to.not.be.ok
-        expect(connectionSend).to.have.been.calledWith({
-          type: types.COMMAND_REQUEST,
+        expect(send).to.have.been.calledWith({
+          type: types.CALL,
           session: id,
           namespace: namespace,
           command: command,
@@ -248,8 +374,8 @@ function makeSessionSpecs (log) {
         expect(error).to.be.an.error
         expect(error.message).to.match(/timed out/i)
         expect(response).to.not.be.ok
-        expect(connectionSend).to.have.been.calledWith({
-          type: types.COMMAND_REQUEST,
+        expect(send).to.have.been.calledWith({
+          type: types.CALL,
           session: id,
           namespace: namespace,
           command: command,
@@ -289,10 +415,29 @@ function makeSessionSpecs (log) {
       })
     })
 
-    it('should ignore command responses that cannot be correlated', function () {
+    it('should ignore call errors that cannot be correlated', function () {
       receiver({
-        type: types.COMMAND_RESPONSE_ERROR,
+        type: types.CALL_ERROR,
         seq: 999
+      })
+    })
+
+    it('should ignore call failures that cannot be correlated', function () {
+      receiver({
+        type: types.CALL_FAILURE,
+        seq: 999,
+        failureType: 'type-a',
+        failureMessage: 'Failure message.'
+      })
+    })
+
+    it('should ignore call success responses that cannot be correlated', function () {
+      receiver({
+        type: types.CALL_SUCCESS,
+        seq: 999,
+        payload: function () {
+          return 'payload'
+        }
       })
     })
 
@@ -334,13 +479,13 @@ function makeSessionSpecs (log) {
         subject.destroy()
       })
 
-      it('should throw an error when attempting to send a command request', function () {
+      it('should throw an error when attempting to execute a command', function () {
         expect(function () {
-          subject.send('ns-a', 'cmd-a', 'request-payload')
+          subject.execute('ns-a', 'cmd-a', 'request-payload')
         }).to.throw(/session destroyed locally/i)
       })
 
-      it('should throw an error when attempting to send a correlated command request', function (done) {
+      it('should throw an error when attempting to make a call', function (done) {
         subject.call('ns-a', 'cmd-a', 'request-payload', 111, function (error, response) {
           expect(error).to.be.an.error
           expect(error.message).to.match(/session destroyed locally/i)

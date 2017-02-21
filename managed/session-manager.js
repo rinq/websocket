@@ -76,6 +76,22 @@ function OverpassSessionManager (
     }
   }
 
+  this.execute = function execute (namespace, command, payload) {
+    if (!sessionManager.session) throw new Error('No session available.')
+
+    return sessionManager.session.execute(namespace, command, payload)
+  }
+
+  this.call = function call (namespace, command, payload, timeout, callback) {
+    if (!sessionManager.session) {
+      callback(new Error('No session available.'))
+
+      return
+    }
+
+    sessionManager.session.call(namespace, command, payload, timeout, callback)
+  }
+
   this.context = function (options) {
     return new OverpassContext(
       sessionManager,
@@ -139,6 +155,14 @@ function OverpassSessionManager (
     emit('error', error)
   }
 
+  function onNotification (type, payload) {
+    emit('notification', type, payload)
+  }
+
+  function onResponse (error, response, namespace, command) {
+    emit('response', error, response, namespace, command)
+  }
+
   function onDestroy (error) {
     if (log && log.debug) {
       logger(
@@ -151,6 +175,8 @@ function OverpassSessionManager (
       )
     }
 
+    sessionManager.session.removeListener('notification', onNotification)
+    sessionManager.session.removeListener('response', onResponse)
     sessionManager.session = null
     emit('error', error)
   }
@@ -176,6 +202,8 @@ function OverpassSessionManager (
     }
 
     sessionManager.session = newConnection.session(options)
+    sessionManager.session.on('notification', onNotification)
+    sessionManager.session.on('response', onResponse)
     sessionManager.session.once('destroy', onDestroy)
 
     emit('session', sessionManager.session)

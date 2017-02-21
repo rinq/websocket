@@ -116,13 +116,13 @@ function makeContextSpecs (log) {
         initDone(expected)
       })
 
-      it('should throw an exception if not ready to send command requesets', function () {
+      it('should throw an exception if not ready to execute commands', function () {
         expect(function () {
-          subject.send('ns-a', 'cmd-a', 'payload')
+          subject.execute('ns-a', 'cmd-a', 'payload')
         }).to.throw(/not ready/i)
       })
 
-      it('should respond with an exception if not ready to send correlated command requesets', function (done) {
+      it('should respond with an exception if not ready to call commands', function (done) {
         subject.call('ns-a', 'cmd-a', 'payload', 111, function (error, response) {
           expect(error).to.be.an.error
           expect(error.message).to.match(/not ready/i)
@@ -243,7 +243,7 @@ function makeContextSpecs (log) {
         subject.on('ready', done)
 
         sessionManager.session = new EventEmitter()
-        sessionManager.session.send = spy()
+        sessionManager.session.execute = spy()
         sessionManager.session.call = spy()
 
         subject.start()
@@ -266,16 +266,16 @@ function makeContextSpecs (log) {
         sessionManager.session.emit('destroy', expected)
       })
 
-      it('should support sending of command requests', function () {
+      it('should support executing commands', function () {
         var namespace = 'ns-a'
         var command = 'cmd-a'
         var requestPayload = 'request-payload'
-        subject.send(namespace, command, requestPayload)
+        subject.execute(namespace, command, requestPayload)
 
-        expect(sessionManager.session.send).to.have.been.calledWith(namespace, command, requestPayload)
+        expect(sessionManager.session.execute).to.have.been.calledWith(namespace, command, requestPayload)
       })
 
-      it('should support correlated command requests', function () {
+      it('should support calls', function () {
         var namespace = 'ns-a'
         var command = 'cmd-a'
         var requestPayload = 'request-payload'

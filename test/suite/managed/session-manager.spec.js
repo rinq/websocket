@@ -90,6 +90,21 @@ function makeSessionManagerSpecs (log) {
       subject.start()
     })
 
+    it('should not support execution until a session is available', function () {
+      expect(function () {
+        subject.execute('ns-a', 'cmd-a', 'payload')
+      }).to.throw(/no session/i)
+    })
+
+    it('should not support calling until a session is available', function (done) {
+      subject.call('ns-a', 'cmd-a', 'payload', 111, function (error) {
+        expect(error).to.be.ok
+        expect(error.message).to.match(/no session/i)
+
+        done()
+      })
+    })
+
     it('should be able to create contexts', function () {
       var actual = subject.context()
 
@@ -121,6 +136,8 @@ function makeSessionManagerSpecs (log) {
         connectionManager.connection = new EventEmitter()
         connectionManager.connection.session = function () {
           session = new EventEmitter()
+          session.execute = spy()
+          session.call = spy()
           session.destroy = spy()
 
           return session
@@ -133,6 +150,19 @@ function makeSessionManagerSpecs (log) {
 
         expect(subject.isStarted).to.be.false
         expect(session.destroy).to.have.been.called
+      })
+
+      it('should support execution', function () {
+        subject.execute('ns-a', 'cmd-a', 'payload')
+
+        expect(session.execute).to.have.been.calledWith('ns-a', 'cmd-a', 'payload')
+      })
+
+      it('should support calling', function () {
+        var handler = function () {}
+        subject.call('ns-a', 'cmd-a', 'payload', 111, handler)
+
+        expect(session.call).to.have.been.calledWith('ns-a', 'cmd-a', 'payload', 111, handler)
       })
 
       it('should handle connections being closed', function (done) {
@@ -178,6 +208,38 @@ function makeSessionManagerSpecs (log) {
 
         var expected = new Error('Error message.')
         connectionManager.emit('error', expected)
+      })
+
+      it('should propagate notifications from the session', function (done) {
+        var type = 'type-a'
+        var payload = {a: 'b', c: 'd'}
+
+        subject.once('notification', function (typ, pyld) {
+          expect(typ).to.equal(type)
+          expect(pyld).to.equal(payload)
+
+          done()
+        })
+
+        session.emit('notification', type, payload)
+      })
+
+      it('should propagate responses from the session', function (done) {
+        var error = new Error('Error message.')
+        var response = {a: 'b', c: 'd'}
+        var namespace = 'ns-a'
+        var command = 'cmd-a'
+
+        subject.once('response', function (err, resp, ns, cmd) {
+          expect(err).to.equal(error)
+          expect(resp).to.equal(response)
+          expect(ns).to.equal(namespace)
+          expect(cmd).to.equal(command)
+
+          done()
+        })
+
+        session.emit('response', error, response, namespace, command)
       })
     })
   }

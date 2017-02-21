@@ -5,35 +5,39 @@ var spy = require('sinon').spy
 var createHandshake = require('../../../core/create-handshake')
 var jsonDecode = require('../../../serialization/json/decode')
 var jsonEncode = require('../../../serialization/json/encode')
-var marshalCommandRequest = require('../../../serialization/marshaller/command-request')
-var marshalCommandResponse = require('../../../serialization/marshaller/command-response')
+var marshalCall = require('../../../serialization/marshaller/call')
+var marshalCallError = require('../../../serialization/marshaller/call-error')
+var marshalCallFailure = require('../../../serialization/marshaller/call-failure')
+var marshalCallSuccess = require('../../../serialization/marshaller/call-success')
 var marshalNotification = require('../../../serialization/marshaller/notification')
 var OverpassConnection = require('../../../core/connection')
 var OverpassSession = require('../../../core/session')
 var serializeMessage = require('../../../serialization/serialize-message')
 var types = require('../../../core/message-types')
-var unmarshalCommandRequest = require('../../../serialization/unmarshaller/command-request')
-var unmarshalCommandResponse = require('../../../serialization/unmarshaller/command-response')
+var unmarshalCall = require('../../../serialization/unmarshaller/call')
+var unmarshalCallError = require('../../../serialization/unmarshaller/call-error')
+var unmarshalCallFailure = require('../../../serialization/unmarshaller/call-failure')
+var unmarshalCallSuccess = require('../../../serialization/unmarshaller/call-success')
 var unmarshalNotification = require('../../../serialization/unmarshaller/notification')
 var unserializeMessage = require('../../../serialization/unserialize-message')
 
 var marshallers = {}
+marshallers[types.CALL] = marshalCall
+marshallers[types.CALL_ERROR] = marshalCallError
+marshallers[types.CALL_FAILURE] = marshalCallFailure
+marshallers[types.CALL_SUCCESS] = marshalCallSuccess
+marshallers[types.NOTIFICATION] = marshalNotification
 marshallers[types.SESSION_CREATE] = null
 marshallers[types.SESSION_DESTROY] = null
-marshallers[types.COMMAND_REQUEST] = marshalCommandRequest
-marshallers[types.COMMAND_RESPONSE_SUCCESS] = marshalCommandResponse
-marshallers[types.COMMAND_RESPONSE_FAILURE] = marshalCommandResponse
-marshallers[types.COMMAND_RESPONSE_ERROR] = marshalCommandResponse
-marshallers[types.NOTIFICATION] = marshalNotification
 
 var unmarshallers = {}
+unmarshallers[types.CALL] = unmarshalCall
+unmarshallers[types.CALL_ERROR] = unmarshalCallError
+unmarshallers[types.CALL_FAILURE] = unmarshalCallFailure
+unmarshallers[types.CALL_SUCCESS] = unmarshalCallSuccess
+unmarshallers[types.NOTIFICATION] = unmarshalNotification
 unmarshallers[types.SESSION_CREATE] = null
 unmarshallers[types.SESSION_DESTROY] = null
-unmarshallers[types.COMMAND_REQUEST] = unmarshalCommandRequest
-unmarshallers[types.COMMAND_RESPONSE_SUCCESS] = unmarshalCommandResponse
-unmarshallers[types.COMMAND_RESPONSE_FAILURE] = unmarshalCommandResponse
-unmarshallers[types.COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
-unmarshallers[types.NOTIFICATION] = unmarshalNotification
 
 var socket,
   socketEmitter,
@@ -216,13 +220,13 @@ function makeConnectionSpecs (log) {
         })
 
         socketEmitter.emit('message', {data: serialize({
-          type: types.COMMAND_RESPONSE_SUCCESS,
+          type: types.CALL_SUCCESS,
           session: 2,
           seq: 1,
           payload: 'response-b'
         })})
         socketEmitter.emit('message', {data: serialize({
-          type: types.COMMAND_RESPONSE_SUCCESS,
+          type: types.CALL_SUCCESS,
           session: 1,
           seq: 1,
           payload: 'response-a'

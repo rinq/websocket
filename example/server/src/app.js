@@ -13,10 +13,10 @@ import {Server as WsServer} from 'ws'
 import {
   SESSION_CREATE,
   SESSION_DESTROY,
-  COMMAND_REQUEST,
-  COMMAND_RESPONSE_SUCCESS,
-  COMMAND_RESPONSE_FAILURE,
-  COMMAND_RESPONSE_ERROR,
+  CALL,
+  CALL_SUCCESS,
+  CALL_FAILURE,
+  CALL_ERROR,
   NOTIFICATION
 } from 'overpass-websocket/core/message-types'
 
@@ -60,15 +60,15 @@ const logger = new winston.Logger({
 })
 
 const marshallers = {}
-marshallers[COMMAND_RESPONSE_SUCCESS] = marshallCommandResponse
-marshallers[COMMAND_RESPONSE_FAILURE] = marshallCommandResponse
-marshallers[COMMAND_RESPONSE_ERROR] = marshallCommandResponse
+marshallers[CALL_SUCCESS] = marshallCommandResponse
+marshallers[CALL_FAILURE] = marshallCommandResponse
+marshallers[CALL_ERROR] = marshallCommandResponse
 marshallers[NOTIFICATION] = marshallNotification
 
 const unmarshallers = {}
 unmarshallers[SESSION_CREATE] = null
 unmarshallers[SESSION_DESTROY] = null
-unmarshallers[COMMAND_REQUEST] = unmarshallCommandRequest
+unmarshallers[CALL] = unmarshallCommandRequest
 
 const serializations = {
   'application/cbor': {

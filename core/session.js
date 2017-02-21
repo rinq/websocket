@@ -5,8 +5,8 @@ var types = require('./message-types')
 
 function OverpassSession (
   sessionId,
-  connectionSend,
-  connectionReceive,
+  send,
+  receive,
   setTimeout,
   clearTimeout,
   logger,
@@ -33,15 +33,15 @@ function OverpassSession (
   outSymbol = '\uD83D\uDCEE'
   notificationSymbol = '\uD83D\uDCE2'
 
-  connectionReceive(dispatch, doDestroy)
+  receive(dispatch, doDestroy)
 
-  this.send = function send (namespace, command, payload) {
+  this.execute = function execute (namespace, command, payload) {
     if (destroyError) throw destroyError
 
     if (log) {
       logger(
         [
-          '%c%s %s[send] command request %s %s',
+          '%c%s %s[exec] %s %s',
           'color: blue',
           outSymbol,
           log.prefix,
@@ -52,8 +52,8 @@ function OverpassSession (
       )
     }
 
-    connectionSend({
-      type: types.COMMAND_REQUEST,
+    send({
+      type: types.EXECUTE,
       session: sessionId,
       namespace: namespace,
       command: command,
@@ -62,12 +62,42 @@ function OverpassSession (
   }
 
   this.call = function call (namespace, command, payload, timeout, callback) {
-    var callId
-
     if (destroyError) {
       callback(destroyError)
 
       return
+    }
+
+    if (callback) {
+      callWait(namespace, command, payload, timeout, callback)
+    } else {
+      callAsync(namespace, command, payload, timeout)
+    }
+  }
+
+  this.destroy = function destroy () {
+    if (log && log.debug) {
+      logger(
+        [
+          '%c%s %sDestroying session.',
+          'color: orange',
+          debugSymbol,
+          log.prefix
+        ]
+      )
+    }
+
+    send({type: types.SESSION_DESTROY, session: sessionId})
+    doDestroy()
+  }
+
+  function callWait (namespace, command, payload, timeout, callback) {
+    var callId
+
+    if (timeout < 0) {
+      throw new Error(
+        'Infinite timeouts are not supported when specifying a callback.'
+      )
     }
 
     callId = ++callSeq
@@ -88,7 +118,7 @@ function OverpassSession (
     if (log) {
       logger(
         [
-          '%c%s %s[call] [%d] command request %s %s',
+          '%c%s %s[call] [%d] %s %s',
           'color: blue',
           outSymbol,
           log.prefix,
@@ -100,45 +130,55 @@ function OverpassSession (
       )
     }
 
-    connectionSend({
-      type: types.COMMAND_REQUEST,
+    send({
+      type: types.CALL,
       session: sessionId,
+      seq: callId,
       namespace: namespace,
       command: command,
-      payload: payload,
-      seq: callId,
-      timeout: timeout
+      timeout: timeout,
+      payload: payload
     })
   }
 
-  this.destroy = function destroy () {
-    if (log && log.debug) {
+  function callAsync (namespace, command, payload, timeout) {
+    if (log) {
       logger(
         [
-          '%c%s %sDestroying session.',
-          'color: orange',
-          debugSymbol,
-          log.prefix
-        ]
+          '%c%s %s[call] [asyn] %s %s',
+          'color: blue',
+          outSymbol,
+          log.prefix,
+          namespace,
+          command
+        ],
+        [[{payload: payload, timeout: timeout}]]
       )
     }
 
-    connectionSend({type: types.SESSION_DESTROY, session: sessionId})
-    doDestroy()
+    send({
+      type: types.CALL_ASYNC,
+      session: sessionId,
+      namespace: namespace,
+      command: command,
+      timeout: timeout,
+      payload: payload
+    })
   }
 
   function dispatch (message) {
     switch (message.type) {
-      case types.SESSION_DESTROY:
-        return dispatchSessionDestroy(message)
+      case types.SESSION_DESTROY: return dispatchSessionDestroy(message)
 
-      case types.COMMAND_RESPONSE_SUCCESS:
-      case types.COMMAND_RESPONSE_FAILURE:
-      case types.COMMAND_RESPONSE_ERROR:
-        return dispatchCommandResponse(message)
+      case types.CALL_ERROR: return dispatchCallWaitError(message)
+      case types.CALL_FAILURE: return dispatchCallWaitFailure(message)
+      case types.CALL_SUCCESS: return dispatchCallWaitSuccess(message)
 
-      case types.NOTIFICATION:
-        return dispatchNotification(message)
+      case types.CALL_ASYNC_ERROR: return dispatchCallAsyncError(message)
+      case types.CALL_ASYNC_FAILURE: return dispatchCallAsyncFailure(message)
+      case types.CALL_ASYNC_SUCCESS: return dispatchCallAsyncSuccess(message)
+
+      case types.NOTIFICATION: return dispatchNotification(message)
     }
   }
 
@@ -157,78 +197,149 @@ function OverpassSession (
     doDestroy(new Error('Session destroyed remotely.'))
   }
 
-  function dispatchCommandResponse (message) {
-    var call         // the call matching the supplied call ID
-    var color        // the color to use when logging
-    var logSecondary // ancillary logging information
-    var payload      // the incoming message payload
-    var type         // the incoming command response type
+  function dispatchCallWaitError (message) {
+    var call
 
     call = calls[message.seq]
     if (!call) return
 
-    switch (message.type) {
-      case types.COMMAND_RESPONSE_SUCCESS:
-      case types.COMMAND_RESPONSE_FAILURE:
-        payload = message.payload()
-
-        break
-    }
-
     if (log) {
-      switch (message.type) {
-        case types.COMMAND_RESPONSE_SUCCESS:
-          type = 'success'
-          color = 'green'
-          logSecondary = [[{payload: payload}]]
-
-          break
-
-        case types.COMMAND_RESPONSE_FAILURE:
-          type = 'failure'
-          color = 'orange'
-          logSecondary = [[{payload: payload}]]
-
-          break
-
-        default:
-          type = 'error'
-          color = 'red'
-      }
-
       logger(
         [
-          '%c%s %s[recv] [%d] command response (%s)',
-          'color: ' + color,
+          '%c%s %s[recv] [%d] [erro]',
+          'color: red',
           inSymbol,
           log.prefix,
-          message.seq,
-          type
-        ],
-        logSecondary
+          message.seq
+        ]
       )
     }
 
     clearTimeout(call.timeout)
+    delete calls[message.seq]
+    call.callback(new Error('Server error.'))
+  }
 
-    switch (message.type) {
-      case types.COMMAND_RESPONSE_SUCCESS:
-        call.callback(null, payload)
+  function dispatchCallWaitFailure (message) {
+    var call, payload
 
-        break
+    call = calls[message.seq]
+    if (!call) return
 
-      case types.COMMAND_RESPONSE_FAILURE:
-        call.callback(
-          new OverpassFailure(payload.type, payload.message, payload.data)
-        )
+    payload = message.payload()
 
-        break
-
-      case types.COMMAND_RESPONSE_ERROR:
-        call.callback(new Error('Server error.'))
+    if (log) {
+      logger(
+        [
+          '%c%s %s[recv] [%d] [fail]',
+          'color: orange',
+          inSymbol,
+          log.prefix,
+          message.seq
+        ],
+        [[{payload: payload}]]
+      )
     }
 
+    clearTimeout(call.timeout)
     delete calls[message.seq]
+
+    call.callback(
+      new OverpassFailure(message.failureType, message.failureMessage, payload)
+    )
+  }
+
+  function dispatchCallWaitSuccess (message) {
+    var call, payload
+
+    call = calls[message.seq]
+    if (!call) return
+
+    payload = message.payload()
+
+    if (log) {
+      logger(
+        [
+          '%c%s %s[recv] [%d] [succ]',
+          'color: green',
+          inSymbol,
+          log.prefix,
+          message.seq
+        ],
+        [[{payload: payload}]]
+      )
+    }
+
+    clearTimeout(call.timeout)
+    delete calls[message.seq]
+    call.callback(null, payload)
+  }
+
+  function dispatchCallAsyncError (message) {
+    if (log) {
+      logger(
+        [
+          '%c%s %s[recv] [asyn] [erro]',
+          'color: red',
+          inSymbol,
+          log.prefix
+        ]
+      )
+    }
+
+    emit(
+      'response',
+      new Error('Server error.'),
+      null,
+      message.namespace,
+      message.command
+    )
+  }
+
+  function dispatchCallAsyncFailure (message) {
+    var payload
+
+    payload = message.payload()
+
+    if (log) {
+      logger(
+        [
+          '%c%s %s[recv] [asyn] [fail]',
+          'color: orange',
+          inSymbol,
+          log.prefix
+        ],
+        [[{payload: payload}]]
+      )
+    }
+
+    emit(
+      'response',
+      new OverpassFailure(message.failureType, message.failureMessage, payload),
+      null,
+      message.namespace,
+      message.command
+    )
+  }
+
+  function dispatchCallAsyncSuccess (message) {
+    var payload
+
+    payload = message.payload()
+
+    if (log) {
+      logger(
+        [
+          '%c%s %s[recv] [asyn] [succ]',
+          'color: green',
+          inSymbol,
+          log.prefix
+        ],
+        [[{payload: payload}]]
+      )
+    }
+
+    emit('response', null, payload, message.namespace, message.command)
   }
 
   function dispatchNotification (message) {

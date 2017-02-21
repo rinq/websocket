@@ -17,7 +17,7 @@ var connection = overpass.connection('ws://example.org/')
 var session = overpass.session()
 
 connection.on('open', function () {
-  session.send('namespace', 'command', 'payload')
+  session.execute('namespace', 'command', 'payload')
 })
 ```
 
@@ -41,7 +41,7 @@ var sessionManager = connectionManager.sessionManager()
 var context = sessionManager.context()
 
 context.on('ready', function () {
-  context.send('namespace', 'command', 'payload')
+  context.execute('namespace', 'command', 'payload')
 })
 
 context.start()
@@ -70,7 +70,7 @@ var context = sessionManager.context({
 })
 
 context.on('ready', function () {
-  context.send('namespace', 'command', 'payload')
+  context.execute('namespace', 'command', 'payload')
 })
 
 context.start()
@@ -233,17 +233,18 @@ be `undefined`.
 Represents a session, and allows for multiple channels of communication over a
 single *Overpass* connection:
 
-- [send()](#session.send)
+- [execute()](#session.execute)
 - [call()](#session.call)
 - [destroy()](#session.destroy)
 - [*notification* event](#session.event.notification)
+- [*response* event](#session.event.response)
 - [*destroy* event](#session.event.destroy)
 
-<a name="session.send" />
+<a name="session.execute" />
 
 ---
 
-> *`void`* [**`session.send`**](#session.send) `(namespace, command, payload)`
+> *`void`* [**`session.execute`**](#session.execute) `(namespace, command, payload)`
 
 Sends an *Overpass* command, for which no response is expected.
 
@@ -254,25 +255,35 @@ appropriate server. The `payload` can be any [JSON] serializable value.
 
 ---
 
-> *`void`* [**`session.call`**](#session.call) `(namespace, command, payload, timeout, function (error, response) {})`
+> *`void`* [**`session.call`**](#session.call) `(namespace, command, payload[, timeout][, function (error, response) {}])`
 
 Sends an *Overpass* command, and handles the response.
 
 Both `namespace` and `command` are strings used to dispatch the command to the
 appropriate server. The `payload` can be any [JSON] serializable value.
 
-The `timeout` value is used to implement a client-side timeout. If the command
-does not respond within `timeout` milliseconds, the handler will be called with
-a timeout error, and no response value. Depending on the server, and the
-individual command, this timeout *may* also be implemented server-side.
+The `timeout` value is used in the *Overpass* protocol to determine when an
+unprocessed command can be discarded due to its age. In addition, if a handler
+function is supplied, a client-side timeout will cause the handler function to
+be called with a timeout error as its `error` argument.
 
-The last argument is a handler that accepts an `error` as the first argument,
-and the `response` as the second. If `error` is non-empty, the `response` value
-should be ignored.
+The `timeout` value is specified as an integer. A positive `timeout` value
+indicates the number of milliseconds before timeout occurs. A `timeout` of `0`
+indicates that the server-side default timeout should be used. A negative
+`timeout` value indicates that *no* timeout should be used, but this is only
+allowed when no handler function is specified.
 
-Errors supplied to the handler may be *Overpass* [failures], which are sent by
-the server handling the command, or regular JavaScript errors for unexpected
-circumstances.
+The last argument is an optional handler that accepts an `error` as the first
+argument, and the `response` as the second. If `error` is non-empty, the
+`response` value should be ignored.
+
+If no handler function is specified, the response to the call will instead be
+emitted from the session as a [*response* event](#session.event.response).
+
+Errors supplied to the handler, or emitted via a
+[*response* event](#session.event.response) will typically be *Overpass*
+[failures], which are sent by the server handling the command, but they can also
+be regular JavaScript errors for unexpected circumstances.
 
 Generally speaking, specific handling should exist for any relevant [failures],
 and a single catch-all for unexpected errors should also exist. To differentiate
@@ -305,6 +316,21 @@ The handler for this event accepts the notification's `type` string as the first
 argument, and its `payload` value as the second argument. The `payload` value
 can be any plain JavaScript value sent by the server, including any values that
 can be unserialized from [JSON].
+
+<a name="session.event.response" />
+
+---
+
+> `session.on(` [**`'response'`**](#session.event.response) `, function (error, response, namespace, command) {})`
+
+This event is emitted when a response is received, and no handler function was
+specified in the originating [call](#session.call).
+
+The handler for this event accepts the same `error` and `response` values as
+would normally be passed to a handler function supplied to
+[call()](#session.call). In addition to these arguments, `namespace` and
+`command` are provided, which supply the `namespace` and `command` values
+specified in the originating [call](#session.call).
 
 <a name="session.event.destroy" />
 
@@ -485,10 +511,14 @@ received via the next [`connection` event](#connectionManager.event.connection).
 Represents a transient *Overpass* session, and allows the creation of
 [contexts]:
 
+- [execute()](#sessionManager.execute)
+- [call()](#sessionManager.call)
 - [context()](#sessionManager.context)
 - [start()](#sessionManager.start)
 - [stop()](#sessionManager.stop)
 - [*session* event](#sessionManager.event.session)
+- [*notification* event](#sessionManager.event.notification)
+- [*response* event](#sessionManager.event.response)
 - [*error* event](#sessionManager.event.error)
 
 <a name="sessionManager.context" />
@@ -555,6 +585,26 @@ var context = sessionManager.context({
 })
 ```
 
+<a name="sessionManager.execute" />
+
+---
+
+> *`void`* [**`sessionManager.execute`**](#sessionManager.execute) `(namespace, command, payload)`
+
+Sends an *Overpass* command, for which no response is expected.
+
+Functionally equivalent to [session.execute](#session.execute).
+
+<a name="sessionManager.call" />
+
+---
+
+> *`void`* [**`sessionManager.call`**](#sessionManager.call) `(namespace, command, payload, timeout, function (error, response) {})`
+
+Sends an *Overpass* command, and handles the response.
+
+Functionally equivalent to [session.call](#session.call)..
+
 <a name="sessionManager.start" />
 
 ---
@@ -593,6 +643,24 @@ This event will fire multiple times (interspersed with
 problems arise, and are resolved. The latest session should always replace any
 previous sessions.
 
+<a name="sessionManager.event.notification" />
+
+---
+
+> `sessionManager.on(` [**`'notification'`**](#sessionManager.event.notification) `, function (type, payload) {})`
+
+This event is emitted when an underlying session emits a
+[`notification` event](#session.event.notification).
+
+<a name="sessionManager.event.response" />
+
+---
+
+> `sessionManager.on(` [**`'response'`**](#sessionManager.event.response) `, function (error, response, namespace, command) {})`
+
+This event is emitted when an underlying session emits a
+[`response` event](#session.event.response).
+
 <a name="sessionManager.event.error" />
 
 ---
@@ -612,7 +680,7 @@ asynchronous initialization logic before communication can commence:
 
 - [start()](#context.start)
 - [stop()](#context.stop)
-- [send()](#context.send)
+- [execute()](#context.execute)
 - [call()](#context.call)
 - [whenReady()](#context.whenReady)
 - [*ready* event](#context.event.ready)
@@ -639,15 +707,15 @@ Stops the context.
 
 When the context is stopped, it will not attempt to maintain a "ready" state.
 
-<a name="context.send" />
+<a name="context.execute" />
 
 ---
 
-> *`void`* [**`context.send`**](#context.send) `(namespace, command, payload)`
+> *`void`* [**`context.execute`**](#context.execute) `(namespace, command, payload)`
 
 Sends an *Overpass* command, for which no response is expected.
 
-Functionally equivalent to [session.send](#session.send).
+Functionally equivalent to [session.execute](#session.execute).
 
 <a name="context.call" />
 
@@ -657,7 +725,8 @@ Functionally equivalent to [session.send](#session.send).
 
 Sends an *Overpass* command, and handles the response.
 
-Functionally equivalent to [session.call](#session.call).
+Functionally equivalent to [session.call](#session.call), except that both
+`timeout`, and the handler function are mandatory.
 
 <a name="context.whenReady" />
 

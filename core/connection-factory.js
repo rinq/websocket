@@ -4,10 +4,17 @@ var createSerialize = require('../serialization/create-serialize')
 var createUnserialize = require('../serialization/create-unserialize')
 var jsonDecode = require('../serialization/json/decode')
 var jsonEncode = require('../serialization/json/encode')
-var marshalCommandRequest = require('../serialization/marshaller/command-request')
+var marshalCall = require('../serialization/marshaller/call')
+var marshalCallAsync = require('../serialization/marshaller/call-async')
+var marshalExecute = require('../serialization/marshaller/execute')
 var OverpassConnection = require('./connection')
 var types = require('./message-types')
-var unmarshalCommandResponse = require('../serialization/unmarshaller/command-response')
+var unmarshalCallAsyncError = require('../serialization/unmarshaller/call-async-error')
+var unmarshalCallAsyncFailure = require('../serialization/unmarshaller/call-async-failure')
+var unmarshalCallAsyncSuccess = require('../serialization/unmarshaller/call-async-success')
+var unmarshalCallError = require('../serialization/unmarshaller/call-error')
+var unmarshalCallFailure = require('../serialization/unmarshaller/call-failure')
+var unmarshalCallSuccess = require('../serialization/unmarshaller/call-success')
 var unmarshalNotification = require('../serialization/unmarshaller/notification')
 
 var major         // the Overpass protocol major version
@@ -19,14 +26,19 @@ major = 2
 minor = 0
 
 marshallers = {}
+marshallers[types.CALL] = marshalCall
+marshallers[types.CALL_ASYNC] = marshalCallAsync
+marshallers[types.EXECUTE] = marshalExecute
 marshallers[types.SESSION_CREATE] = null
 marshallers[types.SESSION_DESTROY] = null
-marshallers[types.COMMAND_REQUEST] = marshalCommandRequest
 
 unmarshallers = {}
-unmarshallers[types.COMMAND_RESPONSE_SUCCESS] = unmarshalCommandResponse
-unmarshallers[types.COMMAND_RESPONSE_FAILURE] = unmarshalCommandResponse
-unmarshallers[types.COMMAND_RESPONSE_ERROR] = unmarshalCommandResponse
+unmarshallers[types.CALL_ERROR] = unmarshalCallError
+unmarshallers[types.CALL_FAILURE] = unmarshalCallFailure
+unmarshallers[types.CALL_SUCCESS] = unmarshalCallSuccess
+unmarshallers[types.CALL_ASYNC_ERROR] = unmarshalCallAsyncError
+unmarshallers[types.CALL_ASYNC_FAILURE] = unmarshalCallAsyncFailure
+unmarshallers[types.CALL_ASYNC_SUCCESS] = unmarshalCallAsyncSuccess
 unmarshallers[types.NOTIFICATION] = unmarshalNotification
 
 module.exports = function connectionFactory (

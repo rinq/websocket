@@ -71,10 +71,10 @@ function OverpassContext (
     context.isReady = false
   }
 
-  this.send = function send (namespace, command, payload) {
+  this.execute = function execute (namespace, command, payload) {
     if (!context.isReady) throw new Error('Context not ready.')
 
-    return session.send(namespace, command, payload)
+    return session.execute(namespace, command, payload)
   }
 
   this.call = function call (namespace, command, payload, timeout, callback) {
