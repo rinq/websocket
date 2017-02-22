@@ -43,7 +43,7 @@ const authenticatedContext = bluebird.promisifyAll(sessionManager.context({
 
     session.call('echo.1', 'success', cakeParty)
     session.call('echo.1', 'notify', cakeParty)
-    session.call('echo.1', 'failure', cakeParty)
+    session.call('echo.1', 'fail', cakeParty)
     session.call('echo.1', 'error', cakeParty)
     session.call('echo.1', 'undefined', cakeParty)
     session.call('echo.1', 'timeout', cakeParty)
