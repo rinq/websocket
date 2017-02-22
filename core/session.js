@@ -92,7 +92,7 @@ function OverpassSession (
   }
 
   function callWait (namespace, command, payload, timeout, callback) {
-    var callId
+    var callId, timeoutId
 
     if (timeout < 0) {
       throw new Error(
@@ -101,9 +101,9 @@ function OverpassSession (
     }
 
     callId = ++callSeq
-    calls[callId] = {
-      callback: callback,
-      timeout: setTimeout(
+
+    if (timeout > 0) {
+      timeoutId = setTimeout(
         function () {
           delete calls[callId]
           callback(new Error(
@@ -114,6 +114,8 @@ function OverpassSession (
         timeout
       )
     }
+
+    calls[callId] = {callback: callback, timeout: timeoutId}
 
     if (log) {
       logger(
@@ -215,7 +217,8 @@ function OverpassSession (
       )
     }
 
-    clearTimeout(call.timeout)
+    if (call.timeout) clearTimeout(call.timeout)
+
     delete calls[message.seq]
     call.callback(new Error('Server error.'))
   }
@@ -241,7 +244,8 @@ function OverpassSession (
       )
     }
 
-    clearTimeout(call.timeout)
+    if (call.timeout) clearTimeout(call.timeout)
+
     delete calls[message.seq]
 
     call.callback(
@@ -270,7 +274,8 @@ function OverpassSession (
       )
     }
 
-    clearTimeout(call.timeout)
+    if (call.timeout) clearTimeout(call.timeout)
+
     delete calls[message.seq]
     call.callback(null, payload)
   }
@@ -371,7 +376,8 @@ function OverpassSession (
     for (callId in calls) {
       call = calls[callId]
 
-      clearTimeout(call.timeout)
+      if (call.timeout) clearTimeout(call.timeout)
+
       call.callback(destroyError)
     }
 

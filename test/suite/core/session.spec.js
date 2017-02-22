@@ -83,7 +83,7 @@ function makeSessionSpecs (log) {
       if (log) expect(logger).to.have.been.called
     })
 
-    it('should disallow calls with infinite timeout and a handler', function () {
+    it('should disallow calls with server-side timeout and a handler', function () {
       var callback = function () {
         subject.call('ns-a', 'cmd-a', null, -1, function () {})
       }
@@ -117,6 +117,34 @@ function makeSessionSpecs (log) {
         expect(clearTimeout).to.have.been.calledWith(timeoutId)
 
         if (log) expect(logger).to.have.been.called
+
+        done()
+      })
+
+      receiver({
+        type: responseType,
+        seq: 1,
+        payload: function () {
+          return responsePayload
+        }
+      })
+    })
+
+    it('should support successful calls using a handler and server-side timeout', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var requestPayload = 'request-payload'
+      var timeout = 0
+
+      var responseType = types.CALL_SUCCESS
+      var responsePayload = 'response-payload'
+
+      subject.call(namespace, command, requestPayload, timeout, function (error, response) {
+        expect(error).to.not.be.ok
+        expect(response).to.equal(responsePayload)
+        expect(timeoutFn).to.be.null
+        expect(timeoutDelay).to.be.null
+        expect(clearTimeout).to.not.have.been.called
 
         done()
       })
@@ -215,6 +243,41 @@ function makeSessionSpecs (log) {
       })
     })
 
+    it('should support calls that fail using a handler and server-side timeout', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var requestPayload = 'request-payload'
+      var timeout = 0
+
+      var responseType = types.CALL_FAILURE
+      var failureType = 'type-a'
+      var failureMessage = 'Failure message.'
+      var responsePayload = {a: 'b', c: 'd'}
+
+      subject.call(namespace, command, requestPayload, timeout, function (error, response) {
+        expect(error).to.be.an.instanceof(OverpassFailure)
+        expect(isFailureType(failureType, error)).to.be.true
+        expect(error.message).to.equal(failureMessage)
+        expect(error.data).to.equal(responsePayload)
+        expect(response).to.not.be.ok
+        expect(timeoutFn).to.be.null
+        expect(timeoutDelay).to.be.null
+        expect(clearTimeout).to.not.have.been.called
+
+        done()
+      })
+
+      receiver({
+        type: responseType,
+        seq: 1,
+        failureType: failureType,
+        failureMessage: failureMessage,
+        payload: function () {
+          return responsePayload
+        }
+      })
+    })
+
     it('should support calls that fail using response events', function (done) {
       var namespace = 'ns-a'
       var command = 'cmd-a'
@@ -297,6 +360,31 @@ function makeSessionSpecs (log) {
       })
     })
 
+    it('should support calls that result in an error using a handler and server-side timeout', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var requestPayload = 'request-payload'
+      var timeout = 0
+
+      var responseType = types.CALL_ERROR
+
+      subject.call(namespace, command, requestPayload, timeout, function (error, response) {
+        expect(error).to.be.an.error
+        expect(error.message).to.match(/server error/i)
+        expect(response).to.not.be.ok
+        expect(timeoutFn).to.be.null
+        expect(timeoutDelay).to.be.null
+        expect(clearTimeout).to.not.have.been.called
+
+        done()
+      })
+
+      receiver({
+        type: responseType,
+        seq: 1
+      })
+    })
+
     it('should support calls that result in an error using response events', function (done) {
       var namespace = 'ns-a'
       var command = 'cmd-a'
@@ -343,18 +431,31 @@ function makeSessionSpecs (log) {
         expect(error).to.be.an.error
         expect(error.message).to.match(/session destroyed remotely/i)
         expect(response).to.not.be.ok
-        expect(send).to.have.been.calledWith({
-          type: types.CALL,
-          session: id,
-          namespace: namespace,
-          command: command,
-          payload: requestPayload,
-          seq: 1,
-          timeout: timeout
-        })
         expect(timeoutFn).to.be.a.function
         expect(timeoutDelay).to.equal(timeout)
         expect(clearTimeout).to.have.been.calledWith(timeoutId)
+
+        if (log) expect(logger).to.have.been.called
+
+        done()
+      })
+
+      receiver({type: types.SESSION_DESTROY})
+    })
+
+    it('should handle being destroyed when there are active calls with server-side timeouts', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var requestPayload = 'request-payload'
+      var timeout = 0
+
+      subject.call(namespace, command, requestPayload, timeout, function (error, response) {
+        expect(error).to.be.an.error
+        expect(error.message).to.match(/session destroyed remotely/i)
+        expect(response).to.not.be.ok
+        expect(timeoutFn).to.be.null
+        expect(timeoutDelay).to.be.null
+        expect(clearTimeout).to.not.have.been.called
 
         if (log) expect(logger).to.have.been.called
 
