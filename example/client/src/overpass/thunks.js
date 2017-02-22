@@ -15,6 +15,7 @@ export function initializeOverpass () {
     _,
     {configurationReader, connectionManager, sessionManager}
   ) {
+    const connect = bindActionCreators(overpassConnect, dispatch)
     const disconnect = bindActionCreators(overpassDisconnect, dispatch)
     const notification = bindActionCreators(overpassNotification, dispatch)
 
@@ -22,10 +23,8 @@ export function initializeOverpass () {
     .then(function (configuration) {
       connectionManager.url = configuration.gateway
 
-      sessionManager.on('session', function (session) {
-        dispatch(overpassConnect())
-        session.on('notification', notification)
-      })
+      sessionManager.on('session', connect)
+      sessionManager.on('notification', notification)
       sessionManager.on('error', disconnect)
 
       for (let context of contexts) {

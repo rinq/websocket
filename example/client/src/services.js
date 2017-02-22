@@ -39,17 +39,16 @@ const authenticatedContext = bluebird.promisifyAll(sessionManager.context({
     prefix: '[context-b] '
   },
   initialize: (done, session) => {
-    session.call(
-      'echo.1',
-      'success',
-      '\u{1F370}\u{1F389}',
-      10000,
-      (error, response) => {
-        if (error) return done(error)
+    const cakeParty = '\u{1F370}\u{1F389}'
 
-        window.setTimeout(done, 3000)
-      }
-    )
+    session.call('echo.1', 'success', cakeParty)
+    session.call('echo.1', 'notify', cakeParty)
+    session.call('echo.1', 'failure', cakeParty)
+    session.call('echo.1', 'error', cakeParty)
+    session.call('echo.1', 'undefined', cakeParty)
+    session.call('echo.1', 'timeout', cakeParty)
+
+    done()
   }
 }))
 
@@ -71,31 +70,37 @@ const commands = [
     label: 'Success',
     ns: 'echo.1',
     command: 'success',
-    payload: null
+    payload: 'ping'
+  },
+  {
+    label: 'Notify',
+    ns: 'echo.1',
+    command: 'notify',
+    payload: 'ping'
   },
   {
     label: 'Failure',
     ns: 'echo.1',
     command: 'fail',
-    payload: null
+    payload: 'ping'
   },
   {
     label: 'Error',
     ns: 'echo.1',
     command: 'error',
-    payload: null
+    payload: 'ping'
   },
   {
     label: 'Undefined',
     ns: 'echo.1',
     command: 'undefined',
-    payload: null
+    payload: 'ping'
   },
   {
     label: 'Timeout',
     ns: 'echo.1',
     command: 'timeout',
-    payload: null
+    payload: 'ping'
   }
 ]
 

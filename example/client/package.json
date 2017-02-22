@@ -26,7 +26,7 @@
     "redux-immutable": "^3.0.11",
     "redux-logger": "^2.7.0",
     "redux-thunk": "^2.2.0",
-    "sass-loader": "^5.0.0",
+    "sass-loader": "^6.0.2",
     "webpack": "^2.2.1"
   },
   "devDependencies": {
