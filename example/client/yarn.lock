@@ -2925,7 +2925,7 @@ osenv@0:
 
 overpass-websocket@ezzatron/overpass-websocket#master:
   version "0.0.0"
-  resolved "https://codeload.github.com/ezzatron/overpass-websocket/tar.gz/4f7029ec210a64f209c73e2cdafe4223a2f219a9"
+  resolved "https://codeload.github.com/ezzatron/overpass-websocket/tar.gz/e293b9b1479cf1607a01f00671d31fa3343c777c"
 
 pako@~0.2.0:
   version "0.2.9"

@@ -144,6 +144,8 @@ function OverpassSession (
   }
 
   function callAsync (namespace, command, payload, timeout) {
+    if (!timeout) timeout = 0
+
     if (log) {
       logger(
         [

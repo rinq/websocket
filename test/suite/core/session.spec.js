@@ -197,6 +197,44 @@ function makeSessionSpecs (log) {
       })
     })
 
+    it('should support unspecified timeouts for calls using response events', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var requestPayload = 'request-payload'
+
+      var responseType = types.CALL_ASYNC_SUCCESS
+      var responsePayload = 'response-payload'
+
+      subject.on('response', function (error, response, ns, cmd) {
+        expect(error).to.not.be.ok
+        expect(response).to.equal(responsePayload)
+        expect(ns).to.equal(namespace)
+        expect(cmd).to.equal(command)
+        expect(send).to.have.been.calledWith({
+          type: types.CALL_ASYNC,
+          session: id,
+          namespace: namespace,
+          command: command,
+          payload: requestPayload,
+          timeout: 0
+        })
+
+        if (log) expect(logger).to.have.been.called
+
+        done()
+      })
+
+      subject.call(namespace, command, requestPayload)
+      receiver({
+        type: responseType,
+        namespace: namespace,
+        command: command,
+        payload: function () {
+          return responsePayload
+        }
+      })
+    })
+
     it('should support calls that fail using a handler', function (done) {
       var namespace = 'ns-a'
       var command = 'cmd-a'
