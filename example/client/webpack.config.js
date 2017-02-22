@@ -9,7 +9,6 @@ const extractSass = new ExtractTextPlugin({
 module.exports = {
   entry: [
     'grommet/scss/vanilla/index',
-    'babel-polyfill',
     './src/app'
   ],
   resolve: {
@@ -42,12 +41,18 @@ module.exports = {
         loader: extractSass.extract({
           use: [
             {
-              loader: 'css-loader'
+              loader: 'css-loader',
+              options: {
+                sourceMap: true
+              }
             },
             {
               loader: 'sass-loader',
               options: {
-                includePaths: ['./src', './node_modules']
+                sourceMap: false,
+                includePaths: [
+                  path.resolve(__dirname, 'node_modules')
+                ]
               }
             }
           ]
