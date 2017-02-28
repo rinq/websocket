@@ -283,40 +283,46 @@ function OverpassSession (
   }
 
   function dispatchCallAsyncError (message) {
+    var namespace, command
+
+    namespace = message.namespace
+    command = message.command
+
     if (log) {
       logger(
         [
-          '%c%s %s[recv] [asyn] [erro]',
+          '%c%s %s[recv] [asyn] [erro] %s %s',
           'color: red',
           inSymbol,
-          log.prefix
-        ]
+          log.prefix,
+          namespace,
+          command
+        ],
+        [[{namespace: namespace, command: command}]]
       )
     }
 
-    emit(
-      'response',
-      new Error('Server error.'),
-      null,
-      message.namespace,
-      message.command
-    )
+    emit('response', new Error('Server error.'), null, namespace, command)
   }
 
   function dispatchCallAsyncFailure (message) {
-    var payload
+    var namespace, command, payload
 
+    namespace = message.namespace
+    command = message.command
     payload = message.payload()
 
     if (log) {
       logger(
         [
-          '%c%s %s[recv] [asyn] [fail]',
+          '%c%s %s[recv] [asyn] [fail] %s %s',
           'color: orange',
           inSymbol,
-          log.prefix
+          log.prefix,
+          namespace,
+          command
         ],
-        [[{payload: payload}]]
+        [[{namespace: namespace, command: command, payload: payload}]]
       )
     }
 
@@ -330,19 +336,23 @@ function OverpassSession (
   }
 
   function dispatchCallAsyncSuccess (message) {
-    var payload
+    var namespace, command, payload
 
+    namespace = message.namespace
+    command = message.command
     payload = message.payload()
 
     if (log) {
       logger(
         [
-          '%c%s %s[recv] [asyn] [succ]',
+          '%c%s %s[recv] [asyn] [succ] %s %s',
           'color: green',
           inSymbol,
-          log.prefix
+          log.prefix,
+          namespace,
+          command
         ],
-        [[{payload: payload}]]
+        [[{namespace: namespace, command: command, payload: payload}]]
       )
     }
 
@@ -350,19 +360,21 @@ function OverpassSession (
   }
 
   function dispatchNotification (message) {
-    var payload
+    var type, payload
 
+    type = message.notificationType
     payload = message.payload()
 
     if (log) {
       logger(
         [
-          '%c%s %s[recv] notification',
+          '%c%s %s[recv] [noti] %s',
           'color: teal',
           notificationSymbol,
-          log.prefix
+          log.prefix,
+          type
         ],
-        [[{payload: payload}]]
+        [[{type: type, payload: payload}]]
       )
     }
 
