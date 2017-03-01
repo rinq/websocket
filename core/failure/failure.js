@@ -1,9 +1,9 @@
-function OverpassFailure (type, message, data) {
+function RinqFailure (type, message, data) {
   var error // used for stack trace support
 
   error = Error.call(this, message)
 
-  this.isOverpassFailure = true
+  this.isRinqFailure = true
   this.message = error.message
   this.type = type
   this.data = data
@@ -15,7 +15,7 @@ function OverpassFailure (type, message, data) {
   })
 }
 
-OverpassFailure.prototype = Object.create(Error.prototype)
-OverpassFailure.prototype.constructor = OverpassFailure
+RinqFailure.prototype = Object.create(Error.prototype)
+RinqFailure.prototype.constructor = RinqFailure
 
-module.exports = OverpassFailure
+module.exports = RinqFailure

@@ -1,6 +1,6 @@
-# Overpass WebSocket
+# Rinq WebSocket
 
-*Client library for Overpass WebSocket communication.*
+*Rinq in the browser.*
 
 ## Usage
 
@@ -11,10 +11,10 @@ any reconnection logic, or application-level state. First a connection must be
 made, from which a [session] is created in order to communicate:
 
 ```js
-var overpass = require('overpass-websocket')
+var rinq = require('rinq-websocket')
 
-var connection = overpass.connection('ws://example.org/')
-var session = overpass.session()
+var connection = rinq.connection('ws://example.org/')
+var session = rinq.session()
 
 connection.on('open', function () {
   session.execute('namespace', 'command', 'payload')
@@ -23,8 +23,8 @@ connection.on('open', function () {
 
 With this approach, once the connection is closed, or the session is destroyed,
 these objects must be discarded, and new ones created. It is up to the user to
-manage any application state that depends upon access to an *Overpass*
-connection or session.
+manage any application state that depends upon access to a *Rinq* connection or
+session.
 
 ### Managed module usage
 
@@ -34,9 +34,9 @@ management of transient communication issues, such as network dropouts. First a
 [contexts], which provide similar functionality to a [session]:
 
 ```js
-var overpass = require('overpass-websocket/managed')
+var rinq = require('rinq-websocket/managed')
 
-var connectionManager = overpass.connectionManager({url: 'ws://example.org/'})
+var connectionManager = rinq.connectionManager({url: 'ws://example.org/'})
 var sessionManager = connectionManager.sessionManager()
 var context = sessionManager.context()
 
@@ -47,9 +47,9 @@ context.on('ready', function () {
 context.start()
 ```
 
-With this approach, transient communication issues are managed by *Overpass*.
-This means it is safe to store references to the connection manager, session
-manager, and context, across the lifetime of the application.
+With this approach, transient communication issues are managed by *Rinq*. This
+means it is safe to store references to the connection manager, session manager,
+and context, across the lifetime of the application.
 
 Additionally, contexts provide some basic application-level state management, as
 they can specify an [initialization function] that must execute before the
@@ -85,11 +85,11 @@ context.start()
 ### Core module
 
 ```js
-require('overpass-websocket')
+require('rinq-websocket')
 ```
 
 The core module contains only the essential functionality for communicating via
-the *Overpass* protocol:
+the *Rinq* protocol:
 
 - [connection()](#core.connection)
 - [isFailure()](#core.isFailure)
@@ -104,7 +104,7 @@ the *Overpass* protocol:
 
 > *[`Connection`](#connection)* [**`connection`**](#core.connection) `(url[, options])`
 
-Creates a new *Overpass* [connection] to `url`.
+Creates a new *Rinq* [connection] to `url`.
 
 The `options` are represented as a generic object, and may specify:
 
@@ -126,8 +126,8 @@ var c = connection('ws://example.org/', {CBOR: CBOR})
 
 > *`boolean`* [**`isFailure`**](#core.isFailure) `(error)`
 
-Returns `true` if `error` is an *Overpass* [failure]. This function can be used
-to assist in handling errors returned by *Overpass* calls:
+Returns `true` if `error` is a *Rinq* [failure]. This function can be used to
+assist in handling errors returned by *Rinq* calls:
 
 ```js
 session.call('namespace', 'command', 'payload', 3000, function (error, response) {
@@ -149,8 +149,8 @@ session.call('namespace', 'command', 'payload', 3000, function (error, response)
 
 > *`boolean`* [**`isFailureType`**](#core.isFailureType) `(type, error)`
 
-Returns `true` if `error` is an *Overpass* [failure] of type `type`. This
-function can be used to assist in handling errors returned by *Overpass* calls:
+Returns `true` if `error` is a *Rinq* [failure] of type `type`. This function
+can be used to assist in handling errors returned by *Rinq* calls:
 
 ```js
 session.call('namespace', 'command', 'payload', 3000, function (error, response) {
@@ -170,7 +170,7 @@ session.call('namespace', 'command', 'payload', 3000, function (error, response)
 
 #### Connection
 
-Represents an *Overpass* connection, and allows the creation of [sessions] for
+Represents a *Rinq* connection, and allows the creation of [sessions] for
 communication:
 
 - [session()](#connection.session)
@@ -231,7 +231,7 @@ be `undefined`.
 #### Session
 
 Represents a session, and allows for multiple channels of communication over a
-single *Overpass* connection:
+single *Rinq* connection:
 
 - [execute()](#session.execute)
 - [call()](#session.call)
@@ -246,7 +246,7 @@ single *Overpass* connection:
 
 > *`void`* [**`session.execute`**](#session.execute) `(namespace, command, payload)`
 
-Sends an *Overpass* command, for which no response is expected.
+Sends a *Rinq* command, for which no response is expected.
 
 Both `namespace` and `command` are strings used to dispatch the command to the
 appropriate server. The `payload` can be any [JSON] serializable value.
@@ -257,12 +257,12 @@ appropriate server. The `payload` can be any [JSON] serializable value.
 
 > *`void`* [**`session.call`**](#session.call) `(namespace, command, payload[, timeout][, function (error, response) {}])`
 
-Sends an *Overpass* command, and handles the response.
+Sends a *Rinq* command, and handles the response.
 
 Both `namespace` and `command` are strings used to dispatch the command to the
 appropriate server. The `payload` can be any [JSON] serializable value.
 
-The `timeout` value is used in the *Overpass* protocol to determine when an
+The `timeout` value is used in the *Rinq* protocol to determine when an
 unprocessed command can be discarded due to its age. In addition, if a handler
 function is supplied, a client-side timeout will cause the handler function to
 be called with a timeout error as its `error` argument.
@@ -281,9 +281,9 @@ If no handler function is specified, the response to the call will instead be
 emitted from the session as a [*response* event](#session.event.response).
 
 Errors supplied to the handler, or emitted via a
-[*response* event](#session.event.response) will typically be *Overpass*
-[failures], which are sent by the server handling the command, but they can also
-be regular JavaScript errors for unexpected circumstances.
+[*response* event](#session.event.response) will typically be *Rinq* [failures],
+which are sent by the server handling the command, but they can also be regular
+JavaScript errors for unexpected circumstances.
 
 Generally speaking, specific handling should exist for any relevant [failures],
 and a single catch-all for unexpected errors should also exist. To differentiate
@@ -365,12 +365,12 @@ Property  | Description                                                     | Ty
 ### Managed module
 
 ```js
-require('overpass-websocket/managed')
+require('rinq-websocket/managed')
 ```
 
-The managed module contains higher-lever tools for managing *Overpass*
-connections and sessions in an environment where connection to the server is
-transient, and dependent on network connectivity and availability of servers:
+The managed module contains higher-lever tools for managing *Rinq* connections
+and sessions in an environment where connection to the server is transient, and
+dependent on network connectivity and availability of servers:
 
 - [connectionManager()](#core.connectionManager)
 - [ConnectionManager class](#connectionmanager)
@@ -383,7 +383,7 @@ transient, and dependent on network connectivity and availability of servers:
 
 > *[`ConnectionManager`](#connectionmanager)* [**`connectionManager`**](#core.connectionManager) `([options])`
 
-Creates a new *Overpass* [connection manager].
+Creates a new *Rinq* [connection manager].
 
 The `options` are represented as a generic object, and may specify:
 
@@ -427,7 +427,7 @@ Specifying `CBOR` is recommended, as it enables messages to be serialized with
 
 #### ConnectionManager
 
-Represents a transient *Overpass* connection, and allows the creation of
+Represents a transient *Rinq* connection, and allows the creation of
 [session managers]:
 
 - [sessionManager()](#connectionManager.sessionManager)
@@ -485,8 +485,8 @@ it is open, and will not attempt to reconnect until started again.
 
 This event is emitted when a new *open* connection is available.
 
-The handler for this event accepts a single `connection` argument, which is an
-*Overpass* [connection]. The handler is only called when the connection is open,
+The handler for this event accepts a single `connection` argument, which is a
+*Rinq* [connection]. The handler is only called when the connection is open,
 and ready for communication.
 
 This event will fire multiple times (interspersed with
@@ -508,7 +508,7 @@ received via the next [`connection` event](#connectionManager.event.connection).
 
 #### SessionManager
 
-Represents a transient *Overpass* session, and allows the creation of
+Represents a transient *Rinq* session, and allows the creation of
 [contexts]:
 
 - [execute()](#sessionManager.execute)
@@ -538,12 +538,12 @@ Option       | Description                                                | Type
 
 The `initialize` option allows for the situation where a context is not ready
 for use until some initialization logic has been performed. This initialization
-*may* involve asynchronous operations, and can include communication over an
-*Overpass* [session].
+*may* involve asynchronous operations, and can include communication over a
+*Rinq* [session].
 
 The function supplied for the `initialize` option should accept a `done`
 callback as the first argument, that must be executed in order for the context
-to be considered "ready", and an *Overpass* [session] as the second argument:
+to be considered "ready", and a *Rinq* [session] as the second argument:
 
 ```js
 var context = sessionManager.context({
@@ -574,8 +574,8 @@ var context = sessionManager.context({
 ```
 
 Another common use case for context initialization is authentication. For
-example, this initialization function demonstrates authenticating via an
-*Overpass* service:
+example, this initialization function demonstrates authenticating via a *Rinq*
+service:
 
 ```js
 var context = sessionManager.context({
@@ -591,7 +591,7 @@ var context = sessionManager.context({
 
 > *`void`* [**`sessionManager.execute`**](#sessionManager.execute) `(namespace, command, payload)`
 
-Sends an *Overpass* command, for which no response is expected.
+Sends a *Rinq* command, for which no response is expected.
 
 Functionally equivalent to [session.execute](#session.execute).
 
@@ -601,7 +601,7 @@ Functionally equivalent to [session.execute](#session.execute).
 
 > *`void`* [**`sessionManager.call`**](#sessionManager.call) `(namespace, command, payload, timeout, function (error, response) {})`
 
-Sends an *Overpass* command, and handles the response.
+Sends a *Rinq* command, and handles the response.
 
 Functionally equivalent to [session.call](#session.call)..
 
@@ -635,8 +635,8 @@ is open, and will not attempt to create a new session until started again.
 
 This event is emitted when a new session is available.
 
-The handler for this event accepts a single `session` argument, which is an
-*Overpass* [session].
+The handler for this event accepts a single `session` argument, which is a
+*Rinq* [session].
 
 This event will fire multiple times (interspersed with
 [`error` events](#sessionManager.event.error)) as transient communication
@@ -675,7 +675,7 @@ received via the next [`session` event](#sessionManager.event.session).
 
 #### Context
 
-Allows communication over a transient *Overpass* session, with the option of
+Allows communication over a transient *Rinq* session, with the option of
 asynchronous initialization logic before communication can commence:
 
 - [start()](#context.start)
@@ -713,7 +713,7 @@ When the context is stopped, it will not attempt to maintain a "ready" state.
 
 > *`void`* [**`context.execute`**](#context.execute) `(namespace, command, payload)`
 
-Sends an *Overpass* command, for which no response is expected.
+Sends a *Rinq* command, for which no response is expected.
 
 Functionally equivalent to [session.execute](#session.execute).
 
@@ -723,7 +723,7 @@ Functionally equivalent to [session.execute](#session.execute).
 
 > *`void`* [**`context.call`**](#context.call) `(namespace, command, payload, timeout, function (error, response) {})`
 
-Sends an *Overpass* command, and handles the response.
+Sends a *Rinq* command, and handles the response.
 
 Functionally equivalent to [session.call](#session.call), except that both
 `timeout`, and the handler function are mandatory.

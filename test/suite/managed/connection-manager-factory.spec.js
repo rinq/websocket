@@ -1,7 +1,7 @@
 var expect = require('chai').expect
 
 var connectionManagerFactory = require('../../../managed/connection-manager-factory')
-var OverpassConnectionManager = require('../../../managed/connection-manager')
+var RinqConnectionManager = require('../../../managed/connection-manager')
 
 var navigator, window, setTimeout, clearTimeout, console, subject
 
@@ -27,18 +27,18 @@ describe('connectionManagerFactory', function () {
   it('should create connection managers', function () {
     var actual = subject()
 
-    expect(actual).to.be.an.instanceof(OverpassConnectionManager)
+    expect(actual).to.be.an.instanceof(RinqConnectionManager)
   })
 
   it('should create connection managers with delay functions', function () {
     var actual = subject({delay: function () {}})
 
-    expect(actual).to.be.an.instanceof(OverpassConnectionManager)
+    expect(actual).to.be.an.instanceof(RinqConnectionManager)
   })
 
   it('should create connection managers with logging', function () {
     var actual = subject({log: {prefix: '[prefix] '}})
 
-    expect(actual).to.be.an.instanceof(OverpassConnectionManager)
+    expect(actual).to.be.an.instanceof(RinqConnectionManager)
   })
 })

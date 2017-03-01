@@ -1,9 +1,9 @@
 var EventEmitter = require('events').EventEmitter
 
-var OverpassFailure = require('./failure/failure')
+var RinqFailure = require('./failure/failure')
 var types = require('./message-types')
 
-function OverpassSession (
+function RinqSession (
   sessionId,
   send,
   receive,
@@ -251,7 +251,7 @@ function OverpassSession (
     delete calls[message.seq]
 
     call.callback(
-      new OverpassFailure(message.failureType, message.failureMessage, payload)
+      new RinqFailure(message.failureType, message.failureMessage, payload)
     )
   }
 
@@ -328,7 +328,7 @@ function OverpassSession (
 
     emit(
       'response',
-      new OverpassFailure(message.failureType, message.failureMessage, payload),
+      new RinqFailure(message.failureType, message.failureMessage, payload),
       null,
       message.namespace,
       message.command
@@ -400,7 +400,7 @@ function OverpassSession (
   }
 }
 
-OverpassSession.prototype = Object.create(EventEmitter.prototype)
-OverpassSession.prototype.constructor = OverpassSession
+RinqSession.prototype = Object.create(EventEmitter.prototype)
+RinqSession.prototype.constructor = RinqSession
 
-module.exports = OverpassSession
+module.exports = RinqSession

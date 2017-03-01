@@ -1,6 +1,6 @@
 var EventEmitter = require('events').EventEmitter
 
-function OverpassNetworkStatus (navigator, window, setTimeout) {
+function RinqNetworkStatus (navigator, window, setTimeout) {
   var emit // a convenience for this.emit, bound to this
 
   EventEmitter.call(this)
@@ -28,7 +28,7 @@ function OverpassNetworkStatus (navigator, window, setTimeout) {
   })
 }
 
-OverpassNetworkStatus.prototype = Object.create(EventEmitter.prototype)
-OverpassNetworkStatus.prototype.constructor = OverpassNetworkStatus
+RinqNetworkStatus.prototype = Object.create(EventEmitter.prototype)
+RinqNetworkStatus.prototype.constructor = RinqNetworkStatus
 
-module.exports = OverpassNetworkStatus
+module.exports = RinqNetworkStatus

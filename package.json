@@ -1,19 +1,20 @@
 {
-  "name": "overpass-websocket",
+  "name": "rinq-websocket",
   "version": "0.0.0",
-  "description": "Client library for Overpass WebSocket communication.",
-  "repository": "icecave/overpass-websocket",
+  "description": "Rinq in the browser.",
+  "repository": "rinq/websocket",
   "license": "MIT",
   "main": "core",
   "devDependencies": {
     "cbor-js": "^0.1.0",
     "chai": "^3.5.0",
+    "dirty-chai": "^1.2.2",
     "eslint": "^3.8.1",
     "mocha": "^3.1.2",
     "nyc": "^10.1.2",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
-    "standard": "^8.3.0"
+    "standard": "^9.0.0"
   },
   "standard": {
     "globals": [
@@ -24,8 +25,7 @@
     "ignore": [
       "example/client/node_modules/**",
       "example/client/web/**",
-      "example/server/node_modules/**",
-      "web/**"
+      "example/server/node_modules/**"
     ]
   },
   "nyc": {

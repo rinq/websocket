@@ -1,9 +1,9 @@
 var EventEmitter = require('events').EventEmitter
 
-var OverpassSession = require('./session')
+var RinqSession = require('./session')
 var types = require('./message-types')
 
-function OverpassConnection (
+function RinqConnection (
   socket,
   handshake,
   serialize,
@@ -44,7 +44,7 @@ function OverpassConnection (
       sessions[sessionId].destroyer = destroyer
     }
 
-    session = new OverpassSession(
+    session = new RinqSession(
       sessionId,
       send,
       receive,
@@ -173,7 +173,7 @@ function OverpassConnection (
     view = new Uint8Array(data)
     prefix = String.fromCharCode(view[0], view[1])
 
-    if (prefix !== 'OP') {
+    if (prefix !== 'RQ') {
       throw new Error('Unexpected handshake prefix: ' + JSON.stringify(prefix))
     }
 
@@ -227,7 +227,7 @@ function OverpassConnection (
   }
 }
 
-OverpassConnection.prototype = Object.create(EventEmitter.prototype)
-OverpassConnection.prototype.constructor = OverpassConnection
+RinqConnection.prototype = Object.create(EventEmitter.prototype)
+RinqConnection.prototype.constructor = RinqConnection
 
-module.exports = OverpassConnection
+module.exports = RinqConnection

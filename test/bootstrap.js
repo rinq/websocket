@@ -1,9 +1,11 @@
 var chai = require('chai')
+var dirtyChai = require('dirty-chai')
 var sinon = require('sinon')
 var sinonChai = require('sinon-chai')
 
-sinon.useFakeServer = false
+chai.use(dirtyChai)
 chai.use(sinonChai)
+sinon.useFakeServer = false
 
 global.window = new function window () {
   this.addEventListener = function () {}

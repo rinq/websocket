@@ -2,8 +2,8 @@ var expect = require('chai').expect
 var spy = require('sinon').spy
 
 var isFailureType = require('../../../core/failure/is-type')
-var OverpassFailure = require('../../../core/failure/failure')
-var OverpassSession = require('../../../core/session')
+var RinqFailure = require('../../../core/failure/failure')
+var RinqSession = require('../../../core/session')
 var types = require('../../../core/message-types')
 
 var id,
@@ -43,7 +43,7 @@ function makeSessionSpecs (log) {
       timeoutDelay = null
       timeoutId = 123
 
-      subject = new OverpassSession(
+      subject = new RinqSession(
         id,
         send,
         receive,
@@ -55,12 +55,12 @@ function makeSessionSpecs (log) {
     })
 
     it('should prepare to receive messages', function () {
-      expect(receiver).to.be.a.function
+      expect(receiver).to.be.a('function')
       expect(receiver.name).to.equal('dispatch')
     })
 
     it('should prepare to be destroyed', function () {
-      expect(destroyer).to.be.a.function
+      expect(destroyer).to.be.a('function')
       expect(destroyer.name).to.equal('doDestroy')
     })
 
@@ -77,10 +77,10 @@ function makeSessionSpecs (log) {
         command: command,
         payload: requestPayload
       })
-      expect(timeoutFn).not.to.be.a.function
-      expect(clearTimeout).not.to.have.been.called
+      expect(timeoutFn).not.to.be.a('function')
+      expect(clearTimeout).not.to.have.been.called()
 
-      if (log) expect(logger).to.have.been.called
+      if (log) expect(logger).to.have.been.called()
     })
 
     it('should disallow calls with server-side timeout and a handler', function () {
@@ -101,7 +101,7 @@ function makeSessionSpecs (log) {
       var responsePayload = 'response-payload'
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
-        expect(error).to.not.be.ok
+        expect(error).to.not.be.ok()
         expect(response).to.equal(responsePayload)
         expect(send).to.have.been.calledWith({
           type: types.CALL,
@@ -112,11 +112,11 @@ function makeSessionSpecs (log) {
           seq: 1,
           timeout: timeout
         })
-        expect(timeoutFn).to.be.a.function
+        expect(timeoutFn).to.be.a('function')
         expect(timeoutDelay).to.equal(timeout)
         expect(clearTimeout).to.have.been.calledWith(timeoutId)
 
-        if (log) expect(logger).to.have.been.called
+        if (log) expect(logger).to.have.been.called()
 
         done()
       })
@@ -140,11 +140,11 @@ function makeSessionSpecs (log) {
       var responsePayload = 'response-payload'
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
-        expect(error).to.not.be.ok
+        expect(error).to.not.be.ok()
         expect(response).to.equal(responsePayload)
-        expect(timeoutFn).to.be.null
-        expect(timeoutDelay).to.be.null
-        expect(clearTimeout).to.not.have.been.called
+        expect(timeoutFn).to.be.null()
+        expect(timeoutDelay).to.be.null()
+        expect(clearTimeout).to.not.have.been.called()
 
         done()
       })
@@ -168,7 +168,7 @@ function makeSessionSpecs (log) {
       var responsePayload = 'response-payload'
 
       subject.on('response', function (error, response, ns, cmd) {
-        expect(error).to.not.be.ok
+        expect(error).to.not.be.ok()
         expect(response).to.equal(responsePayload)
         expect(ns).to.equal(namespace)
         expect(cmd).to.equal(command)
@@ -181,7 +181,7 @@ function makeSessionSpecs (log) {
           timeout: timeout
         })
 
-        if (log) expect(logger).to.have.been.called
+        if (log) expect(logger).to.have.been.called()
 
         done()
       })
@@ -206,7 +206,7 @@ function makeSessionSpecs (log) {
       var responsePayload = 'response-payload'
 
       subject.on('response', function (error, response, ns, cmd) {
-        expect(error).to.not.be.ok
+        expect(error).to.not.be.ok()
         expect(response).to.equal(responsePayload)
         expect(ns).to.equal(namespace)
         expect(cmd).to.equal(command)
@@ -219,7 +219,7 @@ function makeSessionSpecs (log) {
           timeout: 0
         })
 
-        if (log) expect(logger).to.have.been.called
+        if (log) expect(logger).to.have.been.called()
 
         done()
       })
@@ -247,11 +247,11 @@ function makeSessionSpecs (log) {
       var responsePayload = {a: 'b', c: 'd'}
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
-        expect(error).to.be.an.instanceof(OverpassFailure)
-        expect(isFailureType(failureType, error)).to.be.true
+        expect(error).to.be.an.instanceof(RinqFailure)
+        expect(isFailureType(failureType, error)).to.be.true()
         expect(error.message).to.equal(failureMessage)
         expect(error.data).to.equal(responsePayload)
-        expect(response).to.not.be.ok
+        expect(response).to.not.be.ok()
         expect(send).to.have.been.calledWith({
           type: types.CALL,
           session: id,
@@ -261,11 +261,11 @@ function makeSessionSpecs (log) {
           seq: 1,
           timeout: timeout
         })
-        expect(timeoutFn).to.be.a.function
+        expect(timeoutFn).to.be.a('function')
         expect(timeoutDelay).to.equal(timeout)
         expect(clearTimeout).to.have.been.calledWith(timeoutId)
 
-        if (log) expect(logger).to.have.been.called
+        if (log) expect(logger).to.have.been.called()
 
         done()
       })
@@ -293,14 +293,14 @@ function makeSessionSpecs (log) {
       var responsePayload = {a: 'b', c: 'd'}
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
-        expect(error).to.be.an.instanceof(OverpassFailure)
-        expect(isFailureType(failureType, error)).to.be.true
+        expect(error).to.be.an.instanceof(RinqFailure)
+        expect(isFailureType(failureType, error)).to.be.true()
         expect(error.message).to.equal(failureMessage)
         expect(error.data).to.equal(responsePayload)
-        expect(response).to.not.be.ok
-        expect(timeoutFn).to.be.null
-        expect(timeoutDelay).to.be.null
-        expect(clearTimeout).to.not.have.been.called
+        expect(response).to.not.be.ok()
+        expect(timeoutFn).to.be.null()
+        expect(timeoutDelay).to.be.null()
+        expect(clearTimeout).to.not.have.been.called()
 
         done()
       })
@@ -328,11 +328,11 @@ function makeSessionSpecs (log) {
       var responsePayload = {a: 'b', c: 'd'}
 
       subject.on('response', function (error, response, ns, cmd) {
-        expect(error).to.be.an.instanceof(OverpassFailure)
-        expect(isFailureType(failureType, error)).to.be.true
+        expect(error).to.be.an.instanceof(RinqFailure)
+        expect(isFailureType(failureType, error)).to.be.true()
         expect(error.message).to.equal(failureMessage)
         expect(error.data).to.equal(responsePayload)
-        expect(response).to.not.be.ok
+        expect(response).to.not.be.ok()
         expect(ns).to.equal(namespace)
         expect(cmd).to.equal(command)
         expect(send).to.have.been.calledWith({
@@ -344,7 +344,7 @@ function makeSessionSpecs (log) {
           timeout: timeout
         })
 
-        if (log) expect(logger).to.have.been.called
+        if (log) expect(logger).to.have.been.called()
 
         done()
       })
@@ -371,9 +371,9 @@ function makeSessionSpecs (log) {
       var responseType = types.CALL_ERROR
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
-        expect(error).to.be.an.error
+        expect(error).to.be.an('error')
         expect(error.message).to.match(/server error/i)
-        expect(response).to.not.be.ok
+        expect(response).to.not.be.ok()
         expect(send).to.have.been.calledWith({
           type: types.CALL,
           session: id,
@@ -383,11 +383,11 @@ function makeSessionSpecs (log) {
           seq: 1,
           timeout: timeout
         })
-        expect(timeoutFn).to.be.a.function
+        expect(timeoutFn).to.be.a('function')
         expect(timeoutDelay).to.equal(timeout)
         expect(clearTimeout).to.have.been.calledWith(timeoutId)
 
-        if (log) expect(logger).to.have.been.called
+        if (log) expect(logger).to.have.been.called()
 
         done()
       })
@@ -407,12 +407,12 @@ function makeSessionSpecs (log) {
       var responseType = types.CALL_ERROR
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
-        expect(error).to.be.an.error
+        expect(error).to.be.an('error')
         expect(error.message).to.match(/server error/i)
-        expect(response).to.not.be.ok
-        expect(timeoutFn).to.be.null
-        expect(timeoutDelay).to.be.null
-        expect(clearTimeout).to.not.have.been.called
+        expect(response).to.not.be.ok()
+        expect(timeoutFn).to.be.null()
+        expect(timeoutDelay).to.be.null()
+        expect(clearTimeout).to.not.have.been.called()
 
         done()
       })
@@ -432,9 +432,9 @@ function makeSessionSpecs (log) {
       var responseType = types.CALL_ASYNC_ERROR
 
       subject.on('response', function (error, response, ns, cmd) {
-        expect(error).to.be.an.error
+        expect(error).to.be.an('error')
         expect(error.message).to.match(/server error/i)
-        expect(response).to.not.be.ok
+        expect(response).to.not.be.ok()
         expect(ns).to.equal(namespace)
         expect(cmd).to.equal(command)
         expect(send).to.have.been.calledWith({
@@ -446,7 +446,7 @@ function makeSessionSpecs (log) {
           timeout: timeout
         })
 
-        if (log) expect(logger).to.have.been.called
+        if (log) expect(logger).to.have.been.called()
 
         done()
       })
@@ -466,14 +466,14 @@ function makeSessionSpecs (log) {
       var timeout = 111
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
-        expect(error).to.be.an.error
+        expect(error).to.be.an('error')
         expect(error.message).to.match(/session destroyed remotely/i)
-        expect(response).to.not.be.ok
-        expect(timeoutFn).to.be.a.function
+        expect(response).to.not.be.ok()
+        expect(timeoutFn).to.be.a('function')
         expect(timeoutDelay).to.equal(timeout)
         expect(clearTimeout).to.have.been.calledWith(timeoutId)
 
-        if (log) expect(logger).to.have.been.called
+        if (log) expect(logger).to.have.been.called()
 
         done()
       })
@@ -488,14 +488,14 @@ function makeSessionSpecs (log) {
       var timeout = 0
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
-        expect(error).to.be.an.error
+        expect(error).to.be.an('error')
         expect(error.message).to.match(/session destroyed remotely/i)
-        expect(response).to.not.be.ok
-        expect(timeoutFn).to.be.null
-        expect(timeoutDelay).to.be.null
-        expect(clearTimeout).to.not.have.been.called
+        expect(response).to.not.be.ok()
+        expect(timeoutFn).to.be.null()
+        expect(timeoutDelay).to.be.null()
+        expect(clearTimeout).to.not.have.been.called()
 
-        if (log) expect(logger).to.have.been.called
+        if (log) expect(logger).to.have.been.called()
 
         done()
       })
@@ -510,9 +510,9 @@ function makeSessionSpecs (log) {
       var timeout = 111
 
       subject.call(namespace, command, requestPayload, timeout, function (error, response) {
-        expect(error).to.be.an.error
+        expect(error).to.be.an('error')
         expect(error.message).to.match(/timed out/i)
-        expect(response).to.not.be.ok
+        expect(response).to.not.be.ok()
         expect(send).to.have.been.calledWith({
           type: types.CALL,
           session: id,
@@ -522,14 +522,14 @@ function makeSessionSpecs (log) {
           seq: 1,
           timeout: timeout
         })
-        expect(clearTimeout).not.to.have.been.called
+        expect(clearTimeout).not.to.have.been.called()
 
-        if (log) expect(logger).to.have.been.called
+        if (log) expect(logger).to.have.been.called()
 
         done()
       })
 
-      expect(timeoutFn).to.be.a.function
+      expect(timeoutFn).to.be.a('function')
       expect(timeoutDelay).to.equal(timeout)
 
       timeoutFn()
@@ -540,7 +540,7 @@ function makeSessionSpecs (log) {
         expect(type).to.equal('payload-type')
         expect(payload).to.equal('payload')
 
-        if (log) expect(logger).to.have.been.called
+        if (log) expect(logger).to.have.been.called()
 
         done()
       })
@@ -582,9 +582,9 @@ function makeSessionSpecs (log) {
 
     it('should support local destroying', function (done) {
       subject.once('destroy', function (error) {
-        expect(error).to.not.be.ok
+        expect(error).to.not.be.ok()
 
-        if (log && log.debug) expect(logger).to.have.been.called
+        if (log && log.debug) expect(logger).to.have.been.called()
 
         done()
       })
@@ -594,10 +594,10 @@ function makeSessionSpecs (log) {
 
     it('should support remote destroying', function (done) {
       subject.once('destroy', function (error) {
-        expect(error).to.be.an.error
+        expect(error).to.be.an('error')
         expect(error.message).to.match(/session destroyed remotely/i)
 
-        if (log && log.debug) expect(logger).to.have.been.called
+        if (log && log.debug) expect(logger).to.have.been.called()
 
         done()
       })
@@ -626,9 +626,9 @@ function makeSessionSpecs (log) {
 
       it('should throw an error when attempting to make a call', function (done) {
         subject.call('ns-a', 'cmd-a', 'request-payload', 111, function (error, response) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/session destroyed locally/i)
-          expect(response).to.not.be.ok
+          expect(response).to.not.be.ok()
 
           done()
         })
@@ -637,7 +637,7 @@ function makeSessionSpecs (log) {
   }
 }
 
-describe('OverpassSession', function () {
+describe('RinqSession', function () {
   describe('with debug logging', makeSessionSpecs({prefix: '[prefix] ', debug: true}))
   describe('with non-debug logging', makeSessionSpecs({prefix: '[prefix] '}))
   describe('without logging', makeSessionSpecs())

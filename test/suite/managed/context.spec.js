@@ -2,7 +2,7 @@ var EventEmitter = require('events').EventEmitter
 var expect = require('chai').expect
 var spy = require('sinon').spy
 
-var OverpassContext = require('../../../managed/context')
+var RinqContext = require('../../../managed/context')
 
 var sessionManager, initializer, logger, initSession, initDone, subject
 
@@ -21,7 +21,7 @@ function makeContextSpecs (log) {
         initSession = null
         initDone = null
 
-        subject = new OverpassContext(
+        subject = new RinqContext(
           sessionManager,
           initializer,
           setTimeout,
@@ -32,41 +32,41 @@ function makeContextSpecs (log) {
       })
 
       it('should not initially be started or ready', function () {
-        expect(subject.isStarted).to.be.false
-        expect(subject.isReady).to.be.false
+        expect(subject.isStarted).to.be.false()
+        expect(subject.isReady).to.be.false()
       })
 
       it('should be able to be started', function () {
         subject.start()
 
-        expect(subject.isStarted).to.be.true
-        expect(sessionManager.start).to.have.been.calledOnce
+        expect(subject.isStarted).to.be.true()
+        expect(sessionManager.start).to.have.been.calledOnce()
       })
 
       it('should do nothing if already started', function () {
         subject.start()
         subject.start()
 
-        expect(subject.isStarted).to.be.true
-        expect(sessionManager.start).to.have.been.calledOnce
+        expect(subject.isStarted).to.be.true()
+        expect(sessionManager.start).to.have.been.calledOnce()
       })
 
       it('should be able to be stopped', function () {
         subject.start()
         subject.stop()
 
-        expect(subject.isStarted).to.be.false
+        expect(subject.isStarted).to.be.false()
       })
 
       it('should do nothing if already stopped', function () {
         subject.stop()
 
-        expect(subject.isStarted).to.be.false
+        expect(subject.isStarted).to.be.false()
       })
 
       it('should initialize on the next session event when started', function (done) {
         subject.once('ready', function () {
-          expect(subject.isReady).to.be.true
+          expect(subject.isReady).to.be.true()
 
           done()
         })
@@ -76,14 +76,14 @@ function makeContextSpecs (log) {
         sessionManager.emit('session', session)
 
         expect(initSession).to.equal(session)
-        expect(initDone).to.be.a.function
+        expect(initDone).to.be.a('function')
 
         initDone()
       })
 
       it('should initialize immediately if a session is already available when started', function (done) {
         subject.once('ready', function () {
-          expect(subject.isReady).to.be.true
+          expect(subject.isReady).to.be.true()
 
           done()
         })
@@ -93,7 +93,7 @@ function makeContextSpecs (log) {
         subject.start()
 
         expect(initSession).to.equal(session)
-        expect(initDone).to.be.a.function
+        expect(initDone).to.be.a('function')
 
         initDone()
       })
@@ -111,7 +111,7 @@ function makeContextSpecs (log) {
         subject.start()
 
         expect(initSession).to.equal(session)
-        expect(initDone).to.be.a.function
+        expect(initDone).to.be.a('function')
 
         initDone(expected)
       })
@@ -124,9 +124,9 @@ function makeContextSpecs (log) {
 
       it('should respond with an exception if not ready to call commands', function (done) {
         subject.call('ns-a', 'cmd-a', 'payload', 111, function (error, response) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/not ready/i)
-          expect(response).to.not.be.ok
+          expect(response).to.not.be.ok()
 
           done()
         })
@@ -134,8 +134,8 @@ function makeContextSpecs (log) {
 
       it('should call whenReady() callbacks when ready', function (done) {
         subject.whenReady(function (error) {
-          expect(subject.isReady).to.be.true
-          expect(error).to.not.be.ok
+          expect(subject.isReady).to.be.true()
+          expect(error).to.not.be.ok()
 
           done()
         })
@@ -145,15 +145,15 @@ function makeContextSpecs (log) {
         sessionManager.emit('session', session)
 
         expect(initSession).to.equal(session)
-        expect(initDone).to.be.a.function
+        expect(initDone).to.be.a('function')
 
         initDone()
       })
 
       it('should throw an exception when whenReady() times out', function (done) {
         subject.whenReady(function (error) {
-          expect(subject.isReady).to.be.false
-          expect(error).to.be.an.error
+          expect(subject.isReady).to.be.false()
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/timed out/i)
 
           done()
@@ -168,7 +168,7 @@ function makeContextSpecs (log) {
         initializer = null
         logger = spy()
 
-        subject = new OverpassContext(
+        subject = new RinqContext(
           sessionManager,
           initializer,
           setTimeout,
@@ -180,7 +180,7 @@ function makeContextSpecs (log) {
 
       it('should initialize on the next session event when started', function (done) {
         subject.once('ready', function () {
-          expect(subject.isReady).to.be.true
+          expect(subject.isReady).to.be.true()
 
           done()
         })
@@ -200,7 +200,7 @@ function makeContextSpecs (log) {
         }
         logger = spy()
 
-        subject = new OverpassContext(
+        subject = new RinqContext(
           sessionManager,
           initializer,
           setTimeout,
@@ -232,7 +232,7 @@ function makeContextSpecs (log) {
         initializer = null
         logger = spy()
 
-        subject = new OverpassContext(
+        subject = new RinqContext(
           sessionManager,
           initializer,
           setTimeout,
@@ -252,7 +252,7 @@ function makeContextSpecs (log) {
       it('should be able to be stopped', function () {
         subject.stop()
 
-        expect(subject.isStarted).to.be.false
+        expect(subject.isStarted).to.be.false()
       })
 
       it('should handle sessions being destroyed', function (done) {
@@ -305,14 +305,14 @@ function makeContextSpecs (log) {
           error = e
         })
 
-        expect(wasCalled).to.be.true
-        expect(error).to.not.be.ok
+        expect(wasCalled).to.be.true()
+        expect(error).to.not.be.ok()
       })
     })
   }
 }
 
-describe('OverpassContext', function () {
+describe('RinqContext', function () {
   describe('with debug logging', makeContextSpecs({prefix: '[prefix] ', debug: true}))
   describe('with non-debug logging', makeContextSpecs({prefix: '[prefix] '}))
   describe('without logging', makeContextSpecs())

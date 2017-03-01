@@ -544,10 +544,10 @@ function messageSpecs (serialize, unserialize) {
 
 describe('Serialization', function () {
   describe('of JSON', function () {
-    describe('Overpass messages', messageSpecs(jsonEncode, jsonDecode))
+    describe('Rinq messages', messageSpecs(jsonEncode, jsonDecode))
   })
 
   describe('of CBOR', function () {
-    describe('Overpass messages', messageSpecs(CBOR.encode, CBOR.decode))
+    describe('Rinq messages', messageSpecs(CBOR.encode, CBOR.decode))
   })
 })

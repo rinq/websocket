@@ -2,7 +2,7 @@ var connection = require('../core').connection
 var createLogger = require('../core/create-logger')
 var delay = require('./delay')
 var NetworkStatus = require('./network-status')
-var OverpassConnectionManager = require('./connection-manager')
+var RinqConnectionManager = require('./connection-manager')
 
 module.exports = function connectionManagerFactory (
   navigator,
@@ -18,7 +18,7 @@ module.exports = function connectionManagerFactory (
   logger = createLogger(console)
 
   return function connectionManager (options) {
-    return new OverpassConnectionManager(
+    return new RinqConnectionManager(
       connection,
       options && options.url,
       (options && options.delay) || delay,

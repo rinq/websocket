@@ -1,9 +1,9 @@
 var EventEmitter = require('events').EventEmitter
 
-var OverpassSessionManager = require('./session-manager')
+var RinqSessionManager = require('./session-manager')
 
-function OverpassConnectionManager (
-  overpassConnection,
+function RinqConnectionManager (
+  createConnection,
   url,
   delayFn,
   CBOR,
@@ -101,7 +101,7 @@ function OverpassConnectionManager (
   }
 
   this.sessionManager = function sessionManager (options) {
-    return new OverpassSessionManager(
+    return new RinqSessionManager(
       connectionManager,
       setTimeout,
       clearTimeout,
@@ -159,26 +159,26 @@ function OverpassConnectionManager (
     connection = null
     connectionManager.connection = null
 
-    if (!error) error = new Error('Connection closed unexpectedly.')
-    emit('error', error)
+    if (networkStatus.isOnline) {
+      delay = delayFn(++closeCount)
 
-    if (!networkStatus.isOnline) return
+      if (log && log.debug) {
+        logger(
+          [
+            '%c%s %sReconnecting in %dms.',
+            'color: black',
+            debugSymbol,
+            log.prefix,
+            delay
+          ]
+        )
+      }
 
-    delay = delayFn(++closeCount)
-
-    if (log && log.debug) {
-      logger(
-        [
-          '%c%s %sReconnecting in %dms.',
-          'color: black',
-          debugSymbol,
-          log.prefix,
-          delay
-        ]
-      )
+      reconnectTimeoutId = setTimeout(reconnect, delay)
     }
 
-    reconnectTimeoutId = setTimeout(reconnect, delay)
+    if (!error) error = new Error('Connection closed unexpectedly.')
+    emit('error', error)
   }
 
   function connect () {
@@ -201,7 +201,7 @@ function OverpassConnectionManager (
       options.log = log
     }
 
-    connection = overpassConnection(connectionManager.url, options)
+    connection = createConnection(connectionManager.url, options)
 
     connection.once('open', onOpen)
     connection.once('close', onClose)
@@ -225,7 +225,7 @@ function OverpassConnectionManager (
   }
 }
 
-OverpassConnectionManager.prototype = Object.create(EventEmitter.prototype)
-OverpassConnectionManager.prototype.constructor = OverpassConnectionManager
+RinqConnectionManager.prototype = Object.create(EventEmitter.prototype)
+RinqConnectionManager.prototype.constructor = RinqConnectionManager
 
-module.exports = OverpassConnectionManager
+module.exports = RinqConnectionManager

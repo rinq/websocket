@@ -7,7 +7,7 @@ var jsonEncode = require('../serialization/json/encode')
 var marshalCall = require('../serialization/marshaller/call')
 var marshalCallAsync = require('../serialization/marshaller/call-async')
 var marshalExecute = require('../serialization/marshaller/execute')
-var OverpassConnection = require('./connection')
+var RinqConnection = require('./connection')
 var types = require('./message-types')
 var unmarshalCallAsyncError = require('../serialization/unmarshaller/call-async-error')
 var unmarshalCallAsyncFailure = require('../serialization/unmarshaller/call-async-failure')
@@ -17,8 +17,8 @@ var unmarshalCallFailure = require('../serialization/unmarshaller/call-failure')
 var unmarshalCallSuccess = require('../serialization/unmarshaller/call-success')
 var unmarshalNotification = require('../serialization/unmarshaller/notification')
 
-var major         // the Overpass protocol major version
-var minor         // the Overpass protocol minor version
+var major         // the Rinq protocol major version
+var minor         // the Rinq protocol minor version
 var marshallers   // a map of outgoing message type to marshaller
 var unmarshallers // a map of incoming message type to unmarshaller
 
@@ -70,7 +70,7 @@ module.exports = function connectionFactory (
     socket = new WebSocket(url)
     socket.binaryType = 'arraybuffer'
 
-    return new OverpassConnection(
+    return new RinqConnection(
       socket,
       createHandshake(major, minor, mimeType),
       createSerialize(marshallers, serialize),

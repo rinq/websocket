@@ -12,27 +12,27 @@ module.exports = function unserializeMessage (
   var message   // the unmarshalled message
 
   if (!(buffer instanceof ArrayBuffer)) {
-    throw new Error('Invalid Overpass message data.')
+    throw new Error('Invalid Rinq message data.')
   }
 
   if (buffer.byteLength < 2) {
-    throw new Error('Insufficient Overpass message data.')
+    throw new Error('Insufficient Rinq message data.')
   }
 
   headerEnd = (new DataView(buffer)).getUint16(0) + 2
 
   if (buffer.byteLength < headerEnd) {
-    throw new Error('Insufficient Overpass message data.')
+    throw new Error('Insufficient Rinq message data.')
   }
 
   header = unserialize(bufferSlice(buffer, 2, headerEnd))
 
   if (!Array.isArray(header)) {
-    throw new Error('Invalid Overpass message header.')
+    throw new Error('Invalid Rinq message header.')
   }
 
   if (typeof header[0] !== 'string') {
-    throw new Error('Invalid Overpass message header (type).')
+    throw new Error('Invalid Rinq message header (type).')
   }
 
   message = unmarshal(header, selectByType(header[0], unmarshallers))

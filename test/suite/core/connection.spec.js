@@ -10,8 +10,8 @@ var marshalCallError = require('../../../serialization/marshaller/call-error')
 var marshalCallFailure = require('../../../serialization/marshaller/call-failure')
 var marshalCallSuccess = require('../../../serialization/marshaller/call-success')
 var marshalNotification = require('../../../serialization/marshaller/notification')
-var OverpassConnection = require('../../../core/connection')
-var OverpassSession = require('../../../core/session')
+var RinqConnection = require('../../../core/connection')
+var RinqSession = require('../../../core/session')
 var serializeMessage = require('../../../serialization/serialize-message')
 var types = require('../../../core/message-types')
 var unmarshalCall = require('../../../serialization/unmarshaller/call')
@@ -74,7 +74,7 @@ function makeConnectionSpecs (log) {
       clearTimeout = function () {}
       logger = spy()
 
-      subject = new OverpassConnection(
+      subject = new RinqConnection(
         socket,
         handshake,
         serialize,
@@ -101,14 +101,14 @@ function makeConnectionSpecs (log) {
         })
 
         var handshakeResponse = new Uint8Array(4)
-        handshakeResponse.set(['O'.charCodeAt(0), 'P'.charCodeAt(0), 2, 0])
+        handshakeResponse.set(['R'.charCodeAt(0), 'Q'.charCodeAt(0), 2, 0])
 
         socketEmitter.emit('message', {data: handshakeResponse.buffer})
       })
 
       it('should handle handshake responses with invalid data types', function (done) {
         subject.once('close', function (error) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/invalid handshake/i)
 
           done()
@@ -119,7 +119,7 @@ function makeConnectionSpecs (log) {
 
       it('should handle handshake responses with invalid data length', function (done) {
         subject.once('close', function (error) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/invalid handshake length/i)
 
           done()
@@ -130,7 +130,7 @@ function makeConnectionSpecs (log) {
 
       it('should handle handshake responses with unexpected prefixes', function (done) {
         subject.once('close', function (error) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/unexpected handshake prefix/i)
 
           done()
@@ -141,28 +141,28 @@ function makeConnectionSpecs (log) {
 
       it('should handle handshake responses with versions that are too low', function (done) {
         subject.once('close', function (error) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/unsupported handshake version/i)
 
           done()
         })
 
         var handshakeResponse = new Uint8Array(4)
-        handshakeResponse.set(['O'.charCodeAt(0), 'P'.charCodeAt(0), 1, 99])
+        handshakeResponse.set(['R'.charCodeAt(0), 'Q'.charCodeAt(0), 1, 99])
 
         socketEmitter.emit('message', {data: handshakeResponse.buffer})
       })
 
       it('should handle handshake responses with versions that are too high', function (done) {
         subject.once('close', function (error) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/unsupported handshake version/i)
 
           done()
         })
 
         var handshakeResponse = new Uint8Array(4)
-        handshakeResponse.set(['O'.charCodeAt(0), 'P'.charCodeAt(0), 3, 0])
+        handshakeResponse.set(['R'.charCodeAt(0), 'Q'.charCodeAt(0), 3, 0])
 
         socketEmitter.emit('message', {data: handshakeResponse.buffer})
       })
@@ -177,17 +177,17 @@ function makeConnectionSpecs (log) {
         socketEmitter.emit('open')
 
         var handshakeResponse = new Uint8Array(4)
-        handshakeResponse.set(['O'.charCodeAt(0), 'P'.charCodeAt(0), 2, 0])
+        handshakeResponse.set(['R'.charCodeAt(0), 'Q'.charCodeAt(0), 2, 0])
 
         socketEmitter.emit('message', {data: handshakeResponse.buffer})
       })
 
       it('should be able to create sessions', function () {
-        expect(subject.session()).to.be.an.instanceof(OverpassSession)
+        expect(subject.session()).to.be.an.instanceof(RinqSession)
       })
 
       it('should be able to create sessions with log options', function () {
-        expect(subject.session({log: {prefix: '[session prefix] '}})).to.be.an.instanceof(OverpassSession)
+        expect(subject.session({log: {prefix: '[session prefix] '}})).to.be.an.instanceof(RinqSession)
       })
 
       it('should clean up sessions that are destroyed', function () {
@@ -205,14 +205,14 @@ function makeConnectionSpecs (log) {
         }
 
         sessionA.call('ns-a', 'cmd-a', 'payload', 111, function (error, response) {
-          expect(error).to.not.be.ok
+          expect(error).to.not.be.ok()
           expect(response).to.equal('response-a')
 
           callADone = true
           checkIfDone()
         })
         sessionB.call('ns-a', 'cmd-a', 'payload', 111, function (error, response) {
-          expect(error).to.not.be.ok
+          expect(error).to.not.be.ok()
           expect(response).to.equal('response-b')
 
           callBDone = true
@@ -270,7 +270,7 @@ function makeConnectionSpecs (log) {
 
       it('should handle messages for unexpected sessions', function (done) {
         subject.once('close', function (error) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/unexpected session/i)
 
           done()
@@ -284,7 +284,7 @@ function makeConnectionSpecs (log) {
 
       it('should handle invalid messages', function (done) {
         subject.once('close', function (error) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/invalid/i)
 
           done()
@@ -302,10 +302,10 @@ function makeConnectionSpecs (log) {
         })
 
         subject.once('close', function (error) {
-          expect(error).to.not.be.ok
-          expect(sessionError).to.be.an.error
+          expect(error).to.not.be.ok()
+          expect(sessionError).to.be.an('error')
           expect(sessionError.message).to.match(/connection closed locally/i)
-          expect(socket.close).to.have.been.called
+          expect(socket.close).to.have.been.called()
 
           done()
         })
@@ -322,11 +322,11 @@ function makeConnectionSpecs (log) {
         })
 
         subject.once('close', function (error) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/connection closed: close reason/i)
-          expect(sessionError).to.be.an.error
+          expect(sessionError).to.be.an('error')
           expect(sessionError.message).to.match(/connection closed: close reason/i)
-          expect(socket.close).not.to.have.been.called
+          expect(socket.close).not.to.have.been.called()
 
           done()
         })
@@ -343,11 +343,11 @@ function makeConnectionSpecs (log) {
         })
 
         subject.once('close', function (error) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/error message/i)
-          expect(sessionError).to.be.an.error
+          expect(sessionError).to.be.an('error')
           expect(sessionError.message).to.match(/error message/i)
-          expect(socket.close).to.have.been.called
+          expect(socket.close).to.have.been.called()
 
           done()
         })

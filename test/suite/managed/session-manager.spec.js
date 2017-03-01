@@ -2,8 +2,8 @@ var EventEmitter = require('events').EventEmitter
 var expect = require('chai').expect
 var spy = require('sinon').spy
 
-var OverpassContext = require('../../../managed/context')
-var OverpassSessionManager = require('../../../managed/session-manager')
+var RinqContext = require('../../../managed/context')
+var RinqSessionManager = require('../../../managed/session-manager')
 
 var connectionManager, logger, subject
 
@@ -14,7 +14,7 @@ function makeSessionManagerSpecs (log) {
       connectionManager.start = spy()
       logger = spy()
 
-      subject = new OverpassSessionManager(
+      subject = new RinqSessionManager(
         connectionManager,
         setTimeout,
         clearTimeout,
@@ -24,36 +24,36 @@ function makeSessionManagerSpecs (log) {
     })
 
     it('should not initially be started or have a session', function () {
-      expect(subject.isStarted).to.be.false
-      expect(subject.session).not.to.be.ok
+      expect(subject.isStarted).to.be.false()
+      expect(subject.session).not.to.be.ok()
     })
 
     it('should be able to be started', function () {
       subject.start()
 
-      expect(subject.isStarted).to.be.true
-      expect(connectionManager.start).to.have.been.calledOnce
+      expect(subject.isStarted).to.be.true()
+      expect(connectionManager.start).to.have.been.calledOnce()
     })
 
     it('should do nothing if already started', function () {
       subject.start()
       subject.start()
 
-      expect(subject.isStarted).to.be.true
-      expect(connectionManager.start).to.have.been.calledOnce
+      expect(subject.isStarted).to.be.true()
+      expect(connectionManager.start).to.have.been.calledOnce()
     })
 
     it('should be able to be stopped', function () {
       subject.start()
       subject.stop()
 
-      expect(subject.isStarted).to.be.false
+      expect(subject.isStarted).to.be.false()
     })
 
     it('should do nothing if already stopped', function () {
       subject.stop()
 
-      expect(subject.isStarted).to.be.false
+      expect(subject.isStarted).to.be.false()
     })
 
     it('should initialize on the next connection event when started', function (done) {
@@ -98,7 +98,7 @@ function makeSessionManagerSpecs (log) {
 
     it('should not support calling until a session is available', function (done) {
       subject.call('ns-a', 'cmd-a', 'payload', 111, function (error) {
-        expect(error).to.be.ok
+        expect(error).to.be.ok()
         expect(error.message).to.match(/no session/i)
 
         done()
@@ -108,19 +108,19 @@ function makeSessionManagerSpecs (log) {
     it('should be able to create contexts', function () {
       var actual = subject.context()
 
-      expect(actual).to.be.an.instanceof(OverpassContext)
+      expect(actual).to.be.an.instanceof(RinqContext)
     })
 
     it('should be able to create contexts with initializers', function () {
       var actual = subject.context({initialize: function () {}})
 
-      expect(actual).to.be.an.instanceof(OverpassContext)
+      expect(actual).to.be.an.instanceof(RinqContext)
     })
 
     it('should be able to create contexts with logging options', function () {
       var actual = subject.context({log: {prefix: '[prefix] '}})
 
-      expect(actual).to.be.an.instanceof(OverpassContext)
+      expect(actual).to.be.an.instanceof(RinqContext)
     })
 
     describe('once a connection is available', function () {
@@ -148,8 +148,8 @@ function makeSessionManagerSpecs (log) {
       it('should be able to be stopped', function () {
         subject.stop()
 
-        expect(subject.isStarted).to.be.false
-        expect(session.destroy).to.have.been.called
+        expect(subject.isStarted).to.be.false()
+        expect(session.destroy).to.have.been.called()
       })
 
       it('should support execution', function () {
@@ -178,7 +178,7 @@ function makeSessionManagerSpecs (log) {
 
       it('should handle connections being closed without error', function (done) {
         subject.once('error', function (error) {
-          expect(error).to.be.an.error
+          expect(error).to.be.an('error')
           expect(error.message).to.match(/closed unexpectedly/i)
 
           done()
@@ -190,7 +190,7 @@ function makeSessionManagerSpecs (log) {
       it('should handle sessions being destroyed', function (done) {
         subject.once('error', function (error) {
           expect(error).to.equal(expected)
-          expect(subject.session).to.be.null
+          expect(subject.session).to.be.null()
 
           done()
         })
@@ -245,7 +245,7 @@ function makeSessionManagerSpecs (log) {
   }
 }
 
-describe('OverpassSessionManager', function () {
+describe('RinqSessionManager', function () {
   describe('with debug logging', makeSessionManagerSpecs({prefix: '[prefix] ', debug: true}))
   describe('with non-debug logging', makeSessionManagerSpecs({prefix: '[prefix] '}))
   describe('without logging', makeSessionManagerSpecs())

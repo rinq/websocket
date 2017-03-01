@@ -20,8 +20,8 @@ describe('Logger', function () {
       subject(['a', 'b'])
 
       expect(console.log).to.have.been.calledWith('a', 'b')
-      expect(console.group).not.to.have.been.called
-      expect(console.groupCollapsed).not.to.have.been.called
+      expect(console.group).not.to.have.been.called()
+      expect(console.groupCollapsed).not.to.have.been.called()
     })
 
     it('should support logging with secondary information', function () {
@@ -30,8 +30,8 @@ describe('Logger', function () {
       expect(console.groupCollapsed).to.have.been.calledWith('a', 'b')
       expect(console.log).to.have.been.calledWith('c', 'd')
       expect(console.log).to.have.been.calledWith('e', 'f')
-      expect(console.groupEnd).to.have.been.called
-      expect(console.group).not.to.have.been.called
+      expect(console.groupEnd).to.have.been.called()
+      expect(console.group).not.to.have.been.called()
     })
   })
 
@@ -57,7 +57,7 @@ describe('Logger', function () {
       expect(console.group).to.have.been.calledWith('a', 'b')
       expect(console.log).to.have.been.calledWith('c', 'd')
       expect(console.log).to.have.been.calledWith('e', 'f')
-      expect(console.groupEnd).to.have.been.called
+      expect(console.groupEnd).to.have.been.called()
     })
   })
 })

@@ -1,6 +1,6 @@
 var EventEmitter = require('events').EventEmitter
 
-function OverpassContext (
+function RinqContext (
   sessionManager,
   initializer,
   setTimeout,
@@ -220,7 +220,7 @@ function OverpassContext (
   }
 }
 
-OverpassContext.prototype = Object.create(EventEmitter.prototype)
-OverpassContext.prototype.constructor = OverpassContext
+RinqContext.prototype = Object.create(EventEmitter.prototype)
+RinqContext.prototype.constructor = RinqContext
 
-module.exports = OverpassContext
+module.exports = RinqContext

@@ -2,7 +2,7 @@ var CBOR = require('cbor-js')
 var expect = require('chai').expect
 
 var connectionFactory = require('../../../core/connection-factory')
-var OverpassConnection = require('../../../core/connection')
+var RinqConnection = require('../../../core/connection')
 
 var WebSocket, setTimeout, clearTimeout, console, socket, subject
 
@@ -31,7 +31,7 @@ describe('connectionFactory', function () {
     var url = 'ws://example.org/'
     var actual = subject(url)
 
-    expect(actual).to.be.an.instanceof(OverpassConnection)
+    expect(actual).to.be.an.instanceof(RinqConnection)
     expect(socket).to.be.an.instanceof(WebSocket)
     expect(socket.url).to.equal(url)
     expect(socket.binaryType).to.equal('arraybuffer')
@@ -41,13 +41,13 @@ describe('connectionFactory', function () {
     var url = 'ws://example.org/'
     var actual = subject(url, {CBOR: CBOR})
 
-    expect(actual).to.be.an.instanceof(OverpassConnection)
+    expect(actual).to.be.an.instanceof(RinqConnection)
   })
 
   it('should create connections with logging', function () {
     var url = 'ws://example.org/'
     var actual = subject(url, {log: {prefix: '[prefix] '}})
 
-    expect(actual).to.be.an.instanceof(OverpassConnection)
+    expect(actual).to.be.an.instanceof(RinqConnection)
   })
 })
