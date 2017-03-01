@@ -1,10 +1,10 @@
 import HomeScreen from './screens/home'
-import OverpassApp from './components/app'
+import ExampleApp from './components/app'
 
-export default function createRoutes (dispatch, {overpass}) {
+export default function createRoutes () {
   return {
     path: '/',
-    component: OverpassApp,
+    component: ExampleApp,
     indexRoute: {
       component: HomeScreen
     }

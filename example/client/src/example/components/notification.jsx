@@ -4,7 +4,7 @@ import {connect} from 'react-redux'
 import Table from 'grommet/components/Table'
 import TableRow from 'grommet/components/TableRow'
 
-import {overpassNotification} from '../../overpass/selectors'
+import {rinqNotification} from '../../rinq/selectors'
 
 export function ExampleNotification (props) {
   const {notification} = props
@@ -39,7 +39,7 @@ export function ExampleNotification (props) {
 export default connect(
     function mapStateToProps (state) {
       return {
-        notification: overpassNotification(state)
+        notification: rinqNotification(state)
       }
     }
 )(ExampleNotification)

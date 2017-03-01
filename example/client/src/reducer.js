@@ -4,12 +4,12 @@ import {routerReducer as routing} from 'react-router-redux'
 import example from './example/reducer'
 import navigation from './navigation/reducer'
 import network from './network/reducer'
-import overpass from './overpass/reducer'
+import rinq from './rinq/reducer'
 
 export default combineReducers({
   example,
   navigation,
   network,
-  overpass,
+  rinq,
   routing
 })

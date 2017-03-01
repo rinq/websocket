@@ -1,13 +1,13 @@
 import * as CBOR from 'cbor-js'
 import * as winston from 'winston'
-import createSerialize from 'overpass-websocket/serialization/create-serialize'
-import createUnserialize from 'overpass-websocket/serialization/create-unserialize'
-import jsonDecode from 'overpass-websocket/serialization/json/decode'
-import jsonEncode from 'overpass-websocket/serialization/json/encode'
-import marshallCommandResponse from 'overpass-websocket/serialization/marshaller/command-response'
-import marshallNotification from 'overpass-websocket/serialization/marshaller/notification'
+import createSerialize from 'rinq-websocket/serialization/create-serialize'
+import createUnserialize from 'rinq-websocket/serialization/create-unserialize'
+import jsonDecode from 'rinq-websocket/serialization/json/decode'
+import jsonEncode from 'rinq-websocket/serialization/json/encode'
+import marshallCommandResponse from 'rinq-websocket/serialization/marshaller/command-response'
+import marshallNotification from 'rinq-websocket/serialization/marshaller/notification'
 import uaParser from 'ua-parser-js'
-import unmarshallCommandRequest from 'overpass-websocket/serialization/unmarshaller/command-request'
+import unmarshallCommandRequest from 'rinq-websocket/serialization/unmarshaller/command-request'
 import {Server as WsServer} from 'ws'
 
 import {
@@ -18,7 +18,7 @@ import {
   CALL_FAILURE,
   CALL_ERROR,
   NOTIFICATION
-} from 'overpass-websocket/core/message-types'
+} from 'rinq-websocket/core/message-types'
 
 import EchoService from './service/echo'
 import Server from './server'
@@ -29,7 +29,7 @@ if (!process.env.PORT) {
 
 let logLevel
 
-if (process.env.OVERPASS_DEBUG) {
+if (process.env.RINQ_DEBUG) {
   logLevel = 'debug'
 } else {
   logLevel = 'info'

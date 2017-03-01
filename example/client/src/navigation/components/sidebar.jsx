@@ -12,14 +12,14 @@ import Title from 'grommet/components/Title'
 import ExampleMenu from '../../example/components/menu'
 import {closeNavigation} from '../actions'
 
-export function OverpassSidebar (props) {
+export function ExampleSidebar (props) {
   const {closeNavigation} = props
 
   return <Sidebar colorIndex='brand'>
     <Header justify='between' pad={{horizontal: 'medium'}}>
       <Title responsive={false} onClick={closeNavigation}>
         <Cluster />
-        Overpass
+        Rinq
       </Title>
       <Button icon={<Close />} onClick={closeNavigation} />
     </Header>
@@ -33,4 +33,4 @@ export default connect(
     function mapDispatchToProps (dispatch) {
       return bindActionCreators({closeNavigation}, dispatch)
     }
-)(OverpassSidebar)
+)(ExampleSidebar)

@@ -1,9 +1,9 @@
 import {initializeNetwork} from './network/thunks'
-import {initializeOverpass} from './overpass/thunks'
+import {initializeRinq} from './rinq/thunks'
 
 export function initializeApp (services) {
   return function (dispatch) {
     dispatch(initializeNetwork())
-    dispatch(initializeOverpass())
+    dispatch(initializeRinq())
   }
 }

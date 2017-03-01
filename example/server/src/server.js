@@ -11,7 +11,7 @@ import {
   CALL_ERROR,
   SESSION_CREATE,
   NOTIFICATION
-} from 'overpass-websocket/core/message-types'
+} from 'rinq-websocket/core/message-types'
 
 export default function Server ({
   port,
@@ -214,7 +214,7 @@ export default function Server ({
     if (request.type !== CALL) return
 
     const service = services[request.namespace]
-    if (!service) return // imitates Overpass limitation
+    if (!service) return // imitates Rinq limitation
 
     const command = service.commands[request.command]
 

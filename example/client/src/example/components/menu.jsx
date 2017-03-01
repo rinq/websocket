@@ -11,7 +11,7 @@ import {closeNavigation} from '../../navigation/actions'
 import {contexts, commands} from '../../services'
 import {exampleCall} from '../thunks'
 import {getLayout} from '../../navigation/selectors'
-import {overpassContexts} from '../../overpass/selectors'
+import {rinqContexts} from '../../rinq/selectors'
 
 export function ExampleMenu (props) {
   const {
@@ -52,7 +52,7 @@ export default connect(
     function mapStateToProps (state) {
       return {
         layout: getLayout(state),
-        contextState: overpassContexts(state)
+        contextState: rinqContexts(state)
       }
     },
     function mapDispatchToProps (dispatch) {

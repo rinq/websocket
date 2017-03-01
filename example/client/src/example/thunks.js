@@ -1,4 +1,4 @@
-import {isFailure} from 'overpass-websocket'
+import {isFailure} from 'rinq-websocket'
 
 import {exampleSent, exampleSuccess, exampleFailure} from './actions'
 

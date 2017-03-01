@@ -7,14 +7,14 @@ import Helmet from 'react-helmet'
 
 import {initializeApp} from '../thunks'
 
-export class OverpassApp extends React.Component {
+export class ExampleApp extends React.Component {
   componentWillMount () {
     this.props.initializeApp()
   }
 
   render () {
-    return <App className='overpass-app' centered={false}>
-      <Helmet defaultTitle='Overpass' titleTemplate='%s | Overpass' />
+    return <App className='example-app' centered={false}>
+      <Helmet defaultTitle='Rinq' titleTemplate='%s | Rinq' />
       {this.props.children}
     </App>
   }
@@ -25,4 +25,4 @@ export default connect(
   function mapDispatchToProps (dispatch) {
     return bindActionCreators({initializeApp}, dispatch)
   }
-)(OverpassApp)
+)(ExampleApp)

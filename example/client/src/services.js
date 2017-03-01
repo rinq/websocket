@@ -1,5 +1,5 @@
 import * as CBOR from 'cbor-js'
-import * as overpass from 'overpass-websocket/managed'
+import * as rinq from 'rinq-websocket/managed'
 import fetch from 'isomorphic-fetch'
 import bluebird from 'bluebird'
 
@@ -12,7 +12,7 @@ const configurationReader = new ConfigurationReader({
 
 const debug = window.location.hash.substring(1).match(/\bdebug\b/)
 
-const connectionManager = overpass.connectionManager({
+const connectionManager = rinq.connectionManager({
   CBOR: !debug && CBOR,
   log: {
     debug,

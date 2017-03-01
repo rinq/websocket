@@ -11,18 +11,19 @@ import Section from 'grommet/components/Section'
 import Split from 'grommet/components/Split'
 import Title from 'grommet/components/Title'
 
+import ExampleSidebar from '../navigation/components/sidebar'
 import NetworkIndicator from '../network/components/indicator'
-import OverpassSidebar from '../navigation/components/sidebar'
+
 import {isNavigationOpen} from '../navigation/selectors'
 import {openNavigation, updateLayout} from '../navigation/actions'
 
-export function OverpassLayout (props) {
+export function ExampleLayout (props) {
   const {title, children, isNavigationOpen, openNavigation, updateLayout} = props
 
   if (isNavigationOpen) {
     return <App centered={false}>
       <Split flex='right' priority='left' onResponsive={updateLayout}>
-        <OverpassSidebar />
+        <ExampleSidebar />
 
         <Article>
           <Section pad={{horizontal: 'medium'}}>
@@ -40,7 +41,7 @@ export function OverpassLayout (props) {
       <Header justify='between' pad={{horizontal: 'medium'}}>
         <Title responsive={false} onClick={openNavigation}>
           <Cluster colorIndex='brand' />
-          Overpass
+          Rinq
         </Title>
 
         <NetworkIndicator />
@@ -64,4 +65,4 @@ export default connect(
     function mapDispatchToProps (dispatch) {
       return bindActionCreators({openNavigation, updateLayout}, dispatch)
     }
-)(OverpassLayout)
+)(ExampleLayout)

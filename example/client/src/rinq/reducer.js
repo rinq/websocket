@@ -13,27 +13,27 @@ export default function reducer (state = init, action) {
   const {payload} = action
 
   switch (action.type) {
-    case actions.OVERPASS_CONNECT:
+    case actions.RINQ_CONNECT:
       return state.merge({isConnected: true, isError: false})
 
-    case actions.OVERPASS_DISCONNECT:
+    case actions.RINQ_DISCONNECT:
       return state.merge({isConnected: false, isError: !!payload})
 
-    case actions.OVERPASS_CONTEXT_READY:
+    case actions.RINQ_CONTEXT_READY:
       if (state.hasIn(['contexts', payload.contextId])) {
         return state.setIn(['contexts', payload.contextId, 'isReady'], true)
       }
 
       return state.setIn(['contexts', payload.contextId], Map({isReady: true, isError: false}))
 
-    case actions.OVERPASS_CONTEXT_ERROR:
+    case actions.RINQ_CONTEXT_ERROR:
       if (state.hasIn(['contexts', payload.contextId])) {
         return state.setIn(['contexts', payload.contextId, 'isReady'], false)
       }
 
       return state.setIn(['contexts', payload.contextId], Map({isReady: false, isError: true}))
 
-    case actions.OVERPASS_NOTIFICATION:
+    case actions.RINQ_NOTIFICATION:
       return state.set('notification', payload)
   }
 
