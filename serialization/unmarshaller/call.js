@@ -1,8 +1,8 @@
 module.exports = function unmarshalCall (header) {
-  var seq = header[2]
-  var namespace = header[3]
-  var command = header[4]
-  var timeout = header[5]
+  var seq = header[0]
+  var namespace = header[1]
+  var command = header[2]
+  var timeout = header[3]
 
   if (!Number.isInteger(seq) || seq < 1) throw new Error('Invalid CALL message header (seq).')
   if (typeof namespace !== 'string') throw new Error('Invalid CALL message header (namespace).')

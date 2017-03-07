@@ -476,7 +476,32 @@ function messageSpecs (serialize, unserialize) {
     })
 
     it('should fail when unserializing insufficient data', function () {
-      var serialized = new ArrayBuffer(0)
+      var serialized = new ArrayBuffer(3)
+
+      expect(function () {
+        createUnserialize(unmarshallers, unserialize)(serialized)
+      }).to.throw(/insufficient/i)
+    })
+
+    it('should fail when unserializing unsupported message types', function () {
+      var serialized = new ArrayBuffer(6)
+      var view = new DataView(serialized)
+      view.setUint8(0, 'X'.charCodeAt(0))
+      view.setUint8(1, 'X'.charCodeAt(0))
+      view.setUint16(2, 1)
+      view.setUint16(4, 1)
+
+      expect(function () {
+        createUnserialize(unmarshallers, unserialize)(serialized)
+      }).to.throw(/unsupported message type/i)
+    })
+
+    it('should fail when unserializing data with a missing header length', function () {
+      var serialized = new ArrayBuffer(4)
+      var view = new DataView(serialized)
+      view.setUint8(0, types.CALL.charCodeAt(0))
+      view.setUint8(1, types.CALL.charCodeAt(1))
+      view.setUint16(2, 1)
 
       expect(function () {
         createUnserialize(unmarshallers, unserialize)(serialized)
@@ -484,8 +509,12 @@ function messageSpecs (serialize, unserialize) {
     })
 
     it('should fail when unserializing insufficient header data', function () {
-      var serialized = new ArrayBuffer(2)
-      new DataView(serialized).setUint16(0, 1)
+      var serialized = new ArrayBuffer(6)
+      var view = new DataView(serialized)
+      view.setUint8(0, types.CALL.charCodeAt(0))
+      view.setUint8(1, types.CALL.charCodeAt(1))
+      view.setUint16(2, 1)
+      view.setUint16(4, 1)
 
       expect(function () {
         createUnserialize(unmarshallers, unserialize)(serialized)
@@ -493,51 +522,19 @@ function messageSpecs (serialize, unserialize) {
     })
 
     it('should fail when unserializing non-array header data', function () {
+      var preamble = new ArrayBuffer(4)
+      var preambleView = new DataView(preamble)
+      preambleView.setUint8(0, types.CALL.charCodeAt(0))
+      preambleView.setUint8(1, types.CALL.charCodeAt(1))
+      preambleView.setUint16(2, 1)
       var header = serialize({})
       var headerLength = new ArrayBuffer(2)
       new DataView(headerLength).setUint16(0, header.byteLength)
-      var serialized = bufferJoin(headerLength, header)
+      var serialized = bufferJoin(preamble, headerLength, header)
 
       expect(function () {
         createUnserialize(unmarshallers, unserialize)(serialized)
       }).to.throw(/invalid.*header/i)
-    })
-
-    it('should fail when unserializing non-string message types', function () {
-      var header = serialize([true, 111])
-      var headerLength = new ArrayBuffer(2)
-      new DataView(headerLength).setUint16(0, header.byteLength)
-      var serialized = bufferJoin(headerLength, header)
-
-      expect(function () {
-        createUnserialize(unmarshallers, unserialize)(serialized)
-      }).to.throw(/invalid.*type/i)
-    })
-
-    it('should fail when unserializing non-integer sessions', function () {
-      var message = {
-        type: types.SESSION_CREATE,
-        session: true
-      }
-      var serialized = createSerialize(marshallers, serialize)(message)
-
-      expect(function () {
-        createUnserialize(unmarshallers, unserialize)(serialized)
-      }).to.throw(/invalid.*session/i)
-    })
-
-    it('should fail when unserializing unsupported message types', function () {
-      var marshallers = {}
-      marshallers['type-a'] = null
-      var message = {
-        type: 'type-a',
-        session: 111
-      }
-      var serialized = createSerialize(marshallers, serialize)(message)
-
-      expect(function () {
-        createUnserialize(unmarshallers, unserialize)(serialized)
-      }).to.throw(/unsupported message type/i)
     })
   }
 }

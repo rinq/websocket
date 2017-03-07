@@ -1,18 +1,20 @@
+// preamble = [type, session]
+
 module.exports = {
-  CALL: 'CC', // [type, session], [seq, namespace, command, timeout], payload
-  CALL_ERROR: 'CE', // [type, session], [seq]
-  CALL_FAILURE: 'CF', // [type, session], [seq, failureType, failureMessage], payload
-  CALL_SUCCESS: 'CS', // [type, session], [seq], payload
+  CALL: 'CC', // preamble, [seq, namespace, command, timeout], payload
+  CALL_ERROR: 'CE', // preamble, [seq]
+  CALL_FAILURE: 'CF', // preamble, [seq, failureType, failureMessage], payload
+  CALL_SUCCESS: 'CS', // preamble, [seq], payload
 
-  CALL_ASYNC: 'CA', // [type, session], [namespace, command, timeout], payload
-  CALL_ASYNC_ERROR: 'AE', // [type, session], [namespace, command]
-  CALL_ASYNC_FAILURE: 'AF', // [type, session], [namespace, command, failureType, failureMessage], payload
-  CALL_ASYNC_SUCCESS: 'AS', // [type, session], [namespace, command], payload
+  CALL_ASYNC: 'CA', // preamble, [namespace, command, timeout], payload
+  CALL_ASYNC_ERROR: 'AE', // preamble, [namespace, command]
+  CALL_ASYNC_FAILURE: 'AF', // preamble, [namespace, command, failureType, failureMessage], payload
+  CALL_ASYNC_SUCCESS: 'AS', // preamble, [namespace, command], payload
 
-  EXECUTE: 'CX', // [type, session], [namespace, command], payload
+  EXECUTE: 'CX', // preamble, [namespace, command], payload
 
-  NOTIFICATION: 'N', // [type, session], [notificationType], payload
+  NOTIFICATION: 'NO', // preamble, [notificationType], payload
 
-  SESSION_CREATE: 'C', // [type, session]
-  SESSION_DESTROY: 'D' // [type, session]
+  SESSION_CREATE: 'SC', // preamble
+  SESSION_DESTROY: 'SD' // preamble
 }

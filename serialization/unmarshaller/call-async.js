@@ -1,7 +1,7 @@
 module.exports = function unmarshalCallAsync (header) {
-  var namespace = header[2]
-  var command = header[3]
-  var timeout = header[4]
+  var namespace = header[0]
+  var command = header[1]
+  var timeout = header[2]
 
   if (typeof namespace !== 'string') throw new Error('Invalid CALL_ASYNC message header (namespace).')
   if (typeof command !== 'string') throw new Error('Invalid CALL_ASYNC message header (command).')
