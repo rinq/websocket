@@ -5,3 +5,9 @@ node_js:
 cache: yarn
 script: make ci
 after_success: bash <(curl -s https://codecov.io/bash)
+deploy:
+  provider: npm
+  on:
+    tags: true
+  api_key:
+    secure: nod6eyDU9ByHf5L7987w2yn8GtwrR/jZDkJhjMdMPzl0ZUsQV7172Drm8UENdg63IwqDBzp7ssgzAF2xoBR+PuQoQ69Lcwy0La3ffvydlJo5O+MuL9byAWyaIZ7FxcdqGJrJCS79C8fcZ3+WJFQKjHAxx9E2vLIERSWItxYYBCvDxhDOhcRnQKLoISrmCEz+HqiprI1gyj3dTc2LFYbBvSmWVBj/iQT5tK6d2bRoXCJOHS5XFQK3EeDi+ycmzCP56TWvFD4BvMabkeRHZtmPV2dvU98a1RqpNlNdS9EQlEWJMuae8hQJph6P91g6nit+BoGuwfHjBgqkVbtryFzrRv7j26LYSzYlfIud2dAqsFDBZq8H6gat9NkzaUszsoYzSNX8fNfukSdrR07AmF0mk5Y95BuFUP28ATN6AiDEBKOV6fXO/SHLpqSt0yCru0koQYnYnUWS1l9evijnUIdv6Nco68vTlBwNylQ15EhgVVV6qujSNl8ckO0OEjG0WJcky1FfbzpbX2x97nK+7tz7++/i82KfTwr7cuNI/pkL3Zn3GiQDPlSEbn/H7yzIlzpWiqTWg31Rzn6kjEN+IREUBNjVKZx7Ntn3Bp9tr/QC/WskY2EA/xPPk0mlrqdmXZxuwrapWUXLp6dsQMqULqy+MI8KTHCCO6MJB3A/mkLNqhI=

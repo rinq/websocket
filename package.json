@@ -1,6 +1,6 @@
 {
-  "name": "rinq-websocket",
-  "version": "0.0.0",
+  "name": "@rinq/websocket",
+  "version": "0.1.0",
   "description": "Rinq in the browser.",
   "repository": "rinq/websocket",
   "license": "MIT",
