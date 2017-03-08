@@ -1,10 +1,10 @@
 .PHONY: test
 test: node_modules
-	node_modules/.bin/mocha
+	node_modules/.bin/mocha test/suite
 
 .PHONY: coverage
 coverage: node_modules
-	NODE_ENV=test node_modules/.bin/nyc mocha
+	NODE_ENV=test node_modules/.bin/nyc mocha test/suite
 	node_modules/.bin/nyc report --reporter=html
 	node_modules/.bin/nyc report --reporter=lcov
 

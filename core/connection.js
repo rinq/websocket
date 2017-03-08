@@ -5,16 +5,16 @@ var types = require('./message-types')
 
 function RinqConnection (
   socket,
-  handshake,
-  serialize,
-  unserialize,
+  protocols,
   setTimeout,
   clearTimeout,
   logger,
-  log
+  log,
+  WebSocket
 ) {
   var debugSymbol // the Unicode symbol used when logging debug information
   var emit        // a convenience for this.emit, bound to this
+  var protocol    // the protocol in use for this connection
   var sessions    // a map of session ID to session
   var sessionSeq  // the most recent session ID, which are sequential integers
 
@@ -25,10 +25,22 @@ function RinqConnection (
   sessions = {}
   debugSymbol = '\uD83D\uDC1E'
 
-  socket.addEventListener('open', onOpen)
-  socket.addEventListener('error', onError)
-  socket.addEventListener('close', onClose)
-  socket.addEventListener('message', onFirstMessage)
+  if (socket.readyState === WebSocket.CONNECTING) {
+    socket.addEventListener('open', onOpen)
+    socket.addEventListener('error', onError)
+    socket.addEventListener('close', onClose)
+    socket.addEventListener('message', onMessage)
+  } else if (socket.readyState === WebSocket.OPEN) {
+    socket.addEventListener('error', onError)
+    socket.addEventListener('close', onClose)
+    socket.addEventListener('message', onMessage)
+
+    setTimeout(onOpen, 0)
+  } else {
+    setTimeout(function () {
+      closeError(new Error('Connection closed before initialization.'))
+    }, 0)
+  }
 
   this.session = function session (options) {
     var sessionId
@@ -81,48 +93,32 @@ function RinqConnection (
   }
 
   function onOpen () {
-    socket.send(handshake)
-  }
+    protocol = protocols[socket.protocol]
 
-  function onFirstMessage (event) {
-    try {
-      validateHandshake(event.data)
-    } catch (error) {
+    if (protocol) {
       if (log && log.debug) {
         logger(
           [
-            '%c%s %sHandshake failed.',
-            'color: red',
+            '%c%s %sConnected.',
+            'color: green',
             debugSymbol,
             log.prefix
           ],
-          [[{error: error}]]
+          [[{protocol: socket.protocol}]]
         )
       }
 
-      return closeError(error)
+      emit('open')
+    } else {
+      closeError(new Error(
+        'Unexpected WebSocket protocol: ' + JSON.stringify(socket.protocol) + '.'
+      ))
     }
-
-    if (log && log.debug) {
-      logger(
-        [
-          '%c%s %sHandshake succeeded.',
-          'color: green',
-          debugSymbol,
-          log.prefix
-        ]
-      )
-    }
-
-    socket.removeEventListener('message', onFirstMessage)
-    socket.addEventListener('message', onMessage)
-
-    emit('open')
   }
 
   function onMessage (event) {
     try {
-      dispatch(unserialize(event.data))
+      dispatch(protocol.unserialize(event.data))
     } catch (error) {
       closeError(error)
     }
@@ -155,31 +151,7 @@ function RinqConnection (
   }
 
   function send (message) {
-    socket.send(serialize(message))
-  }
-
-  function validateHandshake (data) {
-    var prefix // the supplied handshake prefix as a string
-    var view   // a view into the handshake buffer
-
-    if (!(data instanceof ArrayBuffer)) {
-      throw new Error('Invalid handshake: ' + data)
-    }
-
-    if (data.byteLength !== 4) {
-      throw new Error('Invalid handshake length: ' + data.byteLength)
-    }
-
-    view = new Uint8Array(data)
-    prefix = String.fromCharCode(view[0], view[1])
-
-    if (prefix !== 'RQ') {
-      throw new Error('Unexpected handshake prefix: ' + JSON.stringify(prefix))
-    }
-
-    if (view[2] !== 2) {
-      throw new Error('Unsupported handshake version.')
-    }
+    socket.send(protocol.serialize(message))
   }
 
   function dispatch (message) {
@@ -216,7 +188,6 @@ function RinqConnection (
     socket.removeEventListener('open', onOpen)
     socket.removeEventListener('error', onError)
     socket.removeEventListener('close', onClose)
-    socket.removeEventListener('message', onFirstMessage)
     socket.removeEventListener('message', onMessage)
 
     for (sessionId in sessions) {

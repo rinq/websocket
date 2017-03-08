@@ -1,4 +1,3 @@
-var createHandshake = require('./create-handshake')
 var createLogger = require('./create-logger')
 var createSerialize = require('../serialization/create-serialize')
 var createUnserialize = require('../serialization/create-unserialize')
@@ -17,13 +16,20 @@ var unmarshalCallFailure = require('../serialization/unmarshaller/call-failure')
 var unmarshalCallSuccess = require('../serialization/unmarshaller/call-success')
 var unmarshalNotification = require('../serialization/unmarshaller/notification')
 
-var major         // the Rinq protocol major version
-var minor         // the Rinq protocol minor version
-var marshallers   // a map of outgoing message type to marshaller
-var unmarshallers // a map of incoming message type to unmarshaller
+var cborProtocolName   // the CBOR subprotocol name
+var jsonProtocolName   // the JSON subprotocol name
+var major              // the Rinq protocol major version
+var marshallers        // a map of outgoing message type to marshaller
+var minor              // the Rinq protocol minor version
+var protocolNamePrefix // the common protocol name prefix
+var unmarshallers      // a map of incoming message type to unmarshaller
 
-major = 2
+major = 1
 minor = 0
+
+protocolNamePrefix = 'rinq-' + major + '.' + minor
+cborProtocolName = protocolNamePrefix + '+cbor'
+jsonProtocolName = protocolNamePrefix + '+json'
 
 marshallers = {}
 marshallers[types.CALL] = marshalCall
@@ -52,33 +58,37 @@ module.exports = function connectionFactory (
   logger = createLogger(console)
 
   return function connection (url, options) {
-    var mimeType    // the MIME type of the serialization used for this connection
-    var serialize   // the core serialize function
-    var socket      // the WebSocket instance
-    var unserialize // the core unserialize function
+    var socket        // the WebSocket instance
+    var protocolNames // names of the acceptable protocols
+    var protocols     // pairs of serialization functions for the acceptable protocols
 
-    if (options && options.CBOR) {
-      mimeType = 'application/cbor'
-      serialize = options.CBOR.encode
-      unserialize = options.CBOR.decode
-    } else {
-      mimeType = 'application/json'
-      serialize = jsonEncode
-      unserialize = jsonDecode
+    protocols = {}
+    protocols[jsonProtocolName] = {
+      serialize: createSerialize(marshallers, jsonEncode),
+      unserialize: createUnserialize(unmarshallers, jsonDecode)
     }
 
-    socket = new WebSocket(url)
+    if (options && options.CBOR) {
+      protocolNames = [cborProtocolName, jsonProtocolName]
+      protocols[cborProtocolName] = {
+        serialize: createSerialize(marshallers, options.CBOR.encode),
+        unserialize: createUnserialize(unmarshallers, options.CBOR.decode)
+      }
+    } else {
+      protocolNames = [jsonProtocolName]
+    }
+
+    socket = new WebSocket(url, protocolNames)
     socket.binaryType = 'arraybuffer'
 
     return new RinqConnection(
       socket,
-      createHandshake(major, minor, mimeType),
-      createSerialize(marshallers, serialize),
-      createUnserialize(unmarshallers, unserialize),
+      protocols,
       setTimeout,
       clearTimeout,
       logger,
-      options && options.log
+      options && options.log,
+      WebSocket
     )
   }
 }

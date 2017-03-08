@@ -8,23 +8,22 @@ var WebSocket, setTimeout, clearTimeout, console, socket, subject
 
 describe('connectionFactory', function () {
   beforeEach(function () {
-    WebSocket = function WebSocket (url) {
+    WebSocket = function WebSocket (url, protocolNames) {
       socket = this
       this.url = url
+      this.protocol = protocolNames[0]
+      this.protocolNames = protocolNames
+      this.readyState = WebSocket.CONNECTING
       this.addEventListener = function addEventListener () {}
     }
+    WebSocket.CONNECTING = 0
     setTimeout = function setTimeout () {}
     clearTimeout = function clearTimeout () {}
     console = {}
 
     socket = null
 
-    subject = connectionFactory(
-      WebSocket,
-      setTimeout,
-      clearTimeout,
-      console
-    )
+    subject = connectionFactory(WebSocket, setTimeout, clearTimeout, console)
   })
 
   it('should create connections', function () {
@@ -34,6 +33,7 @@ describe('connectionFactory', function () {
     expect(actual).to.be.an.instanceof(RinqConnection)
     expect(socket).to.be.an.instanceof(WebSocket)
     expect(socket.url).to.equal(url)
+    expect(socket.protocolNames).to.deep.equal(['rinq-1.0+json'])
     expect(socket.binaryType).to.equal('arraybuffer')
   })
 
@@ -42,6 +42,7 @@ describe('connectionFactory', function () {
     var actual = subject(url, {CBOR: CBOR})
 
     expect(actual).to.be.an.instanceof(RinqConnection)
+    expect(socket.protocolNames).to.deep.equal(['rinq-1.0+cbor', 'rinq-1.0+json'])
   })
 
   it('should create connections with logging', function () {

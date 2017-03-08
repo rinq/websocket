@@ -2,4 +2,3 @@
 --bail
 --reporter dot
 --require test/bootstrap
-test/suite
