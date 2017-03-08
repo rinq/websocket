@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 (2017-03-09)
+
+- Attempting to fix automated deployment configuration.
+
 ## 0.1.1 (2017-03-09)
 
 - Attempting to fix automated deployment configuration.
