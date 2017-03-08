@@ -6,7 +6,7 @@ module.exports = {
   CALL_FAILURE: 'CF', // preamble, [seq, failureType, failureMessage], payload
   CALL_SUCCESS: 'CS', // preamble, [seq], payload
 
-  CALL_ASYNC: 'CA', // preamble, [namespace, command, timeout], payload
+  CALL_ASYNC: 'AC', // preamble, [namespace, command, timeout], payload
   CALL_ASYNC_ERROR: 'AE', // preamble, [namespace, command]
   CALL_ASYNC_FAILURE: 'AF', // preamble, [namespace, command, failureType, failureMessage], payload
   CALL_ASYNC_SUCCESS: 'AS', // preamble, [namespace, command], payload
