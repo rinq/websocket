@@ -2,9 +2,27 @@
   "name": "@rinq/websocket",
   "version": "0.0.0",
   "description": "Rinq in the browser.",
+  "keywords": [
+    "command-bus",
+    "websocket"
+  ],
   "repository": "rinq/websocket",
+  "homepage": "https://github.com/rinq/websocket",
+  "bugs": "https://github.com/rinq/websocket/issues",
+  "author": {
+    "name": "Erin Millard",
+    "url": "https://github.com/ezzatron"
+  },
+  "contributors": [],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "core",
+  "engines": {
+    "node": ">=4"
+  },
+  "dependencies": {},
   "devDependencies": {
     "cbor-js": "^0.1.0",
     "chai": "^3.5.0",
