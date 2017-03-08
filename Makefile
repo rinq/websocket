@@ -35,3 +35,4 @@ node_modules: yarn.lock
 
 yarn.lock: package.json
 	yarn upgrade
+	@touch $@
