@@ -1,7 +1,6 @@
 .eslint*
 .gitignore
 .travis.yml
-.yarnrc
 /.nyc_output/
 /coverage/
 /node_modules/
