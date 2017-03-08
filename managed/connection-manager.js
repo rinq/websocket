@@ -201,10 +201,14 @@ function RinqConnectionManager (
       options.log = log
     }
 
-    connection = createConnection(connectionManager.url, options)
+    try {
+      connection = createConnection(connectionManager.url, options)
 
-    connection.once('open', onOpen)
-    connection.once('close', onClose)
+      connection.once('open', onOpen)
+      connection.once('close', onClose)
+    } catch (error) {
+      emit('error', error)
+    }
   }
 
   function reconnect () {

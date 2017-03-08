@@ -130,6 +130,19 @@ function makeConnectionManagerSpecs (log) {
       expected.emit('open')
     })
 
+    it('should handle errors when creating connections', function (done) {
+      subject.once('error', function (actual) {
+        expect(actual).to.equal(expected)
+
+        done()
+      })
+
+      var expected = new Error('You done goofed.')
+      createConnection.throws(expected)
+      networkStatus.isOnline = true
+      subject.start()
+    })
+
     it('should be able to create session managers', function () {
       var actual = subject.sessionManager()
 
