@@ -2,6 +2,10 @@
 
 *Rinq in the browser.*
 
+[![Build Status](http://img.shields.io/travis/rinq/websocket/master.svg?style=flat-square)](https://travis-ci.org/rinq/websocket)
+[![Code Coverage](https://img.shields.io/codecov/c/github/rinq/websocket/master.svg?style=flat-square)](https://codecov.io/github/rinq/websocket)
+[![Latest Version](https://img.shields.io/github/tag/rinq/websocket.svg?style=flat-square&label=semver)](https://semver.org/)
+
 ## Usage
 
 ### Core module usage
