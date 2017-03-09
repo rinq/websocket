@@ -1,5 +1,5 @@
 import * as CBOR from 'cbor-js'
-import * as rinq from 'rinq-websocket/managed'
+import * as rinq from '@rinq/websocket/managed'
 import fetch from 'isomorphic-fetch'
 import bluebird from 'bluebird'
 

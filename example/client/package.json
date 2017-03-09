@@ -1,6 +1,7 @@
 {
   "private": true,
   "dependencies": {
+    "@rinq/websocket": "^0.1.4",
     "babel-core": "^6.17.0",
     "babel-loader": "^6.2.5",
     "babel-polyfill": "^6.16.0",
@@ -25,7 +26,6 @@
     "redux-immutable": "^3.0.11",
     "redux-logger": "^2.7.0",
     "redux-thunk": "^2.2.0",
-    "rinq-websocket": "rinq/websocket#master",
     "sass-loader": "^6.0.2",
     "webpack": "^2.2.1"
   },
