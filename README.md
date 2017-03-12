@@ -1,6 +1,6 @@
 # Rinq WebSocket
 
-*[Rinq](https://rinq.io) in the browser.*
+*[Rinq](http://rinq.io) in the browser.*
 
 [![Latest Version](https://img.shields.io/npm/v/@rinq/websocket.svg)](https://www.npmjs.com/package/@rinq/websocket)
 [![Build Status](http://img.shields.io/travis/rinq/websocket/master.svg)](https://travis-ci.org/rinq/websocket)
