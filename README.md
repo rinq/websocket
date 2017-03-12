@@ -1,10 +1,10 @@
 # Rinq WebSocket
 
-*Rinq in the browser.*
+*[Rinq](https://rinq.io) in the browser.*
 
-[![Latest Version](https://img.shields.io/npm/v/@rinq/websocket.svg?style=flat-square)](https://www.npmjs.com/package/@rinq/websocket)
-[![Build Status](http://img.shields.io/travis/rinq/websocket/master.svg?style=flat-square)](https://travis-ci.org/rinq/websocket)
-[![Code Coverage](https://img.shields.io/codecov/c/github/rinq/websocket/master.svg?style=flat-square)](https://codecov.io/github/rinq/websocket)
+[![Latest Version](https://img.shields.io/npm/v/@rinq/websocket.svg)](https://www.npmjs.com/package/@rinq/websocket)
+[![Build Status](http://img.shields.io/travis/rinq/websocket/master.svg)](https://travis-ci.org/rinq/websocket)
+[![Code Coverage](https://img.shields.io/codecov/c/github/rinq/websocket/master.svg)](https://codecov.io/github/rinq/websocket)
 
 ## Usage
 
