@@ -253,6 +253,22 @@ function makeConnectionSpecs (log) {
         socketEmitter.emit('message', {data: ''})
       })
 
+      it('should re-throw errors that occur during dispatch', function () {
+        var dispatchError = new Error('Error message.')
+        var sessionA = subject.session()
+        sessionA.on('notification', function () {
+          throw dispatchError
+        })
+
+        expect(function () {
+          socketEmitter.emit('message', {data: serialize({
+            type: types.NOTIFICATION,
+            session: 1,
+            notificationType: 'type-a'
+          })})
+        }).throw(dispatchError)
+      })
+
       it('should be able to be closed manually', function (done) {
         var session = subject.session()
         var sessionError

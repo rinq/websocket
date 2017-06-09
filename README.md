@@ -321,6 +321,9 @@ argument, and its `payload` value as the second argument. The `payload` value
 can be any plain JavaScript value sent by the server, including any values that
 can be unserialized from [JSON].
 
+Errors thrown while handling this event will cause disconnection. To avoid this,
+implement error handling inside the event handler.
+
 <a name="session.event.response" />
 
 ---
@@ -335,6 +338,9 @@ would normally be passed to a handler function supplied to
 [call()](#session.call). In addition to these arguments, `namespace` and
 `command` are provided, which supply the `namespace` and `command` values
 specified in the originating [call](#session.call).
+
+Errors thrown while handling this event will cause disconnection. To avoid this,
+implement error handling inside the event handler.
 
 <a name="session.event.destroy" />
 

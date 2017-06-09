@@ -121,6 +121,8 @@ function RinqConnection (
       dispatch(protocol.unserialize(event.data))
     } catch (error) {
       closeError(error)
+
+      throw error
     }
   }
 

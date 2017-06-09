@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.5 (2017-06-09)
+
+- Errors thrown by `notification` and `response` event handlers are no longer
+  swallowed.
+
 ## 0.1.4 (2017-03-09)
 
 - Added additional metadata to `package.json`.
