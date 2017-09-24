@@ -105,6 +105,18 @@ function RinqSession (
     if (timeout > 0) {
       timeoutId = setTimeout(
         function () {
+          if (log) {
+            logger(
+              [
+                '%c%s %s[recv] [%d] [erro] Call timed out.',
+                'color: red',
+                inSymbol,
+                log.prefix,
+                callId
+              ]
+            )
+          }
+
           delete calls[callId]
           callback(new Error(
             "Call to '" + command + "' in namespace '" + namespace +
