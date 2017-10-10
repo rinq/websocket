@@ -432,15 +432,27 @@ function messageSpecs (serialize, unserialize) {
       it('should support NOTIFICATION messages', successSpec({
         type: types.NOTIFICATION,
         session: 111,
+        namespace: 'ns',
         notificationType: 'notification-type',
         payload: 'payload'
       }))
+
+      it(
+        'should fail when unserializing NOTIFICATION messages with non-string namespace',
+        failureSpec(/invalid.*namespace/i, {
+          type: types.NOTIFICATION,
+          session: 111,
+          namespace: true,
+          notificationType: 'notification-type',
+        })
+      )
 
       it(
         'should fail when unserializing NOTIFICATION messages with non-string notification types',
         failureSpec(/invalid.*notificationType/i, {
           type: types.NOTIFICATION,
           session: 111,
+          namespace: 'ns',
           notificationType: true
         })
       )

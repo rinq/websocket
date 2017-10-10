@@ -374,23 +374,25 @@ function RinqSession (
   function dispatchNotification (message) {
     var type, payload
 
+    namespace = message.namespace
     type = message.notificationType
     payload = message.payload()
 
     if (log) {
       logger(
         [
-          '%c%s %s[recv] [noti] %s',
+          '%c%s %s[recv] [noti] %s %s',
           'color: teal',
           notificationSymbol,
           log.prefix,
+          namespace,
           type
         ],
-        [[{type: type, payload: payload}]]
+        [[{namespace: namespace, type: type, payload: payload}]]
       )
     }
 
-    emit('notification', message.notificationType, payload)
+    emit('notification', namespace, type, payload)
   }
 
   function doDestroy (error) {

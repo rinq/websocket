@@ -203,13 +203,15 @@ function makeConnectionSpecs (log) {
           if (notifyADone && notifyBDone) done()
         }
 
-        sessionA.once('notification', function (type) {
+        sessionA.once('notification', function (namespace, type) {
+          expect(namespace).to.equal('ns-a')
           expect(type).to.equal('type-a')
 
           notifyADone = true
           checkIfDone()
         })
-        sessionB.once('notification', function (type) {
+        sessionB.once('notification', function (namespace, type) {
+          expect(namespace).to.equal('ns-b')
           expect(type).to.equal('type-b')
 
           notifyBDone = true
@@ -219,11 +221,13 @@ function makeConnectionSpecs (log) {
         socketEmitter.emit('message', {data: serialize({
           type: types.NOTIFICATION,
           session: 2,
+          namespace: 'ns-b',
           notificationType: 'type-b'
         })})
         socketEmitter.emit('message', {data: serialize({
           type: types.NOTIFICATION,
           session: 1,
+          namespace: 'ns-a',
           notificationType: 'type-a'
         })})
       })
@@ -264,6 +268,7 @@ function makeConnectionSpecs (log) {
           socketEmitter.emit('message', {data: serialize({
             type: types.NOTIFICATION,
             session: 1,
+            namespace: 'ns-a',
             notificationType: 'type-a'
           })})
         }).throw(dispatchError)

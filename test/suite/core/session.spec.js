@@ -536,7 +536,8 @@ function makeSessionSpecs (log) {
     })
 
     it('should support notifications', function (done) {
-      subject.once('notification', function (type, payload) {
+      subject.once('notification', function (namespace, type, payload) {
+        expect(namespace).to.equal('ns')
         expect(type).to.equal('payload-type')
         expect(payload).to.equal('payload')
 
@@ -547,6 +548,7 @@ function makeSessionSpecs (log) {
 
       receiver({
         type: types.NOTIFICATION,
+        namespace: 'ns',
         notificationType: 'payload-type',
         payload: function () {
           return 'payload'

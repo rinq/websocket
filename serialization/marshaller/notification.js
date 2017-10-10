@@ -1,3 +1,3 @@
 module.exports = function marshalNotification (message) {
-  return [message.notificationType]
+  return [message.namespace, message.notificationType]
 }

@@ -13,7 +13,7 @@ module.exports = {
 
   EXECUTE: 'CX', // preamble, [namespace, command], payload
 
-  NOTIFICATION: 'NO', // preamble, [notificationType], payload
+  NOTIFICATION: 'NO', // preamble, [namespace, notificationType], payload
 
   SESSION_CREATE: 'SC', // preamble
   SESSION_DESTROY: 'SD' // preamble
