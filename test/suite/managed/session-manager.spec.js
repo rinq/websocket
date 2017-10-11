@@ -211,17 +211,19 @@ function makeSessionManagerSpecs (log) {
       })
 
       it('should propagate notifications from the session', function (done) {
+        var namespace = 'ns-a'
         var type = 'type-a'
         var payload = {a: 'b', c: 'd'}
 
-        subject.once('notification', function (typ, pyld) {
+        subject.once('notification', function (ns, typ, pyld) {
+          expect(ns).to.equal(namespace)
           expect(typ).to.equal(type)
           expect(pyld).to.equal(payload)
 
           done()
         })
 
-        session.emit('notification', type, payload)
+        session.emit('notification', namespace, type, payload)
       })
 
       it('should propagate responses from the session', function (done) {

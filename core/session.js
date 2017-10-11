@@ -372,7 +372,7 @@ function RinqSession (
   }
 
   function dispatchNotification (message) {
-    var type, payload
+    var namespace, type, payload
 
     namespace = message.namespace
     type = message.notificationType

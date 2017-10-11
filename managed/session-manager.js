@@ -155,8 +155,8 @@ function RinqSessionManager (
     emit('error', error)
   }
 
-  function onNotification (type, payload) {
-    emit('notification', type, payload)
+  function onNotification (namespace, type, payload) {
+    emit('notification', namespace, type, payload)
   }
 
   function onResponse (error, response, namespace, command) {

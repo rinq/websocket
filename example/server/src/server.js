@@ -401,15 +401,16 @@ export default function Server ({
     sessions[seq][request.session] = session
     session.id = `${seq}-${request.session}`
 
-    session.notify = function notify (notificationType, payload) {
+    session.notify = function notify (namespace, notificationType, payload) {
       const message = {
         type: NOTIFICATION,
         session: request.session,
+        namespace,
         notificationType,
         payload
       }
 
-      logger.info('[%d] [%d] [noti] %s %j', seq, request.session, notificationType, payload)
+      logger.info('[%d] [%d] [noti] %s %s %j', seq, request.session, namespace, notificationType, payload)
       send({socket, seq, request, serialization, message})
     }
 
