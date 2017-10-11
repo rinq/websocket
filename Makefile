@@ -4,12 +4,12 @@ test: node_modules
 
 .PHONY: coverage
 coverage: node_modules
-	NODE_ENV=test node_modules/.bin/nyc mocha test/suite
+	NODE_ENV=test node_modules/.bin/nyc node_modules/.bin/mocha test/suite
 	node_modules/.bin/nyc report --reporter=html
 
 .PHONY: ci
 ci: node_modules
-	NODE_ENV=test node_modules/.bin/nyc mocha test/suite
+	NODE_ENV=test node_modules/.bin/nyc node_modules/.bin/mocha test/suite
 	node_modules/.bin/nyc report --reporter=lcov
 
 .PHONY: open-coverage
