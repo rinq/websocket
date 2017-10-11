@@ -182,6 +182,48 @@ function RinqSession (
     })
   }
 
+  function listen (namespaces) {
+    if (log) {
+      logger(
+        [
+          '%c%s [noti] [listen] %s',
+          'color: teal',
+          outSymbol,
+          log.prefix,
+          namespaces.toString(),
+        ],
+        [[{namespaces: namespaces}]]
+      )
+    }
+
+    send({
+      type: types.NOTIFICATION_LISTEN,
+      session: sessionId,
+      namespaces: namespaces
+    })
+  }
+
+  function unlisten (namespaces) {
+    if (log) {
+      logger(
+        [
+          '%c%s [noti] [unlisten] %s',
+          'color: teal',
+          outSymbol,
+          log.prefix,
+          namespaces.toString(),
+        ],
+        [[{namespaces: namespaces}]]
+      )
+    }
+
+    send({
+      type: types.NOTIFICATION_UNLISTEN,
+      session: sessionId,
+      namespaces: namespaces
+    })
+  }
+
   function dispatch (message) {
     switch (message.type) {
       case types.SESSION_DESTROY: return dispatchSessionDestroy(message)

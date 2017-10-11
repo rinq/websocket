@@ -16,6 +16,8 @@ var marshalCallFailure = require('../../serialization/marshaller/call-failure')
 var marshalCallSuccess = require('../../serialization/marshaller/call-success')
 var marshalExecute = require('../../serialization/marshaller/execute')
 var marshalNotification = require('../../serialization/marshaller/notification')
+var marshalNotificationListen = require('../../serialization/marshaller/notification-listen')
+var marshalNotificationUnlisten = require('../../serialization/marshaller/notification-unlisten')
 var types = require('../../core/message-types')
 var unmarshalCall = require('../../serialization/unmarshaller/call')
 var unmarshalCallAsync = require('../../serialization/unmarshaller/call-async')
@@ -27,6 +29,8 @@ var unmarshalCallFailure = require('../../serialization/unmarshaller/call-failur
 var unmarshalCallSuccess = require('../../serialization/unmarshaller/call-success')
 var unmarshalExecute = require('../../serialization/unmarshaller/execute')
 var unmarshalNotification = require('../../serialization/unmarshaller/notification')
+var unmarshalNotificationListen = require('../../serialization/unmarshaller/notification-listen')
+var unmarshalNotificationUnlisten = require('../../serialization/unmarshaller/notification-unlisten')
 
 var marshallers = {}
 marshallers[types.CALL] = marshalCall
@@ -39,6 +43,8 @@ marshallers[types.CALL_ASYNC_FAILURE] = marshalCallAsyncFailure
 marshallers[types.CALL_ASYNC_SUCCESS] = marshalCallAsyncSuccess
 marshallers[types.EXECUTE] = marshalExecute
 marshallers[types.NOTIFICATION] = marshalNotification
+marshallers[types.NOTIFICATION_LISTEN] = marshalNotificationListen
+marshallers[types.NOTIFICATION_UNLISTEN] = marshalNotificationUnlisten
 marshallers[types.SESSION_CREATE] = null
 marshallers[types.SESSION_DESTROY] = null
 
@@ -53,6 +59,8 @@ unmarshallers[types.CALL_ASYNC_FAILURE] = unmarshalCallAsyncFailure
 unmarshallers[types.CALL_ASYNC_SUCCESS] = unmarshalCallAsyncSuccess
 unmarshallers[types.EXECUTE] = unmarshalExecute
 unmarshallers[types.NOTIFICATION] = unmarshalNotification
+unmarshallers[types.NOTIFICATION_LISTEN] = unmarshalNotificationListen
+unmarshallers[types.NOTIFICATION_UNLISTEN] = unmarshalNotificationUnlisten
 unmarshallers[types.SESSION_CREATE] = null
 unmarshallers[types.SESSION_DESTROY] = null
 
@@ -443,7 +451,7 @@ function messageSpecs (serialize, unserialize) {
           type: types.NOTIFICATION,
           session: 111,
           namespace: true,
-          notificationType: 'notification-type',
+          notificationType: 'notification-type'
         })
       )
 
@@ -454,6 +462,40 @@ function messageSpecs (serialize, unserialize) {
           session: 111,
           namespace: 'ns',
           notificationType: true
+        })
+      )
+    })
+
+    describe('for NOTIFICATION_LISTEN messages', function () {
+      it('should support NOTIFICATION_LISTEN messages', successSpec({
+        type: types.NOTIFICATION_LISTEN,
+        session: 111,
+        namespaces: ['ns-a', 'ns-b']
+      }))
+
+      it(
+        'should fail when unserializing NOTIFICATION_LISTEN messages with non-array namespaces',
+        failureSpec(/invalid.*namespace/i, {
+          type: types.NOTIFICATION_LISTEN,
+          session: 111,
+          namespaces: true
+        })
+      )
+    })
+
+    describe('for NOTIFICATION_UNLISTEN messages', function () {
+      it('should support NOTIFICATION_UNLISTEN messages', successSpec({
+        type: types.NOTIFICATION_UNLISTEN,
+        session: 111,
+        namespaces: ['ns-a', 'ns-b']
+      }))
+
+      it(
+        'should fail when unserializing NOTIFICATION_UNLISTEN messages with non-array namespaces',
+        failureSpec(/invalid.*namespace/i, {
+          type: types.NOTIFICATION_UNLISTEN,
+          session: 111,
+          namespaces: true
         })
       )
     })
