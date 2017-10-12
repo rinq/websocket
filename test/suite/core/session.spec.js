@@ -466,35 +466,31 @@ function makeSessionSpecs (log) {
     })
 
     it('should support listening to notification namespaces', function (done) {
-      var namespaces = ['ns-a', 'ns-b']
-
       sendProvider.send = function (actual) {
         expect(actual).to.deep.equal({
           type: types.NOTIFICATION_LISTEN,
           session: id,
-          namespaces: namespaces
+          namespaces: ['ns-a', 'ns-b']
         })
 
         done()
       }
 
-      subject.listen(namespaces)
+      subject.listen('ns-a', 'ns-b')
     })
 
     it('should support unlistening to notification namespaces', function (done) {
-      var namespaces = ['ns-a', 'ns-b']
-
       sendProvider.send = function (actual) {
         expect(actual).to.deep.equal({
           type: types.NOTIFICATION_UNLISTEN,
           session: id,
-          namespaces: namespaces
+          namespaces: ['ns-a', 'ns-b']
         })
 
         done()
       }
 
-      subject.unlisten(namespaces)
+      subject.unlisten('ns-a', 'ns-b')
     })
 
     it('should handle being destroyed when there are active calls', function (done) {

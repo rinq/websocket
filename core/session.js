@@ -75,7 +75,9 @@ function RinqSession (
     }
   }
 
-  this.listen = function listen (namespaces) {
+  this.listen = function listen () {
+    var namespaces = Array.prototype.slice.call(arguments)
+
     if (log) {
       logger(
         [
@@ -96,7 +98,9 @@ function RinqSession (
     })
   }
 
-  this.unlisten = function unlisten (namespaces) {
+  this.unlisten = function unlisten () {
+    var namespaces = Array.prototype.slice.call(arguments)
+
     if (log) {
       logger(
         [
