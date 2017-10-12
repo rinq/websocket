@@ -308,6 +308,13 @@ value sent by the server, including any values that can be unserialized from
 
 Listens to notifications on the given `namespaces` variable argument list.
 
+Listen accepts a variable argument list of string namespace names to listen on.
+It is safe to call listen for a namespace that is already being listened to.
+
+Notifications are only sent to sessions that are listening on specific
+namespaces. Sessions do not need to listen on any namespaces, but they can
+listen on as many namespaces as they like.
+
 <a name="session.unlisten" />
 
 ---
@@ -315,6 +322,12 @@ Listens to notifications on the given `namespaces` variable argument list.
 > *`void`* [**`session.unlisten`**](#session.unlisten) `(...namespaces)`
 
 Unlistens from notifications on the given `namespaces` variable argument list.
+
+Unlisten accepts a variable argument list of string namespace names to listen on.
+It is safe to call unlisten for a namespace that is not being listened to.
+
+Notifications will not be sent to sessions that are not listening on a namespace.
+Sessions do not need to listen on any namespaces.
 
 <a name="session.destroy" />
 
