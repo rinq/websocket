@@ -239,6 +239,8 @@ single *Rinq* connection:
 
 - [execute()](#session.execute)
 - [call()](#session.call)
+- [listen()](#session.listen)
+- [unlisten()](#session.unlisten)
 - [destroy()](#session.destroy)
 - [*notification* event](#session.event.notification)
 - [*response* event](#session.event.response)
@@ -297,6 +299,22 @@ the errors, use the [isFailure()](#core.isFailure) and
 If no `error` is supplied, the `response` value can be any plain JavaScript
 value sent by the server, including any values that can be unserialized from
 [JSON].
+
+<a name="session.listen" />
+
+---
+
+> *`void`* [**`session.listen`**](#session.listen) `(...namespaces)`
+
+Listens ....
+
+<a name="session.unlisten" />
+
+---
+
+> *`void`* [**`session.unlisten`**](#session.unlisten) `(...namespaces)`
+
+Unlistens ....
 
 <a name="session.destroy" />
 
@@ -524,6 +542,8 @@ Represents a transient *Rinq* session, and allows the creation of
 
 - [execute()](#sessionManager.execute)
 - [call()](#sessionManager.call)
+- [listen()](#sessionManager.listen)
+- [unlisten()](#sessionManager.unlisten)
 - [context()](#sessionManager.context)
 - [start()](#sessionManager.start)
 - [stop()](#sessionManager.stop)
@@ -615,6 +635,22 @@ Functionally equivalent to [session.execute](#session.execute).
 Sends a *Rinq* command, and handles the response.
 
 Functionally equivalent to [session.call](#session.call)..
+
+<a name="sessionManager.listen" />
+
+---
+
+> *`void`* [**`sessionManager.listen`**](#sessionManager.listen) `(...namespaces)`
+
+Listens ....
+
+<a name="sessionManager.unlisten" />
+
+---
+
+> *`void`* [**`sessionManager.unlisten`**](#sessionManager.unlisten) `(...namespaces)`
+
+Unlistens ....
 
 <a name="sessionManager.start" />
 

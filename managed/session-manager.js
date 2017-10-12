@@ -9,10 +9,11 @@ function RinqSessionManager (
   logger,
   log
 ) {
-  var connection     // the underlying connection
-  var debugSymbol    // the Unicode symbol used when logging debug information
-  var emit           // a convenience for this.emit, bound to this
-  var sessionManager // a convenience for this
+  var connection             // the underlying connection
+  var debugSymbol            // the Unicode symbol used when logging debug information
+  var emit                   // a convenience for this.emit, bound to this
+  var sessionManager         // a convenience for this
+  var notificationNamespaces // an array of notification namespaces currently being listened on
 
   EventEmitter.call(this)
   emit = this.emit.bind(this)
@@ -21,6 +22,7 @@ function RinqSessionManager (
 
   debugSymbol = '\uD83D\uDC1E'
   connection = null
+  notificationNamespaces = []
 
   this.isStarted = false
   this.session = null
@@ -90,6 +92,32 @@ function RinqSessionManager (
     }
 
     sessionManager.session.call(namespace, command, payload, timeout, callback)
+  }
+
+  this.listen = function listen () {
+    for (var namespace of arguments) {
+      if (!notificationNamespaces.includes(namespace)) {
+        notificationNamespaces.push(namespace)
+      }
+    }
+
+    var currentSession = sessionManager.session
+    if (currentSession) {
+      currentSession.listen.apply(currentSession, arguments)
+    }
+  }
+
+  this.unlisten = function unlisten () {
+    var namespaces = Array.prototype.slice.call(arguments)
+
+    notificationNamespaces = notificationNamespaces.filter(function (namespace) {
+      return !namespaces.includes(namespace)
+    })
+
+    var currentSession = sessionManager.session
+    if (currentSession) {
+      currentSession.unlisten.apply(currentSession, namespaces)
+    }
   }
 
   this.context = function (options) {
@@ -203,6 +231,7 @@ function RinqSessionManager (
 
     sessionManager.session = newConnection.session(options)
     sessionManager.session.on('notification', onNotification)
+    sessionManager.listen.apply(sessionManager, notificationNamespaces)
     sessionManager.session.on('response', onResponse)
     sessionManager.session.once('destroy', onDestroy)
 
