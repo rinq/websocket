@@ -481,6 +481,15 @@ function messageSpecs (serialize, unserialize) {
           namespaces: true
         })
       )
+
+      it(
+        'should fail when unserializing NOTIFICATION_LISTEN messages with non-string namespace in namespaces array',
+        failureSpec(/invalid.*namespace/i, {
+          type: types.NOTIFICATION_LISTEN,
+          session: 111,
+          namespaces: ['ns-a', true]
+        })
+      )
     })
 
     describe('for NOTIFICATION_UNLISTEN messages', function () {
@@ -496,6 +505,15 @@ function messageSpecs (serialize, unserialize) {
           type: types.NOTIFICATION_UNLISTEN,
           session: 111,
           namespaces: true
+        })
+      )
+
+      it(
+        'should fail when unserializing NOTIFICATION_UNLISTEN messages with non-string namespace in namespaces array',
+        failureSpec(/invalid.*namespace/i, {
+          type: types.NOTIFICATION_UNLISTEN,
+          session: 111,
+          namespaces: ['ns-a', true]
         })
       )
     })
