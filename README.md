@@ -312,14 +312,15 @@ Once a session is destroyed, it cannot be re-used.
 
 ---
 
-> `session.on(` [**`'notification'`**](#session.event.notification) `, function (type, payload) {})`
+> `session.on(` [**`'notification'`**](#session.event.notification) `, function (namespace, type, payload) {})`
 
 This event is emitted when a notification is received.
 
-The handler for this event accepts the notification's `type` string as the first
-argument, and its `payload` value as the second argument. The `payload` value
-can be any plain JavaScript value sent by the server, including any values that
-can be unserialized from [JSON].
+The handler for this event accepts the notification's `namespace` string as the
+first argument, the `type` string as the second argument, and its `payload`
+value as the third argument. The `payload` value can be any plain JavaScript
+value sent by the server, including any values that can be unserialized from
+[JSON].
 
 Errors thrown while handling this event will cause disconnection. To avoid this,
 implement error handling inside the event handler.
@@ -657,7 +658,7 @@ previous sessions.
 
 ---
 
-> `sessionManager.on(` [**`'notification'`**](#sessionManager.event.notification) `, function (type, payload) {})`
+> `sessionManager.on(` [**`'notification'`**](#sessionManager.event.notification) `, function (namespace, type, payload) {})`
 
 This event is emitted when an underlying session emits a
 [`notification` event](#session.event.notification).
