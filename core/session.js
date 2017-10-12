@@ -12,14 +12,16 @@ function RinqSession (
   logger,
   log
 ) {
-  var calls              // a map of call ID to call
-  var callSeq            // the most recent call ID, which are sequential integers
-  var debugSymbol        // the Unicode symbol used when logging debug information
-  var destroyError       // the error that caused the session to be destroyed
-  var emit               // a convenience for this.emit, bound to this
-  var inSymbol           // the Unicode symbol used when logging incoming messages
-  var notificationSymbol // the Unicode symbol used when logging notifications
-  var outSymbol          // the Unicode symbol used when logging outgoing messages
+  var calls                      // a map of call ID to call
+  var callSeq                    // the most recent call ID, which are sequential integers
+  var debugSymbol                // the Unicode symbol used when logging debug information
+  var destroyError               // the error that caused the session to be destroyed
+  var emit                       // a convenience for this.emit, bound to this
+  var inSymbol                   // the Unicode symbol used when logging incoming messages
+  var outSymbol                  // the Unicode symbol used when logging outgoing messages
+  var notificationSymbol         // the Unicode symbol used when logging notifications
+  var notificationListenSymbol   // the Unicode symbol used when logging notifications
+  var notificationUnlistenSymbol // the Unicode symbol used when logging notifications
 
   EventEmitter.call(this)
   emit = this.emit.bind(this)
@@ -32,6 +34,8 @@ function RinqSession (
   inSymbol = '\uD83D\uDCEC'
   outSymbol = '\uD83D\uDCEE'
   notificationSymbol = '\uD83D\uDCE2'
+  notificationListenSymbol = '\uD83D\uDD08'
+  notificationUnlistenSymbol = '\uD83D\uDD07'
 
   receive(dispatch, doDestroy)
 
@@ -81,11 +85,10 @@ function RinqSession (
     if (log) {
       logger(
         [
-          '%c%s %s[noti] [lstn] %s',
+          '%c%s %s[noti] [lstn]',
           'color: teal',
-          outSymbol,
-          log.prefix,
-          JSON.stringify(namespaces)
+          notificationListenSymbol,
+          log.prefix
         ],
         [[{namespaces: namespaces}]]
       )
@@ -104,11 +107,10 @@ function RinqSession (
     if (log) {
       logger(
         [
-          '%c%s %s[noti] [ulst] %s',
+          '%c%s %s[noti] [ulst]',
           'color: teal',
-          outSymbol,
-          log.prefix,
-          JSON.stringify(namespaces)
+          notificationUnlistenSymbol,
+          log.prefix
         ],
         [[{namespaces: namespaces}]]
       )
