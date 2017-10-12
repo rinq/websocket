@@ -75,6 +75,48 @@ function RinqSession (
     }
   }
 
+  this.listen = function listen (namespaces) {
+    if (log) {
+      logger(
+        [
+          '%c%s %s[noti] [lstn] %s',
+          'color: teal',
+          outSymbol,
+          log.prefix,
+          JSON.stringify(namespaces)
+        ],
+        [[{namespaces: namespaces}]]
+      )
+    }
+
+    send({
+      type: types.NOTIFICATION_LISTEN,
+      session: sessionId,
+      namespaces: namespaces
+    })
+  }
+
+  this.unlisten = function unlisten (namespaces) {
+    if (log) {
+      logger(
+        [
+          '%c%s %s[noti] [ulst] %s',
+          'color: teal',
+          outSymbol,
+          log.prefix,
+          JSON.stringify(namespaces)
+        ],
+        [[{namespaces: namespaces}]]
+      )
+    }
+
+    send({
+      type: types.NOTIFICATION_UNLISTEN,
+      session: sessionId,
+      namespaces: namespaces
+    })
+  }
+
   this.destroy = function destroy () {
     if (log && log.debug) {
       logger(
@@ -179,48 +221,6 @@ function RinqSession (
       command: command,
       timeout: timeout,
       payload: payload
-    })
-  }
-
-  function listen (namespaces) {
-    if (log) {
-      logger(
-        [
-          '%c%s [noti] [listen] %s',
-          'color: teal',
-          outSymbol,
-          log.prefix,
-          namespaces.toString(),
-        ],
-        [[{namespaces: namespaces}]]
-      )
-    }
-
-    send({
-      type: types.NOTIFICATION_LISTEN,
-      session: sessionId,
-      namespaces: namespaces
-    })
-  }
-
-  function unlisten (namespaces) {
-    if (log) {
-      logger(
-        [
-          '%c%s [noti] [unlisten] %s',
-          'color: teal',
-          outSymbol,
-          log.prefix,
-          namespaces.toString(),
-        ],
-        [[{namespaces: namespaces}]]
-      )
-    }
-
-    send({
-      type: types.NOTIFICATION_UNLISTEN,
-      session: sessionId,
-      namespaces: namespaces
     })
   }
 

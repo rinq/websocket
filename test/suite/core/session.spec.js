@@ -7,6 +7,7 @@ var RinqSession = require('../../../core/session')
 var types = require('../../../core/message-types')
 
 var id,
+  sendProvider,
   send,
   receive,
   setTimeout,
@@ -23,7 +24,12 @@ function makeSessionSpecs (log) {
   return function sessionSpecs () {
     beforeEach(function () {
       id = 234
-      send = spy()
+      sendProvider = {
+        send: function () {}
+      }
+      send = spy(function () {
+        return sendProvider.send.apply(null, arguments)
+      })
       receive = function receive (r, d) {
         receiver = r
         destroyer = d
@@ -457,6 +463,38 @@ function makeSessionSpecs (log) {
         namespace: namespace,
         command: command
       })
+    })
+
+    it('should support listening to notification namespaces', function (done) {
+      var namespaces = ['ns-a', 'ns-b']
+
+      sendProvider.send = function (actual) {
+        expect(actual).to.deep.equal({
+          type: types.NOTIFICATION_LISTEN,
+          session: id,
+          namespaces: namespaces
+        })
+
+        done()
+      }
+
+      subject.listen(namespaces)
+    })
+
+    it('should support unlistening to notification namespaces', function (done) {
+      var namespaces = ['ns-a', 'ns-b']
+
+      sendProvider.send = function (actual) {
+        expect(actual).to.deep.equal({
+          type: types.NOTIFICATION_UNLISTEN,
+          session: id,
+          namespaces: namespaces
+        })
+
+        done()
+      }
+
+      subject.unlisten(namespaces)
     })
 
     it('should handle being destroyed when there are active calls', function (done) {
