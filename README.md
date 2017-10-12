@@ -306,7 +306,7 @@ value sent by the server, including any values that can be unserialized from
 
 > *`void`* [**`session.listen`**](#session.listen) `(...namespaces)`
 
-Listens ....
+Listens to notifications on the given `namespaces` variable argument list.
 
 <a name="session.unlisten" />
 
@@ -314,7 +314,7 @@ Listens ....
 
 > *`void`* [**`session.unlisten`**](#session.unlisten) `(...namespaces)`
 
-Unlistens ....
+Unlistens from notifications on the given `namespaces` variable argument list.
 
 <a name="session.destroy" />
 
@@ -634,7 +634,7 @@ Functionally equivalent to [session.execute](#session.execute).
 
 Sends a *Rinq* command, and handles the response.
 
-Functionally equivalent to [session.call](#session.call)..
+Functionally equivalent to [session.call](#session.call).
 
 <a name="sessionManager.listen" />
 
@@ -642,7 +642,7 @@ Functionally equivalent to [session.call](#session.call)..
 
 > *`void`* [**`sessionManager.listen`**](#sessionManager.listen) `(...namespaces)`
 
-Listens ....
+Functionally equivalent to [session.listen](#session.listen).
 
 <a name="sessionManager.unlisten" />
 
@@ -650,7 +650,7 @@ Listens ....
 
 > *`void`* [**`sessionManager.unlisten`**](#sessionManager.unlisten) `(...namespaces)`
 
-Unlistens ....
+Functionally equivalent to [session.unlisten](#session.unlisten).
 
 <a name="sessionManager.start" />
 
