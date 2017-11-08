@@ -15,7 +15,7 @@ any reconnection logic, or application-level state. First a connection must be
 made, from which a [session] is created in order to communicate:
 
 ```js
-var rinq = require('rinq-websocket')
+var rinq = require('@rinq/websocket')
 
 var connection = rinq.connection('ws://example.org/')
 var session = rinq.session()
@@ -38,7 +38,7 @@ management of transient communication issues, such as network dropouts. First a
 [contexts], which provide similar functionality to a [session]:
 
 ```js
-var rinq = require('rinq-websocket/managed')
+var rinq = require('@rinq/websocket/managed')
 
 var connectionManager = rinq.connectionManager({url: 'ws://example.org/'})
 var sessionManager = connectionManager.sessionManager()
@@ -89,7 +89,7 @@ context.start()
 ### Core module
 
 ```js
-require('rinq-websocket')
+require('@rinq/websocket')
 ```
 
 The core module contains only the essential functionality for communicating via
@@ -375,7 +375,7 @@ Property  | Description                                                     | Ty
 ### Managed module
 
 ```js
-require('rinq-websocket/managed')
+require('@rinq/websocket/managed')
 ```
 
 The managed module contains higher-lever tools for managing *Rinq* connections
