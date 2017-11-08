@@ -12,14 +12,16 @@ function RinqSession (
   logger,
   log
 ) {
-  var calls              // a map of call ID to call
-  var callSeq            // the most recent call ID, which are sequential integers
-  var debugSymbol        // the Unicode symbol used when logging debug information
-  var destroyError       // the error that caused the session to be destroyed
-  var emit               // a convenience for this.emit, bound to this
-  var inSymbol           // the Unicode symbol used when logging incoming messages
-  var notificationSymbol // the Unicode symbol used when logging notifications
-  var outSymbol          // the Unicode symbol used when logging outgoing messages
+  var calls                      // a map of call ID to call
+  var callSeq                    // the most recent call ID, which are sequential integers
+  var debugSymbol                // the Unicode symbol used when logging debug information
+  var destroyError               // the error that caused the session to be destroyed
+  var emit                       // a convenience for this.emit, bound to this
+  var inSymbol                   // the Unicode symbol used when logging incoming messages
+  var outSymbol                  // the Unicode symbol used when logging outgoing messages
+  var notificationSymbol         // the Unicode symbol used when logging notifications
+  var notificationListenSymbol   // the Unicode symbol used when logging notifications
+  var notificationUnlistenSymbol // the Unicode symbol used when logging notifications
 
   EventEmitter.call(this)
   emit = this.emit.bind(this)
@@ -32,6 +34,8 @@ function RinqSession (
   inSymbol = '\uD83D\uDCEC'
   outSymbol = '\uD83D\uDCEE'
   notificationSymbol = '\uD83D\uDCE2'
+  notificationListenSymbol = '\uD83D\uDD08'
+  notificationUnlistenSymbol = '\uD83D\uDD07'
 
   receive(dispatch, doDestroy)
 
@@ -73,6 +77,50 @@ function RinqSession (
     } else {
       callAsync(namespace, command, payload, timeout)
     }
+  }
+
+  this.listen = function listen () {
+    var namespaces = Array.prototype.slice.call(arguments)
+
+    if (log) {
+      logger(
+        [
+          '%c%s %s[noti] [lstn]',
+          'color: teal',
+          notificationListenSymbol,
+          log.prefix
+        ],
+        [[{namespaces: namespaces}]]
+      )
+    }
+
+    send({
+      type: types.NOTIFICATION_LISTEN,
+      session: sessionId,
+      namespaces: namespaces
+    })
+  }
+
+  this.unlisten = function unlisten () {
+    var namespaces = Array.prototype.slice.call(arguments)
+
+    if (log) {
+      logger(
+        [
+          '%c%s %s[noti] [ulst]',
+          'color: teal',
+          notificationUnlistenSymbol,
+          log.prefix
+        ],
+        [[{namespaces: namespaces}]]
+      )
+    }
+
+    send({
+      type: types.NOTIFICATION_UNLISTEN,
+      session: sessionId,
+      namespaces: namespaces
+    })
   }
 
   this.destroy = function destroy () {
@@ -372,25 +420,27 @@ function RinqSession (
   }
 
   function dispatchNotification (message) {
-    var type, payload
+    var namespace, type, payload
 
+    namespace = message.namespace
     type = message.notificationType
     payload = message.payload()
 
     if (log) {
       logger(
         [
-          '%c%s %s[recv] [noti] %s',
+          '%c%s %s[recv] [noti] %s %s',
           'color: teal',
           notificationSymbol,
           log.prefix,
+          namespace,
           type
         ],
-        [[{type: type, payload: payload}]]
+        [[{namespace: namespace, type: type, payload: payload}]]
       )
     }
 
-    emit('notification', message.notificationType, payload)
+    emit('notification', namespace, type, payload)
   }
 
   function doDestroy (error) {

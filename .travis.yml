@@ -1,7 +1,6 @@
 language: node_js
 node_js:
-  - 6
-  - 7
+  - node
 cache: yarn
 script: make ci
 after_success: bash <(curl -s https://codecov.io/bash)
@@ -9,7 +8,6 @@ before_deploy: yarn version --no-git-tag-version --new-version "$TRAVIS_TAG"
 deploy:
   provider: npm
   on:
-    node: 7
     tags: true
   email: admin@rinq.io
   api_key:

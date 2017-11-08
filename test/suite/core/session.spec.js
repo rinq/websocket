@@ -7,6 +7,7 @@ var RinqSession = require('../../../core/session')
 var types = require('../../../core/message-types')
 
 var id,
+  sendProvider,
   send,
   receive,
   setTimeout,
@@ -23,7 +24,12 @@ function makeSessionSpecs (log) {
   return function sessionSpecs () {
     beforeEach(function () {
       id = 234
-      send = spy()
+      sendProvider = {
+        send: function () {}
+      }
+      send = spy(function () {
+        return sendProvider.send.apply(null, arguments)
+      })
       receive = function receive (r, d) {
         receiver = r
         destroyer = d
@@ -459,6 +465,34 @@ function makeSessionSpecs (log) {
       })
     })
 
+    it('should support listening to notification namespaces', function (done) {
+      sendProvider.send = function (actual) {
+        expect(actual).to.deep.equal({
+          type: types.NOTIFICATION_LISTEN,
+          session: id,
+          namespaces: ['ns-a', 'ns-b']
+        })
+
+        done()
+      }
+
+      subject.listen('ns-a', 'ns-b')
+    })
+
+    it('should support unlistening to notification namespaces', function (done) {
+      sendProvider.send = function (actual) {
+        expect(actual).to.deep.equal({
+          type: types.NOTIFICATION_UNLISTEN,
+          session: id,
+          namespaces: ['ns-a', 'ns-b']
+        })
+
+        done()
+      }
+
+      subject.unlisten('ns-a', 'ns-b')
+    })
+
     it('should handle being destroyed when there are active calls', function (done) {
       var namespace = 'ns-a'
       var command = 'cmd-a'
@@ -536,7 +570,8 @@ function makeSessionSpecs (log) {
     })
 
     it('should support notifications', function (done) {
-      subject.once('notification', function (type, payload) {
+      subject.once('notification', function (namespace, type, payload) {
+        expect(namespace).to.equal('ns')
         expect(type).to.equal('payload-type')
         expect(payload).to.equal('payload')
 
@@ -547,6 +582,7 @@ function makeSessionSpecs (log) {
 
       receiver({
         type: types.NOTIFICATION,
+        namespace: 'ns',
         notificationType: 'payload-type',
         payload: function () {
           return 'payload'

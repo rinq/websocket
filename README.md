@@ -239,6 +239,8 @@ single *Rinq* connection:
 
 - [execute()](#session.execute)
 - [call()](#session.call)
+- [listen()](#session.listen)
+- [unlisten()](#session.unlisten)
 - [destroy()](#session.destroy)
 - [*notification* event](#session.event.notification)
 - [*response* event](#session.event.response)
@@ -298,6 +300,36 @@ If no `error` is supplied, the `response` value can be any plain JavaScript
 value sent by the server, including any values that can be unserialized from
 [JSON].
 
+<a name="session.listen" />
+
+---
+
+> *`void`* [**`session.listen`**](#session.listen) `(...namespaces)`
+
+Listens to notifications on the given `namespaces` variable argument list.
+
+Listen accepts a variable argument list of string namespace names to listen on.
+It is safe to call listen for a namespace that is already being listened to.
+
+Notifications are only sent to sessions that are listening on specific
+namespaces. Sessions do not need to listen on any namespaces, but they can
+listen on as many namespaces as they like.
+
+<a name="session.unlisten" />
+
+---
+
+> *`void`* [**`session.unlisten`**](#session.unlisten) `(...namespaces)`
+
+Unlistens from notifications on the given `namespaces` variable argument list.
+
+Unlisten accepts a variable argument list of string namespace names to stop
+listening on. It is safe to call unlisten for a namespace that is not being
+listened to.
+
+Notifications will not be sent to sessions that are not listening on the
+namespace of a notification. Sessions do not need to listen on any namespaces.
+
 <a name="session.destroy" />
 
 ---
@@ -312,14 +344,15 @@ Once a session is destroyed, it cannot be re-used.
 
 ---
 
-> `session.on(` [**`'notification'`**](#session.event.notification) `, function (type, payload) {})`
+> `session.on(` [**`'notification'`**](#session.event.notification) `, function (namespace, type, payload) {})`
 
 This event is emitted when a notification is received.
 
-The handler for this event accepts the notification's `type` string as the first
-argument, and its `payload` value as the second argument. The `payload` value
-can be any plain JavaScript value sent by the server, including any values that
-can be unserialized from [JSON].
+The handler for this event accepts the notification's `namespace` string as the
+first argument, the `type` string as the second argument, and its `payload`
+value as the third argument. The `payload` value can be any plain JavaScript
+value sent by the server, including any values that can be unserialized from
+[JSON].
 
 Errors thrown while handling this event will cause disconnection. To avoid this,
 implement error handling inside the event handler.
@@ -523,6 +556,8 @@ Represents a transient *Rinq* session, and allows the creation of
 
 - [execute()](#sessionManager.execute)
 - [call()](#sessionManager.call)
+- [listen()](#sessionManager.listen)
+- [unlisten()](#sessionManager.unlisten)
 - [context()](#sessionManager.context)
 - [start()](#sessionManager.start)
 - [stop()](#sessionManager.stop)
@@ -613,7 +648,23 @@ Functionally equivalent to [session.execute](#session.execute).
 
 Sends a *Rinq* command, and handles the response.
 
-Functionally equivalent to [session.call](#session.call)..
+Functionally equivalent to [session.call](#session.call).
+
+<a name="sessionManager.listen" />
+
+---
+
+> *`void`* [**`sessionManager.listen`**](#sessionManager.listen) `(...namespaces)`
+
+Functionally equivalent to [session.listen](#session.listen).
+
+<a name="sessionManager.unlisten" />
+
+---
+
+> *`void`* [**`sessionManager.unlisten`**](#sessionManager.unlisten) `(...namespaces)`
+
+Functionally equivalent to [session.unlisten](#session.unlisten).
 
 <a name="sessionManager.start" />
 
@@ -657,7 +708,7 @@ previous sessions.
 
 ---
 
-> `sessionManager.on(` [**`'notification'`**](#sessionManager.event.notification) `, function (type, payload) {})`
+> `sessionManager.on(` [**`'notification'`**](#sessionManager.event.notification) `, function (namespace, type, payload) {})`
 
 This event is emitted when an underlying session emits a
 [`notification` event](#session.event.notification).

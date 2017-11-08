@@ -59,12 +59,14 @@ function makeSessionManagerSpecs (log) {
     it('should initialize on the next connection event when started', function (done) {
       subject.once('session', function (session) {
         expect(session).to.equal(expected)
+        expect(expected.listen).to.have.been.calledWithExactly()
         expect(subject.session).to.equal(expected)
 
         done()
       })
 
       var expected = new EventEmitter()
+      expected.listen = spy()
       var connection = new EventEmitter()
       connection.session = function () {
         return expected
@@ -76,18 +78,43 @@ function makeSessionManagerSpecs (log) {
     it('should initialize immediately if a connection is already available when started', function (done) {
       subject.once('session', function (session) {
         expect(session).to.equal(expected)
+        expect(expected.listen).to.have.been.calledWithExactly()
         expect(subject.session).to.equal(expected)
 
         done()
       })
 
       var expected = new EventEmitter()
+      expected.listen = spy()
       var connection = new EventEmitter()
       connection.session = function () {
         return expected
       }
       connectionManager.connection = connection
       subject.start()
+    })
+
+    it('should relisten to the correct namespaces upon initialization', function (done) {
+      subject.once('session', function (session) {
+        expect(session).to.equal(expected)
+        expect(expected.listen).to.have.been.calledWithExactly('b', 'd', 'a')
+
+        done()
+      })
+
+      var expected = new EventEmitter()
+      expected.listen = spy()
+      var connection = new EventEmitter()
+      connection.session = function () {
+        return expected
+      }
+      subject.start()
+      subject.listen('a', 'b', 'c')
+      subject.listen('b', 'c', 'd')
+      subject.unlisten('a', 'c')
+      subject.unlisten('c', 'e')
+      subject.listen('a')
+      connectionManager.emit('connection', connection)
     })
 
     it('should not support execution until a session is available', function () {
@@ -138,6 +165,8 @@ function makeSessionManagerSpecs (log) {
           session = new EventEmitter()
           session.execute = spy()
           session.call = spy()
+          session.listen = spy()
+          session.unlisten = spy()
           session.destroy = spy()
 
           return session
@@ -163,6 +192,18 @@ function makeSessionManagerSpecs (log) {
         subject.call('ns-a', 'cmd-a', 'payload', 111, handler)
 
         expect(session.call).to.have.been.calledWith('ns-a', 'cmd-a', 'payload', 111, handler)
+      })
+
+      it('should support listening to notification namespaces', function () {
+        subject.listen('a', 'b')
+
+        expect(session.listen).to.have.been.calledWithExactly('a', 'b')
+      })
+
+      it('should support unlistening to notification namespaces', function () {
+        subject.unlisten('a', 'b')
+
+        expect(session.unlisten).to.have.been.calledWithExactly('a', 'b')
       })
 
       it('should handle connections being closed', function (done) {
@@ -211,17 +252,19 @@ function makeSessionManagerSpecs (log) {
       })
 
       it('should propagate notifications from the session', function (done) {
+        var namespace = 'ns-a'
         var type = 'type-a'
         var payload = {a: 'b', c: 'd'}
 
-        subject.once('notification', function (typ, pyld) {
+        subject.once('notification', function (ns, typ, pyld) {
+          expect(ns).to.equal(namespace)
           expect(typ).to.equal(type)
           expect(pyld).to.equal(payload)
 
           done()
         })
 
-        session.emit('notification', type, payload)
+        session.emit('notification', namespace, type, payload)
       })
 
       it('should propagate responses from the session', function (done) {
