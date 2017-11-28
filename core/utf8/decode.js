@@ -1,8 +1,11 @@
+var CHUNK_SIZE = 65536
+
 module.exports = function utf8Decode (buffer) {
   var charCodes // an array of character codes built from the UTF-8 data
   var offset    // the current index into the buffer view
   var value     // holds the current byte
   var view      // a view into the supplied buffer
+  var string    // the final string
 
   view = new Uint8Array(buffer)
   charCodes = []
@@ -36,5 +39,12 @@ module.exports = function utf8Decode (buffer) {
     }
   }
 
-  return String.fromCharCode.apply(null, charCodes)
+  string = ''
+
+  for (var i = 0; i < charCodes.length; i += CHUNK_SIZE) {
+    string +=
+      String.fromCharCode.apply(null, charCodes.slice(i, i + CHUNK_SIZE))
+  }
+
+  return string
 }

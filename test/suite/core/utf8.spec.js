@@ -10,4 +10,16 @@ describe('UTF-8', function () {
 
     expect(output).to.equal(input)
   })
+
+  it('should support large strings', function () {
+    var input = ''
+
+    for (var i = 0; i < 150000; ++i) {
+      input += Math.floor(i % 10)
+    }
+
+    var output = utf8Decode(utf8Encode(input))
+
+    expect(output).to.equal(input)
+  })
 })
