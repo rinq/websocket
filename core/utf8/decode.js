@@ -1,4 +1,4 @@
-var CHUNK_SIZE = 65536
+var CHUNK_SIZE = 8192
 
 module.exports = function utf8Decode (buffer) {
   var charCodes // an array of character codes built from the UTF-8 data
