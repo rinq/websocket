@@ -1,6 +1,6 @@
 # Changelog
 
-## Next release
+## 0.1.6 (2018-02-22)
 
 - Fixed bug in serialization of calls with negative timeout values.
 
