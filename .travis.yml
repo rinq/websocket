@@ -1,16 +1,17 @@
 language: node_js
 node_js:
-  - 6
-  - 7
+- 6
+- 7
 cache: yarn
 script: make ci
 after_success: bash <(curl -s https://codecov.io/bash)
 before_deploy: yarn version --no-git-tag-version --new-version "$TRAVIS_TAG"
 deploy:
   provider: npm
+  email: admin@rinq.io
+  api_key:
+    secure: oP457xhbLsnzHZgs6x0+rcRGUHJ3Ux/TiJVzXCOwzGwRh0FDe/54rsUHYkVCQFEjPbNlRJD6gvxizFAdKO/n8rZukFzUzKFd1qRXNNSud0p5w+u1WhEWJyrIVFmGBGSxRY5GLOib2KhCmgIHccwBJ0G7ohLfHWrhvQQmmnsXqDbJTCGyfOJZqQ96XOy2ILZ0tZIXTCTa03binOoorDn2X/P4JXsZN6ojA7b50dcrLP0ynwYb8ka7Ji9EQlsDLv7sua9lXqEtkO17WwMO315iRrcGK/qhuHYURT5LWLGRSoKiH/PJHCNl6DcxvE7+lNFSHzbvDDdIo4Ac0E9i1T1cCZoC7kbvt805/SNZPtVkeMAStlFInemnV+WSklfhmFZxfIAUJiSrw55mEsevyQsxZ3SoSsJQGctW2QZHCtxjVu9rfVapIsRTPtQqWwX0y7ZB8CqDf+XHUO9EHhhYj4Nt/dWFVj0eXXIsg9+tsf8pLi3pzw9Wl/525/Ebu/RQlYIw5m/j8pXLexSByGiOsz7oKALBF/lQRdrDCi73obqDk7yfN4ihbbF6/0Ynk42vbmYEQg5YWSwSxtVLG/GYUzvpHk3bmzX/PxjIb2x0KYHrTvgR8IZ7ejMdHNK8j1ZmbvNK/dS8VsV83JyXAxVrt6PWkT0/4wgOlHrBK8e++ROsiPs=
   on:
     node: 7
     tags: true
-  email: admin@rinq.io
-  api_key:
-    secure: nod6eyDU9ByHf5L7987w2yn8GtwrR/jZDkJhjMdMPzl0ZUsQV7172Drm8UENdg63IwqDBzp7ssgzAF2xoBR+PuQoQ69Lcwy0La3ffvydlJo5O+MuL9byAWyaIZ7FxcdqGJrJCS79C8fcZ3+WJFQKjHAxx9E2vLIERSWItxYYBCvDxhDOhcRnQKLoISrmCEz+HqiprI1gyj3dTc2LFYbBvSmWVBj/iQT5tK6d2bRoXCJOHS5XFQK3EeDi+ycmzCP56TWvFD4BvMabkeRHZtmPV2dvU98a1RqpNlNdS9EQlEWJMuae8hQJph6P91g6nit+BoGuwfHjBgqkVbtryFzrRv7j26LYSzYlfIud2dAqsFDBZq8H6gat9NkzaUszsoYzSNX8fNfukSdrR07AmF0mk5Y95BuFUP28ATN6AiDEBKOV6fXO/SHLpqSt0yCru0koQYnYnUWS1l9evijnUIdv6Nco68vTlBwNylQ15EhgVVV6qujSNl8ckO0OEjG0WJcky1FfbzpbX2x97nK+7tz7++/i82KfTwr7cuNI/pkL3Zn3GiQDPlSEbn/H7yzIlzpWiqTWg31Rzn6kjEN+IREUBNjVKZx7Ntn3Bp9tr/QC/WskY2EA/xPPk0mlrqdmXZxuwrapWUXLp6dsQMqULqy+MI8KTHCCO6MJB3A/mkLNqhI=
+    repo: rinq/websocket
