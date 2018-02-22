@@ -8,6 +8,7 @@ after_success: bash <(curl -s https://codecov.io/bash)
 before_deploy: yarn version --no-git-tag-version --new-version "$TRAVIS_TAG"
 deploy:
   provider: npm
+  skip_cleanup: true
   email: admin@rinq.io
   api_key:
     secure: oP457xhbLsnzHZgs6x0+rcRGUHJ3Ux/TiJVzXCOwzGwRh0FDe/54rsUHYkVCQFEjPbNlRJD6gvxizFAdKO/n8rZukFzUzKFd1qRXNNSud0p5w+u1WhEWJyrIVFmGBGSxRY5GLOib2KhCmgIHccwBJ0G7ohLfHWrhvQQmmnsXqDbJTCGyfOJZqQ96XOy2ILZ0tZIXTCTa03binOoorDn2X/P4JXsZN6ojA7b50dcrLP0ynwYb8ka7Ji9EQlsDLv7sua9lXqEtkO17WwMO315iRrcGK/qhuHYURT5LWLGRSoKiH/PJHCNl6DcxvE7+lNFSHzbvDDdIo4Ac0E9i1T1cCZoC7kbvt805/SNZPtVkeMAStlFInemnV+WSklfhmFZxfIAUJiSrw55mEsevyQsxZ3SoSsJQGctW2QZHCtxjVu9rfVapIsRTPtQqWwX0y7ZB8CqDf+XHUO9EHhhYj4Nt/dWFVj0eXXIsg9+tsf8pLi3pzw9Wl/525/Ebu/RQlYIw5m/j8pXLexSByGiOsz7oKALBF/lQRdrDCi73obqDk7yfN4ihbbF6/0Ynk42vbmYEQg5YWSwSxtVLG/GYUzvpHk3bmzX/PxjIb2x0KYHrTvgR8IZ7ejMdHNK8j1ZmbvNK/dS8VsV83JyXAxVrt6PWkT0/4wgOlHrBK8e++ROsiPs=
