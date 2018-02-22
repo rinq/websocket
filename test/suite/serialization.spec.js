@@ -248,6 +248,22 @@ function messageSpecs (serialize, unserialize) {
         timeout: 222
       }))
 
+      it('should support CALL_ASYNC messages with zero timeouts', successSpec({
+        type: types.CALL_ASYNC,
+        session: 111,
+        namespace: 'ns',
+        command: 'cmd',
+        timeout: 0
+      }))
+
+      it('should support CALL_ASYNC messages with negative timeouts', successSpec({
+        type: types.CALL_ASYNC,
+        session: 111,
+        namespace: 'ns',
+        command: 'cmd',
+        timeout: -1
+      }))
+
       it(
         'should fail when unserializing CALL_ASYNC messages with non-string namespaces',
         failureSpec(/invalid.*namespace/i, {

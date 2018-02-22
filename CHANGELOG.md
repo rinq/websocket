@@ -1,5 +1,9 @@
 # Changelog
 
+## Next release
+
+- Fixed bug in serialization of calls with negative timeout values.
+
 ## 0.1.5 (2017-06-09)
 
 - Errors thrown by `notification` and `response` event handlers are no longer
