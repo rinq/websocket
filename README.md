@@ -112,10 +112,10 @@ Creates a new *Rinq* [connection] to `url`.
 
 The `options` are represented as a generic object, and may specify:
 
-Option   | Description                               | Type    | Example              | Default
----------|-------------------------------------------|---------|----------------------|---------
-`CBOR`   | A reference to the [cbor-js] module.      | object  | `require('cbor-js')` | *(none)*
-`log`    | A set of [logging options].               | object  | `{debug: true}`      | *(none)*
+Option   | Description                               | Type    | Example                 | Default
+---------|-------------------------------------------|---------|-------------------------|---------
+`CBOR`   | A reference to the [@rinq/cbor] module.   | object  | `require('@rinq/cbor')` | *(none)*
+`log`    | A set of [logging options].               | object  | `{debug: true}`         | *(none)*
 
 Specifying `CBOR` is recommended, as it enables messages to be serialized with
 [CBOR] rather than [JSON]:
@@ -397,12 +397,12 @@ Creates a new *Rinq* [connection manager].
 
 The `options` are represented as a generic object, and may specify:
 
-Option   | Description                                               | Type     | Example               | Default
----------|-----------------------------------------------------------|----------|-----------------------|--------------
-`url`    | The URL to connect to.                                    | string   | `'ws://example.org/'` | *(none)*
-`delay`  | A function for calculating the delay before reconnecting. | function | *(see below)*         | *(see below)*
-`CBOR`   | A reference to the [cbor-js] module.                      | object   | `require('cbor-js')`  | *(none)*
-`log`    | A set of [logging options].                               | object   | `{debug: true}`       | *(none)*
+Option   | Description                                               | Type     | Example                 | Default
+---------|-----------------------------------------------------------|----------|-------------------------|--------------
+`url`    | The URL to connect to.                                    | string   | `'ws://example.org/'`   | *(none)*
+`delay`  | A function for calculating the delay before reconnecting. | function | *(see below)*           | *(see below)*
+`CBOR`   | A reference to the [@rinq/cbor] module.                   | object   | `require('@rinq/cbor')` | *(none)*
+`log`    | A set of [logging options].                               | object   | `{debug: true}`         | *(none)*
 
 The `url` is optional, because it is sometimes necessary to determine this
 information based upon the outcome of some asynchronous action, such as fetching
@@ -792,7 +792,7 @@ If logging options are omitted entirely, no logging will take place.
 <!-- References -->
 
 [*notification* event]: #session.event.notification
-[cbor-js]: https://github.com/paroga/cbor-js
+[@rinq/cbor]: https://github.com/rinq/cbor-js
 [CBOR]: https://tools.ietf.org/html/rfc7049
 [connection manager]: #connectionmanager
 [connection]: #connection

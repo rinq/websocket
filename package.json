@@ -24,7 +24,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "cbor-js": "^0.1.0",
+    "@rinq/cbor": "^0.2.2",
     "chai": "^4.1.2",
     "dirty-chai": "^2.0.1",
     "eslint": "^4.7.2",

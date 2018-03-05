@@ -1,4 +1,4 @@
-var CBOR = require('cbor-js')
+var CBOR = require('@rinq/cbor')
 var expect = require('chai').expect
 
 var bufferJoin = require('../../core/buffer/join')
