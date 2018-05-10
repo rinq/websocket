@@ -13,10 +13,10 @@ function RinqConnection (
   WebSocket
 ) {
   var debugSymbol // the Unicode symbol used when logging debug information
-  var emit        // a convenience for this.emit, bound to this
-  var protocol    // the protocol in use for this connection
-  var sessions    // a map of session ID to session
-  var sessionSeq  // the most recent session ID, which are sequential integers
+  var emit // a convenience for this.emit, bound to this
+  var protocol // the protocol in use for this connection
+  var sessions // a map of session ID to session
+  var sessionSeq // the most recent session ID, which are sequential integers
 
   EventEmitter.call(this)
   emit = this.emit.bind(this)

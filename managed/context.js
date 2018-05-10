@@ -8,10 +8,10 @@ function RinqContext (
   logger,
   log
 ) {
-  var context     // a convenience for this
+  var context // a convenience for this
   var debugSymbol // the Unicode symbol used when logging debug information
-  var emit        // a convenience for this.emit, bound to this
-  var session     // the underlying session
+  var emit // a convenience for this.emit, bound to this
+  var session // the underlying session
 
   EventEmitter.call(this)
   emit = this.emit.bind(this)

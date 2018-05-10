@@ -8,19 +8,19 @@ export default function ConfigurationReader ({fetch, log}) {
     if (log) log('Reading configuration.')
 
     return fetch('config.json')
-    .then(function (response) {
-      return response.json()
-    })
-    .then(function (configuration) {
-      validate(configuration)
-      if (log) log('Read configuration:', configuration)
-      emit('configuration', configuration)
+      .then(function (response) {
+        return response.json()
+      })
+      .then(function (configuration) {
+        validate(configuration)
+        if (log) log('Read configuration:', configuration)
+        emit('configuration', configuration)
 
-      return configuration
-    })
-    .catch(function (error) {
-      emit('error', error)
-    })
+        return configuration
+      })
+      .catch(function (error) {
+        emit('error', error)
+      })
   }
 
   function validate (configuration) {

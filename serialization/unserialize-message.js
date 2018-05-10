@@ -6,11 +6,11 @@ module.exports = function unserializeMessage (
   unmarshallers,
   unserialize
 ) {
-  var view         // a view into the supplied buffer
+  var view // a view into the supplied buffer
   var unmarshaller // the unmarshaller for the unserialized message type
-  var header       // the unserialized header
-  var headerEnd    // the exclusive end index of the header
-  var message      // the unmarshalled message
+  var header // the unserialized header
+  var headerEnd // the exclusive end index of the header
+  var message // the unmarshalled message
 
   if (!(buffer instanceof ArrayBuffer)) {
     throw new Error('Invalid Rinq message data.')

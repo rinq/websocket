@@ -24,11 +24,11 @@ export function NetworkIndicator (props) {
 }
 
 export default connect(
-    function mapStateToProps (state) {
-      return {
-        isConnected: isRinqConnected(state),
-        isError: isRinqError(state),
-        isOnline: isNetworkOnline(state)
-      }
+  function mapStateToProps (state) {
+    return {
+      isConnected: isRinqConnected(state),
+      isError: isRinqError(state),
+      isOnline: isNetworkOnline(state)
     }
+  }
 )(NetworkIndicator)

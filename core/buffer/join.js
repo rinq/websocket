@@ -1,8 +1,8 @@
 module.exports = function bufferJoin () {
   var buffers // the supplied buffers to join
-  var length  // the length of the result buffer
-  var result  // a view into the result buffer
-  var offset  // current offset into the result buffer
+  var length // the length of the result buffer
+  var result // a view into the result buffer
+  var offset // current offset into the result buffer
 
   buffers = Array.prototype.slice.call(arguments)
 

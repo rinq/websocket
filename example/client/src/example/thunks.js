@@ -16,19 +16,19 @@ export function exampleCall (contextId, ns, command, payload) {
     dispatch(exampleSent(contextId, seq, ns, command))
 
     context.context.callAsync(ns, command, payload, 3000)
-    .then(function (payload) {
-      dispatch(exampleSuccess(seq, payload))
-    })
-    .catch(function (error) {
-      let payload
+      .then(function (payload) {
+        dispatch(exampleSuccess(seq, payload))
+      })
+      .catch(function (error) {
+        let payload
 
-      if (isFailure(error)) {
-        payload = error
-      } else {
-        payload = {message: error.message}
-      }
+        if (isFailure(error)) {
+          payload = error
+        } else {
+          payload = {message: error.message}
+        }
 
-      dispatch(exampleFailure(seq, payload))
-    })
+        dispatch(exampleFailure(seq, payload))
+      })
   }
 }

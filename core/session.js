@@ -12,14 +12,14 @@ function RinqSession (
   logger,
   log
 ) {
-  var calls              // a map of call ID to call
-  var callSeq            // the most recent call ID, which are sequential integers
-  var debugSymbol        // the Unicode symbol used when logging debug information
-  var destroyError       // the error that caused the session to be destroyed
-  var emit               // a convenience for this.emit, bound to this
-  var inSymbol           // the Unicode symbol used when logging incoming messages
+  var calls // a map of call ID to call
+  var callSeq // the most recent call ID, which are sequential integers
+  var debugSymbol // the Unicode symbol used when logging debug information
+  var destroyError // the error that caused the session to be destroyed
+  var emit // a convenience for this.emit, bound to this
+  var inSymbol // the Unicode symbol used when logging incoming messages
   var notificationSymbol // the Unicode symbol used when logging notifications
-  var outSymbol          // the Unicode symbol used when logging outgoing messages
+  var outSymbol // the Unicode symbol used when logging outgoing messages
 
   EventEmitter.call(this)
   emit = this.emit.bind(this)

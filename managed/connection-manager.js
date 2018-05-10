@@ -13,11 +13,11 @@ function RinqConnectionManager (
   logger,
   log
 ) {
-  var closeCount         // tracks the number of times the underlying connection has closed
-  var connection         // the underlying connection
-  var connectionManager  // a convenience for this
-  var debugSymbol        // the Unicode symbol used when logging debug information
-  var emit               // a convenience for this.emit, bound to this
+  var closeCount // tracks the number of times the underlying connection has closed
+  var connection // the underlying connection
+  var connectionManager // a convenience for this
+  var debugSymbol // the Unicode symbol used when logging debug information
+  var emit // a convenience for this.emit, bound to this
   var reconnectTimeoutId // the ID of the reconnect timeout
 
   EventEmitter.call(this)

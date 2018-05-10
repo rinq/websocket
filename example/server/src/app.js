@@ -107,14 +107,14 @@ function makeShutdown (signal) {
     logger.info('Caught %s, shutting down.', signal)
 
     server.stop()
-    .then(function () {
-      process.exit(0)
-    })
-    .catch(function (error) {
-      logger.error('Unable to stop server gracefully:', error.message, error.stack)
+      .then(function () {
+        process.exit(0)
+      })
+      .catch(function (error) {
+        logger.error('Unable to stop server gracefully:', error.message, error.stack)
 
-      process.exit(1)
-    })
+        process.exit(1)
+      })
   }
 }
 

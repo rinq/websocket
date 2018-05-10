@@ -29,8 +29,8 @@ export function ExampleSidebar (props) {
 }
 
 export default connect(
-    null,
-    function mapDispatchToProps (dispatch) {
-      return bindActionCreators({closeNavigation}, dispatch)
-    }
+  null,
+  function mapDispatchToProps (dispatch) {
+    return bindActionCreators({closeNavigation}, dispatch)
+  }
 )(ExampleSidebar)

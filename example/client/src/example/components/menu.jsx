@@ -49,13 +49,13 @@ export function ExampleMenu (props) {
 }
 
 export default connect(
-    function mapStateToProps (state) {
-      return {
-        layout: getLayout(state),
-        contextState: rinqContexts(state)
-      }
-    },
-    function mapDispatchToProps (dispatch) {
-      return bindActionCreators({closeNavigation, exampleCall}, dispatch)
+  function mapStateToProps (state) {
+    return {
+      layout: getLayout(state),
+      contextState: rinqContexts(state)
     }
+  },
+  function mapDispatchToProps (dispatch) {
+    return bindActionCreators({closeNavigation, exampleCall}, dispatch)
+  }
 )(ExampleMenu)

@@ -55,9 +55,9 @@ export function ExampleLog (props) {
 }
 
 export default connect(
-    function mapStateToProps (state) {
-      return {
-        calls: exampleCalls(state)
-      }
+  function mapStateToProps (state) {
+    return {
+      calls: exampleCalls(state)
     }
+  }
 )(ExampleLog)

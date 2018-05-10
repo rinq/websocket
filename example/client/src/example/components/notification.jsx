@@ -37,9 +37,9 @@ export function ExampleNotification (props) {
 }
 
 export default connect(
-    function mapStateToProps (state) {
-      return {
-        notification: rinqNotification(state)
-      }
+  function mapStateToProps (state) {
+    return {
+      notification: rinqNotification(state)
     }
+  }
 )(ExampleNotification)

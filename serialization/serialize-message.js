@@ -2,11 +2,11 @@ var bufferJoin = require('../core/buffer/join')
 var selectByType = require('./select-by-type')
 
 module.exports = function serializeMessage (message, marshallers, serialize) {
-  var preamble     // the byte representation of the message type and session
+  var preamble // the byte representation of the message type and session
   var preambleView // a view into the preamble
-  var marshaller   // the marshaller for the supplied message type
-  var header       // the serialized header
-  var headerSize   // the byte representation of the header size
+  var marshaller // the marshaller for the supplied message type
+  var header // the serialized header
+  var headerSize // the byte representation of the header size
 
   preamble = new ArrayBuffer(4)
   preambleView = new DataView(preamble)

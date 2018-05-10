@@ -16,13 +16,13 @@ var unmarshalCallFailure = require('../serialization/unmarshaller/call-failure')
 var unmarshalCallSuccess = require('../serialization/unmarshaller/call-success')
 var unmarshalNotification = require('../serialization/unmarshaller/notification')
 
-var cborProtocolName   // the CBOR subprotocol name
-var jsonProtocolName   // the JSON subprotocol name
-var major              // the Rinq protocol major version
-var marshallers        // a map of outgoing message type to marshaller
-var minor              // the Rinq protocol minor version
+var cborProtocolName // the CBOR subprotocol name
+var jsonProtocolName // the JSON subprotocol name
+var major // the Rinq protocol major version
+var marshallers // a map of outgoing message type to marshaller
+var minor // the Rinq protocol minor version
 var protocolNamePrefix // the common protocol name prefix
-var unmarshallers      // a map of incoming message type to unmarshaller
+var unmarshallers // a map of incoming message type to unmarshaller
 
 major = 1
 minor = 0
@@ -58,9 +58,9 @@ module.exports = function connectionFactory (
   logger = createLogger(console)
 
   return function connection (url, options) {
-    var socket        // the WebSocket instance
+    var socket // the WebSocket instance
     var protocolNames // names of the acceptable protocols
-    var protocols     // pairs of serialization functions for the acceptable protocols
+    var protocols // pairs of serialization functions for the acceptable protocols
 
     protocols = {}
     protocols[jsonProtocolName] = {

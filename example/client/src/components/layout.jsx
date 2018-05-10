@@ -57,12 +57,12 @@ export function ExampleLayout (props) {
 }
 
 export default connect(
-    function mapStateToProps (state) {
-      return {
-        isNavigationOpen: isNavigationOpen(state)
-      }
-    },
-    function mapDispatchToProps (dispatch) {
-      return bindActionCreators({openNavigation, updateLayout}, dispatch)
+  function mapStateToProps (state) {
+    return {
+      isNavigationOpen: isNavigationOpen(state)
     }
+  },
+  function mapDispatchToProps (dispatch) {
+    return bindActionCreators({openNavigation, updateLayout}, dispatch)
+  }
 )(ExampleLayout)

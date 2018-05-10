@@ -9,9 +9,9 @@ function RinqSessionManager (
   logger,
   log
 ) {
-  var connection     // the underlying connection
-  var debugSymbol    // the Unicode symbol used when logging debug information
-  var emit           // a convenience for this.emit, bound to this
+  var connection // the underlying connection
+  var debugSymbol // the Unicode symbol used when logging debug information
+  var emit // a convenience for this.emit, bound to this
   var sessionManager // a convenience for this
 
   EventEmitter.call(this)

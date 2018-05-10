@@ -1,8 +1,8 @@
 module.exports = function utf8Encode (string) {
-  var bytes    // an array of UTF-8 bytes built from the supplied string
+  var bytes // an array of UTF-8 bytes built from the supplied string
   var charCode // holds the current character code
-  var encoded  // a view into the result buffer
-  var i        // used for iteration
+  var encoded // a view into the result buffer
+  var i // used for iteration
 
   bytes = []
 
