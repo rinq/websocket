@@ -52,6 +52,8 @@ function RinqSession (
       )
     }
 
+    emit('execute', namespace, command, payload)
+
     send({
       type: types.EXECUTE,
       session: sessionId,
@@ -67,6 +69,8 @@ function RinqSession (
 
       return
     }
+
+    emit('call', namespace, command, payload, timeout, callback)
 
     if (callback) {
       callWait(namespace, command, payload, timeout, callback)

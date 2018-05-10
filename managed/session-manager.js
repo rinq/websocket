@@ -155,6 +155,14 @@ function RinqSessionManager (
     emit('error', error)
   }
 
+  function onExecute (namespace, command, payload) {
+    emit('execute', namespace, command, payload)
+  }
+
+  function onCall (namespace, command, payload, timeout, callback) {
+    emit('call', namespace, command, payload, timeout, callback)
+  }
+
   function onNotification (type, payload) {
     emit('notification', type, payload)
   }
@@ -175,6 +183,8 @@ function RinqSessionManager (
       )
     }
 
+    sessionManager.session.removeListener('execute', onExecute)
+    sessionManager.session.removeListener('call', onCall)
     sessionManager.session.removeListener('notification', onNotification)
     sessionManager.session.removeListener('response', onResponse)
     sessionManager.session = null
@@ -202,6 +212,8 @@ function RinqSessionManager (
     }
 
     sessionManager.session = newConnection.session(options)
+    sessionManager.session.on('execute', onExecute)
+    sessionManager.session.on('call', onCall)
     sessionManager.session.on('notification', onNotification)
     sessionManager.session.on('response', onResponse)
     sessionManager.session.once('destroy', onDestroy)
