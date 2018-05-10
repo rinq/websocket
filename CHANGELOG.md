@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 (2018-05-10)
+
+- Attempting to fix automated deployment configuration.
+
 ## 0.2.0 (2018-05-10)
 
 - Added `execute` and `call` events to sessions and session managers.
