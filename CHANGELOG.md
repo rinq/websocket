@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0 (2018-05-10)
+
+- Added `execute` and `call` events to sessions and session managers.
+
 ## 0.1.6 (2018-02-22)
 
 - Fixed bug in serialization of calls with negative timeout values.
