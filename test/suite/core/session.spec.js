@@ -83,6 +83,42 @@ function makeSessionSpecs (log) {
       if (log) expect(logger).to.have.been.called()
     })
 
+    it('should emit execute events', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var payload = 'request-payload'
+
+      subject.on('execute', function (ns, cmd, pyld) {
+        expect(ns).to.equal(namespace)
+        expect(cmd).to.equal(command)
+        expect(pyld).to.equal(payload)
+
+        done()
+      })
+
+      subject.execute(namespace, command, payload)
+    })
+
+    it('should emit call events', function (done) {
+      var namespace = 'ns-a'
+      var command = 'cmd-a'
+      var payload = 'request-payload'
+      var timeout = 111
+      var callback = function () {}
+
+      subject.on('call', function (ns, cmd, pyld, tmt, cb) {
+        expect(ns).to.equal(namespace)
+        expect(cmd).to.equal(command)
+        expect(pyld).to.equal(payload)
+        expect(tmt).to.equal(timeout)
+        expect(cb).to.equal(callback)
+
+        done()
+      })
+
+      subject.call(namespace, command, payload, timeout, callback)
+    })
+
     it('should disallow calls with server-side timeout and a handler', function () {
       var callback = function () {
         subject.call('ns-a', 'cmd-a', null, -1, function () {})

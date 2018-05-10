@@ -210,6 +210,42 @@ function makeSessionManagerSpecs (log) {
         connectionManager.emit('error', expected)
       })
 
+      it('should propagate execute events from the session', function (done) {
+        var namespace = 'ns-a'
+        var command = 'cmd-a'
+        var payload = {a: 'b', c: 'd'}
+
+        subject.once('execute', function (ns, cmd, pyld) {
+          expect(ns).to.equal(namespace)
+          expect(cmd).to.equal(command)
+          expect(pyld).to.equal(payload)
+
+          done()
+        })
+
+        session.emit('execute', namespace, command, payload)
+      })
+
+      it('should propagate call events from the session', function (done) {
+        var namespace = 'ns-a'
+        var command = 'cmd-a'
+        var payload = {a: 'b', c: 'd'}
+        var timeout = 111
+        var callback = function () {}
+
+        subject.once('call', function (ns, cmd, pyld, tmt, cb) {
+          expect(ns).to.equal(namespace)
+          expect(cmd).to.equal(command)
+          expect(pyld).to.equal(payload)
+          expect(tmt).to.equal(timeout)
+          expect(cb).to.equal(callback)
+
+          done()
+        })
+
+        session.emit('call', namespace, command, payload, timeout, callback)
+      })
+
       it('should propagate notifications from the session', function (done) {
         var type = 'type-a'
         var payload = {a: 'b', c: 'd'}
