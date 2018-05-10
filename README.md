@@ -240,6 +240,8 @@ single *Rinq* connection:
 - [execute()](#session.execute)
 - [call()](#session.call)
 - [destroy()](#session.destroy)
+- [*execute* event](#session.event.execute)
+- [*call* event](#session.event.call)
 - [*notification* event](#session.event.notification)
 - [*response* event](#session.event.response)
 - [*destroy* event](#session.event.destroy)
@@ -307,6 +309,28 @@ value sent by the server, including any values that can be unserialized from
 Destroys the session.
 
 Once a session is destroyed, it cannot be re-used.
+
+<a name="session.event.execute" />
+
+---
+
+> `session.on(` [**`'execute'`**](#session.event.execute) `, function (...args) {})`
+
+This event is emitted when [execute()](#session.execute) is called.
+
+The handler for this event accepts the arguments passed to
+[execute()](#session.execute).
+
+<a name="session.event.call" />
+
+---
+
+> `session.on(` [**`'call'`**](#session.event.call) `, function (...args) {})`
+
+This event is emitted when [call()](#session.call) is called.
+
+The handler for this event accepts the arguments passed to
+[call()](#session.call).
 
 <a name="session.event.notification" />
 
@@ -528,6 +552,8 @@ Represents a transient *Rinq* session, and allows the creation of
 - [stop()](#sessionManager.stop)
 - [*session* event](#sessionManager.event.session)
 - [*notification* event](#sessionManager.event.notification)
+- [*execute* event](#sessionManager.event.execute)
+- [*call* event](#sessionManager.event.call)
 - [*response* event](#sessionManager.event.response)
 - [*error* event](#sessionManager.event.error)
 
@@ -652,6 +678,24 @@ This event will fire multiple times (interspersed with
 [`error` events](#sessionManager.event.error)) as transient communication
 problems arise, and are resolved. The latest session should always replace any
 previous sessions.
+
+<a name="sessionManager.event.execute" />
+
+---
+
+> `sessionManager.on(` [**`'execute'`**](#sessionManager.event.execute) `, function (...args) {})`
+
+This event is emitted when an underlying session emits an
+[`execute` event](#session.event.execute).
+
+<a name="sessionManager.event.call" />
+
+---
+
+> `sessionManager.on(` [**`'call'`**](#sessionManager.event.call) `, function (...args) {})`
+
+This event is emitted when an underlying session emits an
+[`call` event](#session.event.call).
 
 <a name="sessionManager.event.notification" />
 
